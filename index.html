@@ -1,206 +1,247 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" />
     <title>Minigolf Pálya Viewer - Összegzéssel</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
     <script src="model.js"></script>
     <script src="summary.js"></script>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
     <div id="viewer-container">
-        <div id="controls">
-            <button id="toggle-explode">Szétszedés</button>
-            <button id="reset-view">Alaphelyzet</button>
-            <button id="export-gltf">GLTF Export</button>
-        </div>
+      <div id="controls">
+        <button id="toggle-explode">Szétszedés</button>
+        <button id="reset-view">Alaphelyzet</button>
+        <button id="export-gltf">GLTF Export</button>
+      </div>
     </div>
     <div id="summary-panel">
-        <h1>Minigolf Pálya Specifikáció</h1>
-        <!-- A summary javascript-ből lesz feltöltve -->
+      <h1>Minigolf Pálya Specifikáció</h1>
+      <!-- A summary javascript-ből lesz feltöltve -->
     </div>
 
     <script>
-        // THREE.js setup
-        const viewerContainer = document.getElementById('viewer-container');
-        
-        // Alapvető setup
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1E1E1E);
-        const defaultCameraPosition = { x: -200, y: 100, z: 150 };
-        
-        // Kamera
-        const camera = new THREE.PerspectiveCamera(75, viewerContainer.clientWidth / viewerContainer.clientHeight, 0.1, 1000);
-        camera.position.set(defaultCameraPosition.x, defaultCameraPosition.y, defaultCameraPosition.z);
-        camera.lookAt(0, 0, 0);
-        
-        // Renderer
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
-        viewerContainer.appendChild(renderer.domElement);
-        
-        // Fények
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
-        
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-        directionalLight.position.set(50, 100, 50);
-        scene.add(directionalLight);
-        
-        // Minigolf modell létrehozása
-        const { version, dimensions, modelParts, originalPositions, exploder, resetPositions, summary, materials } = createMiniGolfModel(scene);
-        
-        // Szétszedés kezelése
-        let exploded = false;
-        
-        document.getElementById('toggle-explode').addEventListener('click', function() {
-            exploded = !exploded;
-            if (exploded) {
-               exploder();
-            } else {
-                resetPositions();
-            }
-        });
-        
-        // GLTF exportálási funkció
-        function exportGLTF(binary) {
-            // Ha szétszedett állapotban van, először állítsuk vissza
-            const wasExploded = exploded;
-            if (wasExploded) {
-                document.getElementById('toggle-explode').click();
-            }
-            
-            const exporter = new THREE.GLTFExporter();
-            
-            const options = {
-                binary: binary,
-                includeCustomExtensions: true
-            };
-            
-            exporter.parse(scene, function(result) {
-                if (binary) {
-                    saveArrayBuffer(result, 'minigolf_palya.glb');
-                } else {
-                    saveString(JSON.stringify(result, null, 2), 'minigolf_palya.gltf');
-                }
-                
-                // Ha szétszedett állapotban volt, állítsuk vissza
-                if (wasExploded) {
-                    document.getElementById('toggle-explode').click();
-                }
-            }, options);
-        }
-        
-        // Segédfüggvények a fájlok mentéséhez
-        function saveString(text, filename) {
-            const blob = new Blob([text], { type: 'text/plain' });
-            downloadBlob(blob, filename);
-        }
-        
-        function saveArrayBuffer(buffer, filename) {
-            const blob = new Blob([buffer], { type: 'application/octet-stream' });
-            downloadBlob(blob, filename);
-        }
-        
-        function downloadBlob(blob, filename) {
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            link.click();
-        }
-        
-        // Exportálás események
-        document.getElementById('export-gltf').addEventListener('click', function() {
-            exportGLTF(false);
-        });
-    
-        document.getElementById('reset-view').addEventListener('click', function() {
-            exploded = false;
-            
-            resetPositions();
-            // Nézet visszaállítása
-            scene.rotation.x = 0;
-            scene.rotation.y = 0;
-            scene.position.x = 0;
-            scene.position.y = 0;
-            
-            // Kamera visszaállítása
-            camera.position.set(defaultCameraPosition.x, defaultCameraPosition.y, defaultCameraPosition.z);
-            camera.lookAt(0, 0, 0);
-        });
-        
-        // Interakció kezelése
-        let isDragging = false;
-        let previousMousePosition = { x: 0, y: 0 };
-        let spaceDown = false;
-        
-        document.addEventListener('keydown', function(e) {
-            if (e.code === 'Space') spaceDown = true;
-        });
-        
-        document.addEventListener('keyup', function(e) {
-            if (e.code === 'Space') spaceDown = false;
-        });
-        
-        document.addEventListener('mousedown', function(e) {
-            // Csak a viewer területen
-            if (e.target === renderer.domElement) {
-                isDragging = true;
-            }
-        });
-        
-        document.addEventListener('mouseup', function() {
-            isDragging = false;
-        });
-        
-        document.addEventListener('mousemove', function(e) {
-            if (isDragging) {
-                const deltaMove = {
-                    x: e.offsetX - previousMousePosition.x,
-                    y: e.offsetY - previousMousePosition.y
-                };
-                
-                if (spaceDown) {
-                    // Mozgatás
-                    const panSpeed = 0.5;
-                    scene.position.x += deltaMove.x * panSpeed;
-                    scene.position.y -= deltaMove.y * panSpeed;
-                } else {
-                    // Forgatás
-                    scene.rotation.y += deltaMove.x * 0.01;
-                    scene.rotation.x += deltaMove.y * 0.01;
-                }
-            }
-            
-            previousMousePosition = { x: e.offsetX, y: e.offsetY };
-        });
-        
-        document.addEventListener('wheel', function(e) {
-            if (e.target === renderer.domElement) {
-                const zoomSpeed = 0.1;
-                camera.position.z += e.deltaY * zoomSpeed;
-                camera.position.z = Math.max(50, Math.min(400, camera.position.z));
-            }
-        });
-        
-        window.addEventListener('resize', function() {
-            camera.aspect = viewerContainer.clientWidth / viewerContainer.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
-        });
-        
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera);
-        }
-        
-        animate();
+      // THREE.js setup
+      const viewerContainer = document.getElementById("viewer-container");
 
-        const summaryPanel = document.getElementById('summary-panel');
-        summaryGenerator.renderFullSummary(summaryPanel, summary, version);
-        
+      // Alapvető setup
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf9f9f9);
+      const defaultCameraPosition = { x: -200, y: 100, z: 150 };
+
+      // Kamera
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        viewerContainer.clientWidth / viewerContainer.clientHeight,
+        0.1,
+        1000
+      );
+      camera.position.set(
+        defaultCameraPosition.x,
+        defaultCameraPosition.y,
+        defaultCameraPosition.z
+      );
+      camera.lookAt(0, 0, 0);
+
+      // Renderer
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(
+        viewerContainer.clientWidth,
+        viewerContainer.clientHeight
+      );
+      viewerContainer.appendChild(renderer.domElement);
+
+      // Fények
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      directionalLight.position.set(50, 100, 50);
+      scene.add(directionalLight);
+
+      // Minigolf modell létrehozása
+      const {
+        version,
+        dimensions,
+        modelParts,
+        originalPositions,
+        exploder,
+        resetPositions,
+        summary,
+        materials,
+      } = createMiniGolfModel(scene);
+
+      // Szétszedés kezelése
+      let exploded = false;
+
+      document
+        .getElementById("toggle-explode")
+        .addEventListener("click", function () {
+          exploded = !exploded;
+          if (exploded) {
+            exploder();
+          } else {
+            resetPositions();
+          }
+        });
+
+      // GLTF exportálási funkció
+      function exportGLTF(binary) {
+        // Ha szétszedett állapotban van, először állítsuk vissza
+        const wasExploded = exploded;
+        if (wasExploded) {
+          document.getElementById("toggle-explode").click();
+        }
+
+        const exporter = new THREE.GLTFExporter();
+
+        const options = {
+          binary: binary,
+          includeCustomExtensions: true,
+        };
+
+        exporter.parse(
+          scene,
+          function (result) {
+            if (binary) {
+              saveArrayBuffer(result, "minigolf_palya.glb");
+            } else {
+              saveString(
+                JSON.stringify(result, null, 2),
+                "minigolf_palya.gltf"
+              );
+            }
+
+            // Ha szétszedett állapotban volt, állítsuk vissza
+            if (wasExploded) {
+              document.getElementById("toggle-explode").click();
+            }
+          },
+          options
+        );
+      }
+
+      // Segédfüggvények a fájlok mentéséhez
+      function saveString(text, filename) {
+        const blob = new Blob([text], { type: "text/plain" });
+        downloadBlob(blob, filename);
+      }
+
+      function saveArrayBuffer(buffer, filename) {
+        const blob = new Blob([buffer], { type: "application/octet-stream" });
+        downloadBlob(blob, filename);
+      }
+
+      function downloadBlob(blob, filename) {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+      }
+
+      // Exportálás események
+      document
+        .getElementById("export-gltf")
+        .addEventListener("click", function () {
+          exportGLTF(false);
+        });
+
+      document
+        .getElementById("reset-view")
+        .addEventListener("click", function () {
+          exploded = false;
+
+          resetPositions();
+          // Nézet visszaállítása
+          scene.rotation.x = 0;
+          scene.rotation.y = 0;
+          scene.position.x = 0;
+          scene.position.y = 0;
+
+          // Kamera visszaállítása
+          camera.position.set(
+            defaultCameraPosition.x,
+            defaultCameraPosition.y,
+            defaultCameraPosition.z
+          );
+          camera.lookAt(0, 0, 0);
+        });
+
+      // Interakció kezelése
+      let isDragging = false;
+      let previousMousePosition = { x: 0, y: 0 };
+      let spaceDown = false;
+
+      document.addEventListener("keydown", function (e) {
+        if (e.code === "Space") spaceDown = true;
+      });
+
+      document.addEventListener("keyup", function (e) {
+        if (e.code === "Space") spaceDown = false;
+      });
+
+      document.addEventListener("mousedown", function (e) {
+        // Csak a viewer területen
+        if (e.target === renderer.domElement) {
+          isDragging = true;
+        }
+      });
+
+      document.addEventListener("mouseup", function () {
+        isDragging = false;
+      });
+
+      document.addEventListener("mousemove", function (e) {
+        if (isDragging) {
+          const deltaMove = {
+            x: e.offsetX - previousMousePosition.x,
+            y: e.offsetY - previousMousePosition.y,
+          };
+
+          if (spaceDown) {
+            // Mozgatás
+            const panSpeed = 0.5;
+            scene.position.x += deltaMove.x * panSpeed;
+            scene.position.y -= deltaMove.y * panSpeed;
+          } else {
+            // Forgatás
+            scene.rotation.y += deltaMove.x * 0.01;
+            scene.rotation.x += deltaMove.y * 0.01;
+          }
+        }
+
+        previousMousePosition = { x: e.offsetX, y: e.offsetY };
+      });
+
+      document.addEventListener("wheel", function (e) {
+        if (e.target === renderer.domElement) {
+          const zoomSpeed = 0.1;
+          camera.position.z += e.deltaY * zoomSpeed;
+          camera.position.z = Math.max(50, Math.min(400, camera.position.z));
+        }
+      });
+
+      window.addEventListener("resize", function () {
+        camera.aspect =
+          viewerContainer.clientWidth / viewerContainer.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(
+          viewerContainer.clientWidth,
+          viewerContainer.clientHeight
+        );
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      const summaryPanel = document.getElementById("summary-panel");
+      summaryGenerator.renderFullSummary(summaryPanel, summary, version);
     </script>
-</body>
+  </body>
 </html>

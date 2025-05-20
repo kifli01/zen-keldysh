@@ -1,142 +1,161 @@
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        body { 
-            margin: 0; 
-            overflow: hidden; 
-            background-color: #1E1E1E;
-            color: #ddd; 
-            display: flex;
-            height: 100vh;
-        }
-        #viewer-container {
-            flex: 1;
-            position: relative;
-            height: 100%;
-        }
-        #summary-panel {
-            width: 450px; /* Módosítva 350px-ről 450px-re */
-            height: 100%;
-            background-color: #252525;
-            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
-            padding: 20px; /* Módosítva 15px-ről 20px-re a szellősebb kinézetért */
-            overflow-y: auto;
-        }
-        #summary-panel h1 {
-            font-size: 22px; /* Növelt betűméret */
-            margin-bottom: 20px; /* Megnövelt eltartás */
-            color: #e0e0e0; /* Változtatva zöldről fehérre */
-            border-bottom: 1px solid #555;
-            padding-bottom: 10px;
-        }
-        #summary-panel h2 {
-            font-size: 18px; /* Növelt betűméret */
-            margin: 20px 0 15px 0; /* Megnövelt eltartás */
-            color: #e0e0e0; /* Változtatva zöldről fehérre */
-        }
-        #summary-panel h3 {
-            font-size: 16px; /* Növelt betűméret */
-            margin: 15px 0 10px 0; /* Megnövelt eltartás */
-            color: #e0e0e0; /* Változtatva zöldről fehérre */
-        }
-        .summary-section {
-            margin-bottom: 25px; /* Megnövelt eltartás */
-            background-color: #303030;
-            border-radius: 5px;
-            padding: 16px; /* Megnövelt belső eltartás */
-        }
-        .summary-item {
-            margin-bottom: 10px; /* Megnövelt eltartás */
-            display: flex;
-            justify-content: space-between;
-        }
-        .summary-item-key {
-            font-weight: bold;
-            color: #cccccc; /* Változtatva zöldről fehérre */
-        }
-        .summary-item-value {
-            text-align: right;
-        }
-        .dim-section {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px; /* Megnövelt eltartás */
-        }
-        .component-card {
-            background-color: #353535;
-            border-radius: 5px;
-            padding: 15px; /* Megnövelt belső eltartás */
-            margin-bottom: 15px; /* Megnövelt eltartás */
-        }
-        .material-tag {
-            background-color: #3949AB;
-            color: white;
-            padding: 4px 10px; /* Megnövelt belső eltartás */
-            border-radius: 3px;
-            font-size: 12px;
-            display: inline-block;
-            margin-top: 8px; /* Megnövelt eltartás */
-            margin-bottom: 8px; /* Új - eltartás alul is */
-        }
-        .sub-component {
-            background-color: #404040;
-            border-radius: 4px;
-            padding: 12px; /* Megnövelt belső eltartás */
-            margin: 12px 0; /* Megnövelt eltartás */
-        }
-        #controls {
-            position: absolute;
-            bottom: 15px;
-            left: 15px;
-            background: rgba(45, 45, 45, 0.85);
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        button {
-            background: #4CAF50;
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 5px;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background: #388E3C;
-        }
-        .weight-summary {
-            background-color: #4CAF50;
-            color: white;
-            border-radius: 5px;
-            padding: 12px; /* Megnövelt belső eltartás */
-            text-align: center;
-            margin: 15px 0; /* Megnövelt eltartás */
-            font-weight: bold;
-        }
-        .collapsible {
-            cursor: pointer;
-            position: relative;
-            padding-right: 20px;
-        }
-        .collapsible::after {
-            content: "▼";
-            position: absolute;
-            right: 0;
-            top: 0;
-            font-size: 12px;
-        }
-        .collapsible.collapsed::after {
-            content: "►";
-        }
-        .collapsible-content {
-            transition: max-height 0.3s ease-out;
-            overflow: hidden;
-        }
-        .collapsible-content.collapsed {
-            max-height: 0;
-        }
+/* Betűkészletek importálása - Inter (sans-serif) és Merriweather (serif) */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Merriweather:wght@300;400&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #ffffff;
+  color: #262730;
+  display: flex;
+  height: 100vh;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  font-weight: 300;
+}
+#viewer-container {
+  flex: 1;
+  position: relative;
+  height: 100%;
+}
+#summary-panel {
+  width: 450px;
+  height: 100%;
+  background-color: #f9f9f9;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  overflow-y: auto;
+}
+#summary-panel h1 {
+  font-size: 22px;
+  margin-bottom: 20px;
+  color: #262730;
+  border-bottom: 1px solid #e7e7ec;
+  padding-bottom: 10px;
+  font-family: "Merriweather", Georgia, serif;
+  font-weight: 300;
+}
+#summary-panel h2 {
+  font-size: 18px;
+  margin: 20px 0 15px 0;
+  color: #262730;
+  font-family: "Merriweather", Georgia, serif;
+  font-weight: 300;
+}
+#summary-panel h3 {
+  font-size: 16px;
+  margin: 15px 0 10px 0;
+  color: #262730;
+  font-family: "Merriweather", Georgia, serif;
+  font-weight: 300;
+}
+.summary-section {
+  margin-bottom: 25px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid #e7e7ec;
+}
+.summary-item {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+.summary-item-key {
+  font-weight: 400;
+  color: #4f5461;
+}
+.summary-item-value {
+  text-align: right;
+}
+.dim-section {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+.component-card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #e7e7ec;
+}
+.material-tag {
+  background-color: #eff1f9;
+  color: #4a67eb;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  display: inline-block;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+.sub-component {
+  background-color: #f9f9fa;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+  border: 1px solid #e7e7ec;
+}
+#controls {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e7e7ec;
+}
+button {
+  background: #4a67eb;
+  border: none;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-right: 5px;
+  transition: background 0.2s;
+  font-weight: 400;
+}
+button:hover {
+  background: #3b50ba;
+}
+.weight-summary {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  margin: 15px 0;
+  font-weight: 400;
+  border: 1px solid #c8e6c9;
+}
+.collapsible {
+  cursor: pointer;
+  position: relative;
+  padding-right: 20px;
+}
+.collapsible::after {
+  content: "▼";
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 12px;
+  color: #4a67eb;
+}
+.collapsible.collapsed::after {
+  content: "►";
+}
+.collapsible-content {
+  transition: max-height 0.3s ease-out;
+  overflow: hidden;
+}
+.collapsible-content.collapsed {
+  max-height: 0;
+}
