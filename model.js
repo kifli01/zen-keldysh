@@ -1,6 +1,6 @@
 function createMiniGolfModel(scene) {
   // Verzió
-  const version = "1.0.15"; // Verzió frissítve
+  const version = "1.0.16"; // Verzió frissítve (lyuk hozzáadva)
 
   // Méretek - 80x250 cm pályára és 9 mm vastagságú alaplapra
   const dimensions = {
@@ -9,6 +9,7 @@ function createMiniGolfModel(scene) {
     woodThickness: 0.9, // 9 mm
     turfThickness: 0.6, // 6 mm
     holeRadius: 5.4, // átmérő: 10.8 cm
+    holePositionX: 55, // A lyuk pozíciója a pálya végétől (cm)
     frameWidth: 6, // 6 cm széles lécek (módosítva 8-ról 6-ra)
     frameHeight: 4, // 4 cm magas lécek
     sideWidth: 6, // 6 cm széles oldallécek (módosítva 8-ról 6-ra)
@@ -39,6 +40,7 @@ function createMiniGolfModel(scene) {
     sideBoards: [],
     endBoard: null,
     legs: [], // Lábak tömbje
+    hole: null, // Lyuk a pályán
   };
 
   // Fa alaplap anyaga - lucfenyő rétegelt lemez
@@ -46,13 +48,75 @@ function createMiniGolfModel(scene) {
     color: 0xf5e0c3, // Világosabb, lucfenyő szín
     shininess: 15, // Csökkentett fényesség
   });
-  const woodGeometry = new THREE.BoxGeometry(
-    dimensions.length,
-    dimensions.woodThickness,
-    dimensions.width
+
+  // Lyuk alatti sötétebb anyag
+  const holeMaterial = new THREE.MeshPhongMaterial({
+    color: 0x333333, // Sötét szín a lyuk belsejéhez
+    shininess: 0,
+  });
+
+  // A lyuk pozíciójának kiszámítása
+  const holePosition = {
+    x: dimensions.length / 2 - dimensions.holePositionX,
+    y: 0,
+    z: 0,
+  };
+
+  // Alaplap geometria létrehozása lyukkal
+  const baseShape = new THREE.Shape();
+  baseShape.moveTo(-dimensions.length / 2, -dimensions.width / 2);
+  baseShape.lineTo(dimensions.length / 2, -dimensions.width / 2);
+  baseShape.lineTo(dimensions.length / 2, dimensions.width / 2);
+  baseShape.lineTo(-dimensions.length / 2, dimensions.width / 2);
+  baseShape.lineTo(-dimensions.length / 2, -dimensions.width / 2);
+
+  // Lyuk kivágása
+  const holeShape = new THREE.Path();
+  holeShape.absarc(
+    holePosition.x,
+    holePosition.z,
+    dimensions.holeRadius,
+    0,
+    Math.PI * 2,
+    true
   );
-  modelParts.base = new THREE.Mesh(woodGeometry, woodMaterial);
+  baseShape.holes.push(holeShape);
+
+  // Extrúzió beállítások
+  const extrudeSettings = {
+    steps: 1,
+    depth: dimensions.woodThickness,
+    bevelEnabled: false,
+  };
+
+  // Alaplap létrehozása extrúzióval
+  const baseGeometry = new THREE.ExtrudeGeometry(baseShape, extrudeSettings);
+  baseGeometry.rotateX(Math.PI / 2);
+  modelParts.base = new THREE.Mesh(baseGeometry, woodMaterial);
   modelParts.base.position.set(0, -dimensions.woodThickness / 2, 0);
+
+  // Műfű geometria létrehozása lyukkal
+  const turfExtrudeSettings = {
+    steps: 1,
+    depth: dimensions.turfThickness,
+    bevelEnabled: false,
+  };
+
+  // Műfű geometria
+  const turfGeometry = new THREE.ExtrudeGeometry(
+    baseShape,
+    turfExtrudeSettings
+  );
+  turfGeometry.rotateX(Math.PI / 2);
+
+  // Műfű réteg - pasztellesebb szín - LazyLawn Meadow Twist
+  const turfMaterial = new THREE.MeshPhongMaterial({
+    color: 0x7bbf69, // Világosabb, pasztellesebb zöld
+    shininess: 3, // Minimális fényesség
+  });
+
+  modelParts.turf = new THREE.Mesh(turfGeometry, turfMaterial);
+  modelParts.turf.position.set(0, dimensions.turfThickness / 2, 0);
 
   // Váz anyaga - lucfenyő
   const frameMaterial = new THREE.MeshPhongMaterial({
@@ -130,22 +194,10 @@ function createMiniGolfModel(scene) {
     modelParts.crossBeams.push(crossBeam);
   }
 
-  // Műfű réteg - pasztellesebb szín - LazyLawn Meadow Twist
-  const turfMaterial = new THREE.MeshPhongMaterial({
-    color: 0x7bbf69, // Világosabb, pasztellesebb zöld
-    shininess: 3, // Minimális fényesség
-  });
-  const turfGeometry = new THREE.BoxGeometry(
-    dimensions.length,
-    dimensions.turfThickness,
-    dimensions.width
-  );
-  modelParts.turf = new THREE.Mesh(turfGeometry, turfMaterial);
-  modelParts.turf.position.set(0, dimensions.turfThickness / 2, 0);
-
   // Modell részek hozzáadása a scene-hez
   scene.add(modelParts.base);
   scene.add(modelParts.turf);
+  scene.add(modelParts.hole);
 
   // Oldalkeretek - a pálya két hosszú oldalán (lucfenyő anyag)
   const sideBoardMaterial = new THREE.MeshPhongMaterial({
@@ -327,6 +379,9 @@ function createMiniGolfModel(scene) {
     // Fa alaplap feljebb emelése
     modelParts.base.position.y = 10;
 
+    // Lyuk mozgatása külön
+    modelParts.hole.position.y = 0;
+
     // Oldallécek feljebb és kifelé mozgatása
     modelParts.sideBoards[0].position.y = 30; // bal oldal
     modelParts.sideBoards[0].position.z -= 20;
@@ -377,6 +432,12 @@ function createMiniGolfModel(scene) {
     });
   };
 
+  // A lyuk térfogatának kiszámítása (henger)
+  const holeVolume =
+    Math.PI *
+    Math.pow(dimensions.holeRadius, 2) *
+    (dimensions.woodThickness + dimensions.turfThickness);
+
   // Helyes befoglaló méretek számítása, figyelembe véve a kereteket
   const totalLengthWithBorders = dimensions.length + dimensions.sideWidth * 2; // Alapméret + végzárólap + elülső lap (ha van)
   const totalWidthWithBorders = dimensions.width + dimensions.sideWidth * 2; // Alapszélesség + két oldali keret
@@ -388,11 +449,14 @@ function createMiniGolfModel(scene) {
   // A teljes magasság most figyelembe veszi a lábakat is
   const totalHeightWithLegs = totalHeightWithBase + dimensions.legHeight;
 
-  // Térfogat számítások
+  // Térfogat számítások - most már a lyuk térfogatát is figyelembe vesszük
   const baseVolume =
-    dimensions.length * dimensions.width * dimensions.woodThickness;
+    dimensions.length * dimensions.width * dimensions.woodThickness -
+    Math.PI * Math.pow(dimensions.holeRadius, 2) * dimensions.woodThickness;
+
   const turfVolume =
-    dimensions.length * dimensions.width * dimensions.turfThickness;
+    dimensions.length * dimensions.width * dimensions.turfThickness -
+    Math.PI * Math.pow(dimensions.holeRadius, 2) * dimensions.turfThickness;
 
   const longBeamsVolume =
     2 * dimensions.length * dimensions.frameHeight * dimensions.frameWidth;
@@ -453,6 +517,25 @@ function createMiniGolfModel(scene) {
         },
         volume: baseVolume, // cm³
         weight: baseWeight, // g
+        elements: [
+          {
+            name: "Lyuk",
+            count: 1,
+            dimensions: {
+              diameter: dimensions.holeRadius * 2, // lyuk átmérője
+              thickness: dimensions.woodThickness, // lyuk mélysége az alaplapban
+            },
+            volume:
+              Math.PI *
+              Math.pow(dimensions.holeRadius, 2) *
+              dimensions.woodThickness,
+            position: {
+              x: holePosition.x,
+              y: 0,
+              z: holePosition.z,
+            },
+          },
+        ],
       },
       {
         name: "Borítás",
@@ -464,6 +547,25 @@ function createMiniGolfModel(scene) {
         },
         volume: turfVolume, // cm³
         weight: turfWeight, // g
+        elements: [
+          {
+            name: "Lyuk",
+            count: 1,
+            dimensions: {
+              diameter: dimensions.holeRadius * 2, // lyuk átmérője
+              thickness: dimensions.turfThickness, // lyuk mélysége a borításban
+            },
+            volume:
+              Math.PI *
+              Math.pow(dimensions.holeRadius, 2) *
+              dimensions.turfThickness,
+            position: {
+              x: holePosition.x,
+              y: 0,
+              z: holePosition.z,
+            },
+          },
+        ],
       },
       {
         name: "Váz",
@@ -475,7 +577,7 @@ function createMiniGolfModel(scene) {
             dimensions: {
               length: dimensions.length, // 250 cm
               height: dimensions.frameHeight, // 4 cm
-              width: dimensions.frameWidth, // 8 cm (módosítva)
+              width: dimensions.frameWidth, // 6 cm
             },
             volume: longBeamsVolume, // cm³
             weight: longBeamsVolume * materials["Lucfenyő tömörfa"].density, // g
@@ -484,9 +586,9 @@ function createMiniGolfModel(scene) {
             name: "Keresztlécek",
             count: 2 + crossBeamCount, // 2 szélső + 5 belső
             dimensions: {
-              length: dimensions.frameWidth, // 8 cm (módosítva)
+              length: dimensions.frameWidth, // 6 cm
               height: dimensions.frameHeight, // 4 cm
-              width: dimensions.width - 2 * dimensions.frameWidth, // 64 cm (80 - 2*8)
+              width: dimensions.width - 2 * dimensions.frameWidth, // 68 cm (80 - 2*6)
             },
             volume: crossBeamsVolume, // cm³
             weight: crossBeamsVolume * materials["Lucfenyő tömörfa"].density, // g
@@ -505,8 +607,8 @@ function createMiniGolfModel(scene) {
             count: 2,
             dimensions: {
               length: dimensions.length, // 250 cm
-              height: dimensions.sideHeight, // 15 cm
-              width: dimensions.sideWidth, // 8 cm
+              height: dimensions.sideHeight, // 12 cm
+              width: dimensions.sideWidth, // 6 cm
             },
             volume: sideWallsVolume, // cm³
             weight: sideWallsVolume * materials["Lucfenyő tömörfa"].density, // g
@@ -515,9 +617,9 @@ function createMiniGolfModel(scene) {
             name: "Végfal",
             count: 1,
             dimensions: {
-              length: dimensions.sideWidth, // 8 cm
-              height: dimensions.sideHeight, // 15 cm
-              width: dimensions.width + 2 * dimensions.sideWidth, // 80 + 2*8 = 96 cm
+              length: dimensions.sideWidth, // 6 cm
+              height: dimensions.sideHeight, // 12 cm
+              width: dimensions.width + 2 * dimensions.sideWidth, // 80 + 2*6 = 92 cm
             },
             volume: endWallVolume, // cm³
             weight: endWallVolume * materials["Lucfenyő tömörfa"].density, // g
@@ -534,7 +636,7 @@ function createMiniGolfModel(scene) {
             name: "Tartó lábak",
             count: 6,
             dimensions: {
-              diameter: dimensions.legDiameter, // 6 cm átmérő (módosítva 8-ról 6-ra)
+              diameter: dimensions.legDiameter, // 6 cm átmérő
               height: dimensions.legHeight, // 15 cm magasság
             },
             volume: legVolume, // cm³
