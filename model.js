@@ -1,12 +1,13 @@
 function createMiniGolfModel(scene) {
   // Verzió
-  const version = "1.0.16"; // Verzió frissítve (lyuk hozzáadva)
+  const version = "1.0.17"; // Verzió frissítve (keresztléc csökkentve, 8 láb, alsó lemez hozzáadva)
 
   // Méretek - 80x250 cm pályára és 9 mm vastagságú alaplapra
   const dimensions = {
     length: 250, // 250 cm hosszú
     width: 80, // 80 cm széles
     woodThickness: 0.9, // 9 mm
+    bottomPlateThickness: 0.6, // 6 mm (új alsó rétegelt lemez)
     turfThickness: 0.6, // 6 mm
     holeRadius: 5.4, // átmérő: 10.8 cm
     holePositionX: 55, // A lyuk pozíciója a pálya végétől (cm)
@@ -34,6 +35,7 @@ function createMiniGolfModel(scene) {
   // Tároljuk a modell elemeit egy objektumban a könnyebb kezelhetőség érdekében
   const modelParts = {
     base: null,
+    bottomPlate: null, // Új 6mm-es rétegelt lemez alul
     turf: null,
     frame: [],
     crossBeams: [],
@@ -47,6 +49,12 @@ function createMiniGolfModel(scene) {
   const woodMaterial = new THREE.MeshPhongMaterial({
     color: 0xf5e0c3, // Világosabb, lucfenyő szín
     shininess: 15, // Csökkentett fényesség
+  });
+
+  // Alsó rétegelt lemez anyaga - lucfenyő rétegelt lemez (kicsit sötétebb)
+  const bottomPlateMaterial = new THREE.MeshPhongMaterial({
+    color: 0xecd9bd, // Kicsit sötétebb árnyalat, hogy látható legyen a különbség
+    shininess: 15,
   });
 
   // Lyuk alatti sötétebb anyag
@@ -94,6 +102,24 @@ function createMiniGolfModel(scene) {
   baseGeometry.rotateX(Math.PI / 2);
   modelParts.base = new THREE.Mesh(baseGeometry, woodMaterial);
   modelParts.base.position.set(0, -dimensions.woodThickness / 2, 0);
+
+  // Alsó rétegelt lemez létrehozása (teljes méretű, lyuk nélkül)
+  const bottomPlateGeometry = new THREE.BoxGeometry(
+    dimensions.length,
+    dimensions.bottomPlateThickness,
+    dimensions.width
+  );
+  modelParts.bottomPlate = new THREE.Mesh(
+    bottomPlateGeometry,
+    bottomPlateMaterial
+  );
+  modelParts.bottomPlate.position.set(
+    0,
+    -dimensions.frameHeight -
+      dimensions.woodThickness -
+      dimensions.bottomPlateThickness / 2,
+    0
+  );
 
   // Műfű geometria létrehozása lyukkal
   const turfExtrudeSettings = {
@@ -178,8 +204,8 @@ function createMiniGolfModel(scene) {
   scene.add(backCrossBeam);
   modelParts.frame.push(backCrossBeam);
 
-  // 5 keresztléc a rövidebb pályára (egyenletesen elosztva)
-  const crossBeamCount = 5;
+  // 4 keresztléc (csökkentve az eredeti 5-ről) a rövidebb pályára (egyenletesen elosztva)
+  const crossBeamCount = 4; // Csökkentve 5-ről 4-re
   const spacing = dimensions.length / (crossBeamCount + 1);
 
   for (let i = 0; i < crossBeamCount; i++) {
@@ -196,6 +222,7 @@ function createMiniGolfModel(scene) {
 
   // Modell részek hozzáadása a scene-hez
   scene.add(modelParts.base);
+  scene.add(modelParts.bottomPlate);
   scene.add(modelParts.turf);
   scene.add(modelParts.hole);
 
@@ -261,7 +288,7 @@ function createMiniGolfModel(scene) {
   scene.add(endBoard);
   modelParts.endBoard = endBoard;
 
-  // Lábak hozzáadása - 6 db a keresztlécekhez rögzítve
+  // Lábak hozzáadása - 8 db (növelve 6-ról 8-ra)
   const legMaterial = new THREE.MeshPhongMaterial({
     color: 0xecd9bd, // Lucfenyő szín, mint a váz
     shininess: 10,
@@ -275,7 +302,7 @@ function createMiniGolfModel(scene) {
     16 // radiális szegmensek száma
   );
 
-  // Láb pozíciói - 3 keresztlécen, bal és jobb oldalon
+  // Láb pozíciói - 4 helyen, bal és jobb oldalon (8 láb összesen)
   const legPositions = [
     // Első láb pozíciók (első keresztlécnél)
     {
@@ -283,6 +310,7 @@ function createMiniGolfModel(scene) {
       y:
         -dimensions.frameHeight -
         dimensions.woodThickness -
+        dimensions.bottomPlateThickness -
         dimensions.legHeight / 2,
       z:
         -dimensions.width / 2 +
@@ -294,18 +322,20 @@ function createMiniGolfModel(scene) {
       y:
         -dimensions.frameHeight -
         dimensions.woodThickness -
+        dimensions.bottomPlateThickness -
         dimensions.legHeight / 2,
       z:
         dimensions.width / 2 -
         dimensions.frameWidth -
         dimensions.legDiameter / 2,
     },
-    // Középső lábak (3. keresztlécnél - közepe)
+    // Első harmad lábak (1/3 távolságnál)
     {
-      x: 0,
+      x: -dimensions.length / 2 + dimensions.length / 3,
       y:
         -dimensions.frameHeight -
         dimensions.woodThickness -
+        dimensions.bottomPlateThickness -
         dimensions.legHeight / 2,
       z:
         -dimensions.width / 2 +
@@ -313,22 +343,49 @@ function createMiniGolfModel(scene) {
         dimensions.legDiameter / 2,
     },
     {
-      x: 0,
+      x: -dimensions.length / 2 + dimensions.length / 3,
       y:
         -dimensions.frameHeight -
         dimensions.woodThickness -
+        dimensions.bottomPlateThickness -
         dimensions.legHeight / 2,
       z:
         dimensions.width / 2 -
         dimensions.frameWidth -
         dimensions.legDiameter / 2,
     },
-    // Hátsó lábak (5. keresztlécnél - hátul)
+    // Második harmad lábak (2/3 távolságnál)
+    {
+      x: -dimensions.length / 2 + (2 * dimensions.length) / 3,
+      y:
+        -dimensions.frameHeight -
+        dimensions.woodThickness -
+        dimensions.bottomPlateThickness -
+        dimensions.legHeight / 2,
+      z:
+        -dimensions.width / 2 +
+        dimensions.frameWidth +
+        dimensions.legDiameter / 2,
+    },
+    {
+      x: -dimensions.length / 2 + (2 * dimensions.length) / 3,
+      y:
+        -dimensions.frameHeight -
+        dimensions.woodThickness -
+        dimensions.bottomPlateThickness -
+        dimensions.legHeight / 2,
+      z:
+        dimensions.width / 2 -
+        dimensions.frameWidth -
+        dimensions.legDiameter / 2,
+    },
+    // Hátsó lábak
     {
       x: dimensions.length / 2 - dimensions.frameWidth / 2,
       y:
         -dimensions.frameHeight -
         dimensions.woodThickness -
+        dimensions.bottomPlateThickness -
         dimensions.legHeight / 2,
       z:
         -dimensions.width / 2 +
@@ -340,6 +397,7 @@ function createMiniGolfModel(scene) {
       y:
         -dimensions.frameHeight -
         dimensions.woodThickness -
+        dimensions.bottomPlateThickness -
         dimensions.legHeight / 2,
       z:
         dimensions.width / 2 -
@@ -359,7 +417,7 @@ function createMiniGolfModel(scene) {
 
   const originalPositions = {};
 
-  // távolság a robbantásnál
+  // Eredeti pozíciók mentése
   Object.keys(modelParts).forEach((key) => {
     if (Array.isArray(modelParts[key])) {
       const parts = [];
@@ -373,36 +431,88 @@ function createMiniGolfModel(scene) {
   });
 
   const exploder = () => {
-    // Műfű réteg felemelése
-    modelParts.turf.position.y = 20;
+    // Vertikális távolságok beállítása - egyenletesebb, nagyobb távolságok
+    const levelSpacing = 20; // Megnövelt vertikális távolság a szintek között
 
-    // Fa alaplap feljebb emelése
-    modelParts.base.position.y = 10;
+    // Műfű réteg felemelése - legfelső szint
+    modelParts.turf.position.y = levelSpacing * 2;
+
+    // Fa alaplap felemelése - második szint
+    modelParts.base.position.y = levelSpacing;
+
+    // Alsó rétegelt lemez süllyesztése - külön szint lefelé
+    modelParts.bottomPlate.position.y = -levelSpacing * 3;
 
     // Lyuk mozgatása külön
-    modelParts.hole.position.y = 0;
+    if (modelParts.hole) {
+      modelParts.hole.position.y = 0;
+    }
+
+    // Oldalkeretek és végzáró léc - legfelső szint felett
+    const wallLevel = levelSpacing * 3;
 
     // Oldallécek feljebb és kifelé mozgatása
-    modelParts.sideBoards[0].position.y = 30; // bal oldal
-    modelParts.sideBoards[0].position.z -= 20;
+    modelParts.sideBoards[0].position.y = wallLevel; // bal oldal
+    modelParts.sideBoards[0].position.z -= 40;
 
-    modelParts.sideBoards[1].position.y = 30; // jobb oldal
-    modelParts.sideBoards[1].position.z += 20;
+    modelParts.sideBoards[1].position.y = wallLevel; // jobb oldal
+    modelParts.sideBoards[1].position.z += 40;
 
     // Végzáró léc feljebb és kifelé mozgatása
-    modelParts.endBoard.position.y = 30;
-    modelParts.endBoard.position.x += 20;
+    modelParts.endBoard.position.y = wallLevel;
+    modelParts.endBoard.position.x += 40;
 
-    // Lábak lefelé és kifelé mozgatása
+    // Váz elemek - mind ugyanazon a szinten, csak vízszintesen szétmozgatva
+    const frameLevel = -levelSpacing;
+
+    // Hosszú keret lécek mozgatása
+    for (let i = 0; i < 2; i++) {
+      modelParts.frame[i].position.y = frameLevel;
+
+      // Bal oldali léc balra, jobb oldali jobbra
+      if (i === 0) {
+        modelParts.frame[i].position.z -= 25;
+      } else {
+        modelParts.frame[i].position.z += 25;
+      }
+    }
+
+    // Rövid keret lécek (elöl-hátul) mozgatása
+    for (let i = 2; i < 4; i++) {
+      modelParts.frame[i].position.y = frameLevel;
+
+      // Elülső léc előre, hátsó hátra
+      if (i === 2) {
+        modelParts.frame[i].position.x -= 35;
+      } else {
+        modelParts.frame[i].position.x += 35;
+      }
+    }
+
+    // Keresztlécek mozgatása - azonos szinten, csak Z irányban eltolva
+    for (let i = 0; i < modelParts.crossBeams.length; i++) {
+      modelParts.crossBeams[i].position.y = frameLevel;
+
+      // Z irányban eltolás, de X irányban marad az eredeti pozíción
+      const zOffset = i % 2 === 0 ? -25 : 25;
+
+      modelParts.crossBeams[i].position.z += zOffset;
+    }
+
+    // Lábak - mind azonos szinten, lefelé mozgatva, de X tengely mentén eredeti helyükön
+    const legLevel = -levelSpacing * 4;
+
     if (modelParts.legs.length > 0) {
       for (let i = 0; i < modelParts.legs.length; i++) {
-        modelParts.legs[i].position.y -= 10;
+        modelParts.legs[i].position.y = legLevel;
 
-        // Páros indexű (bal oldali) lábak balra, páratlan indexűek (jobb oldaliak) jobbra
+        // Csak Z irányban mozdítjuk, attól függően, hogy bal vagy jobb oldali
         if (i % 2 === 0) {
-          modelParts.legs[i].position.z -= 10;
+          // Bal oldali lábak
+          modelParts.legs[i].position.z -= 40;
         } else {
-          modelParts.legs[i].position.z += 10;
+          // Jobb oldali lábak
+          modelParts.legs[i].position.z += 40;
         }
       }
     }
@@ -420,7 +530,7 @@ function createMiniGolfModel(scene) {
             originalPosition.z
           );
         });
-      } else {
+      } else if (modelParts[key]) {
         const part = modelParts[key];
         const originalPosition = originalPositions[key];
         part.position.set(
@@ -446,10 +556,13 @@ function createMiniGolfModel(scene) {
     dimensions.turfThickness +
     dimensions.frameHeight; // Alap magassága
 
-  // A teljes magasság most figyelembe veszi a lábakat is
-  const totalHeightWithLegs = totalHeightWithBase + dimensions.legHeight;
+  // A teljes magasság most figyelembe veszi a lábakat és az alsó lemez vastagságát is
+  const totalHeightWithLegs =
+    totalHeightWithBase +
+    dimensions.legHeight +
+    dimensions.bottomPlateThickness;
 
-  // Térfogat számítások - most már a lyuk térfogatát is figyelembe vesszük
+  // Térfogat számítások
   const baseVolume =
     dimensions.length * dimensions.width * dimensions.woodThickness -
     Math.PI * Math.pow(dimensions.holeRadius, 2) * dimensions.woodThickness;
@@ -457,6 +570,10 @@ function createMiniGolfModel(scene) {
   const turfVolume =
     dimensions.length * dimensions.width * dimensions.turfThickness -
     Math.PI * Math.pow(dimensions.holeRadius, 2) * dimensions.turfThickness;
+
+  // Alsó rétegelt lemez térfogata
+  const bottomPlateVolume =
+    dimensions.length * dimensions.width * dimensions.bottomPlateThickness;
 
   const longBeamsVolume =
     2 * dimensions.length * dimensions.frameHeight * dimensions.frameWidth;
@@ -478,26 +595,38 @@ function createMiniGolfModel(scene) {
   // Láb térfogat számítása (henger térfogata: π * r² * h)
   const legVolume =
     Math.PI * Math.pow(dimensions.legDiameter / 2, 2) * dimensions.legHeight;
-  const allLegsVolume = legVolume * 6; // 6 láb
+  const allLegsVolume = legVolume * 8; // 8 láb
 
   const totalVolume =
-    baseVolume + turfVolume + frameVolume + borderVolume + allLegsVolume;
+    baseVolume +
+    bottomPlateVolume +
+    turfVolume +
+    frameVolume +
+    borderVolume +
+    allLegsVolume;
 
   // Súly számítások
   const baseWeight = baseVolume * materials["Lucfenyő rétegelt lemez"].density;
+  const bottomPlateWeight =
+    bottomPlateVolume * materials["Lucfenyő rétegelt lemez"].density;
   const turfWeight =
     turfVolume * materials["LazyLawn Meadow Twist műfű"].density;
   const frameWeight = frameVolume * materials["Lucfenyő tömörfa"].density;
   const borderWeight = borderVolume * materials["Lucfenyő tömörfa"].density;
   const legsWeight = allLegsVolume * materials["Lucfenyő tömörfa"].density;
   const totalWeight =
-    baseWeight + turfWeight + frameWeight + borderWeight + legsWeight;
+    baseWeight +
+    bottomPlateWeight +
+    turfWeight +
+    frameWeight +
+    borderWeight +
+    legsWeight;
 
-  // Összegző objektum létrehozása - tömbbel, name attribútummal + súly adatokkal
+  // Összegző objektum létrehozása
   const summary = {
     totalDimensions: {
-      length: totalLengthWithBorders, // cm - Javítva: teljes hossz keretekkel együtt
-      width: totalWidthWithBorders, // cm - Javítva: teljes szélesség keretekkel együtt
+      length: totalLengthWithBorders, // cm
+      width: totalWidthWithBorders, // cm
       height: {
         withoutSides: totalHeightWithBase, // cm - alaplap + műfű + váz magassága
         withSides: dimensions.sideHeight, // cm - oldalfalak maximális magassága
@@ -536,6 +665,17 @@ function createMiniGolfModel(scene) {
             },
           },
         ],
+      },
+      {
+        name: "Alsó rétegelt lemez",
+        material: "Lucfenyő rétegelt lemez",
+        dimensions: {
+          length: dimensions.length, // 250 cm
+          width: dimensions.width, // 80 cm
+          thickness: dimensions.bottomPlateThickness, // 0.6 cm
+        },
+        volume: bottomPlateVolume, // cm³
+        weight: bottomPlateWeight, // g
       },
       {
         name: "Borítás",
@@ -584,7 +724,7 @@ function createMiniGolfModel(scene) {
           },
           {
             name: "Keresztlécek",
-            count: 2 + crossBeamCount, // 2 szélső + 5 belső
+            count: 2 + crossBeamCount, // 2 szélső + 4 belső
             dimensions: {
               length: dimensions.frameWidth, // 6 cm
               height: dimensions.frameHeight, // 4 cm
@@ -634,7 +774,7 @@ function createMiniGolfModel(scene) {
         elements: [
           {
             name: "Tartó lábak",
-            count: 6,
+            count: 8, // 8 láb
             dimensions: {
               diameter: dimensions.legDiameter, // 6 cm átmérő
               height: dimensions.legHeight, // 15 cm magasság
@@ -655,6 +795,11 @@ function createMiniGolfModel(scene) {
       },
       byComponent: [
         { name: "Faalap", weight: baseWeight, weightKg: baseWeight / 1000 },
+        {
+          name: "Alsó rétegelt lemez",
+          weight: bottomPlateWeight,
+          weightKg: bottomPlateWeight / 1000,
+        },
         { name: "Borítás", weight: turfWeight, weightKg: turfWeight / 1000 },
         { name: "Váz", weight: frameWeight, weightKg: frameWeight / 1000 },
         { name: "Keret", weight: borderWeight, weightKg: borderWeight / 1000 },
@@ -663,8 +808,8 @@ function createMiniGolfModel(scene) {
       byMaterial: [
         {
           name: "Lucfenyő rétegelt lemez",
-          weight: baseWeight,
-          weightKg: baseWeight / 1000,
+          weight: baseWeight + bottomPlateWeight,
+          weightKg: (baseWeight + bottomPlateWeight) / 1000,
         },
         {
           name: "LazyLawn Meadow Twist műfű",
@@ -687,7 +832,7 @@ function createMiniGolfModel(scene) {
     originalPositions,
     exploder,
     resetPositions,
-    summary, // Módosított összegző objektum súlyokkal
-    materials, // Anyagtulajdonságok
+    summary,
+    materials,
   };
 }
