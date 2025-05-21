@@ -1,6 +1,6 @@
 function createMiniGolfModel(scene) {
   // Verzió
-  const version = "1.0.17"; // Verzió frissítve (keresztléc csökkentve, 8 láb, alsó lemez hozzáadva)
+  const version = "1.0.18"; // Verzió frissítve (robbantott nézet finomítva)
 
   // Méretek - 80x250 cm pályára és 9 mm vastagságú alaplapra
   const dimensions = {
@@ -431,8 +431,8 @@ function createMiniGolfModel(scene) {
   });
 
   const exploder = () => {
-    // Vertikális távolságok beállítása - egyenletesebb, nagyobb távolságok
-    const levelSpacing = 20; // Megnövelt vertikális távolság a szintek között
+    // Vertikális távolságok beállítása - kisebb távolságok
+    const levelSpacing = 20; // Csökkentett vertikális távolság a szintek között
 
     // Műfű réteg felemelése - legfelső szint
     modelParts.turf.position.y = levelSpacing * 2;
