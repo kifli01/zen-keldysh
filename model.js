@@ -480,23 +480,11 @@ function createMiniGolfModel(scene) {
     // Rövid keret lécek (elöl-hátul) mozgatása
     for (let i = 2; i < 4; i++) {
       modelParts.frame[i].position.y = frameLevel;
-
-      // Elülső léc előre, hátsó hátra
-      if (i === 2) {
-        modelParts.frame[i].position.x -= 35;
-      } else {
-        modelParts.frame[i].position.x += 35;
-      }
     }
 
     // Keresztlécek mozgatása - azonos szinten, csak Z irányban eltolva
     for (let i = 0; i < modelParts.crossBeams.length; i++) {
       modelParts.crossBeams[i].position.y = frameLevel;
-
-      // Z irányban eltolás, de X irányban marad az eredeti pozíción
-      const zOffset = i % 2 === 0 ? -25 : 25;
-
-      modelParts.crossBeams[i].position.z += zOffset;
     }
 
     // Lábak - mind azonos szinten, lefelé mozgatva, de X tengely mentén eredeti helyükön
@@ -505,15 +493,6 @@ function createMiniGolfModel(scene) {
     if (modelParts.legs.length > 0) {
       for (let i = 0; i < modelParts.legs.length; i++) {
         modelParts.legs[i].position.y = legLevel;
-
-        // Csak Z irányban mozdítjuk, attól függően, hogy bal vagy jobb oldali
-        if (i % 2 === 0) {
-          // Bal oldali lábak
-          modelParts.legs[i].position.z -= 40;
-        } else {
-          // Jobb oldali lábak
-          modelParts.legs[i].position.z += 40;
-        }
       }
     }
   };
