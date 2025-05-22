@@ -45,12 +45,23 @@ const minigolfElements = [
     type: ELEMENT_TYPES.PLATE,
     material: "PINE_PLYWOOD_DARK",
     geometry: {
-      type: GEOMETRY_TYPES.BOX,
+      type: GEOMETRY_TYPES.EXTRUDE,
       dimensions: {
         width: COURSE_DIMENSIONS.width, // 80 cm
         height: COURSE_DIMENSIONS.bottomPlateThickness, // 0.6 cm
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
+      holes: [
+        {
+          type: "circle",
+          radius: COURSE_DIMENSIONS.holeRadius, // 5.4 cm
+          position: {
+            x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.holePositionX,
+            y: 0,
+            z: 0,
+          },
+        },
+      ],
     },
     transform: {
       position: {
@@ -166,12 +177,12 @@ const minigolfElements = [
       dimensions: {
         width: COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth, // 68 cm
         height: COURSE_DIMENSIONS.frameHeight, // 4 cm
-        length: COURSE_DIMENSIONS.frameWidth, // 6 cm
+        length: COURSE_DIMENSIONS.crossBeamWidth, // 12 cm (dupla széles)
       },
     },
     transform: {
       position: {
-        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.frameWidth / 2,
+        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2,
         y:
           -COURSE_DIMENSIONS.frameHeight / 2 -
           COURSE_DIMENSIONS.topPlateThickness,
@@ -193,12 +204,12 @@ const minigolfElements = [
       dimensions: {
         width: COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth, // 68 cm
         height: COURSE_DIMENSIONS.frameHeight, // 4 cm
-        length: COURSE_DIMENSIONS.frameWidth, // 6 cm
+        length: COURSE_DIMENSIONS.crossBeamWidth, // 12 cm (dupla széles)
       },
     },
     transform: {
       position: {
-        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.frameWidth / 2,
+        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
         y:
           -COURSE_DIMENSIONS.frameHeight / 2 -
           COURSE_DIMENSIONS.topPlateThickness,
@@ -210,7 +221,7 @@ const minigolfElements = [
     },
   },
 
-  // Váz - belső keresztlécek (4 db)
+  // Váz - belső keresztlécek (2 db)
   ...Array.from({ length: COURSE_DIMENSIONS.crossBeamCount }, (_, i) => {
     const spacing =
       COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
@@ -226,7 +237,7 @@ const minigolfElements = [
         dimensions: {
           width: COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth, // 68 cm
           height: COURSE_DIMENSIONS.frameHeight, // 4 cm
-          length: COURSE_DIMENSIONS.frameWidth, // 6 cm
+          length: COURSE_DIMENSIONS.crossBeamWidth, // 12 cm (dupla széles)
         },
       },
       transform: {
