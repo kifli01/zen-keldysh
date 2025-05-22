@@ -10,7 +10,7 @@ function createMiniGolfModel(scene) {
     bottomPlateThickness: 0.6, // 6 mm (új alsó rétegelt lemez)
     turfThickness: 0.6, // 6 mm
     holeRadius: 5.4, // átmérő: 10.8 cm
-    holePositionX: 55, // A lyuk pozíciója a pálya végétől (cm)
+    holePositionX: 40, // A lyuk pozíciója a pálya végétől (cm)
     frameWidth: 6, // 6 cm széles lécek (módosítva 8-ról 6-ra)
     frameHeight: 4, // 4 cm magas lécek
     sideWidth: 6, // 6 cm széles oldallécek (módosítva 8-ról 6-ra)
