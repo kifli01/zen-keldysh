@@ -17,6 +17,7 @@
     <script src="geometry-builder.js"></script>
     <script src="exploder.js"></script>
     <script src="scene-manager.js"></script>
+    <script src="view-mode.js"></script>
     <script src="summary.js"></script>
 
     <link rel="stylesheet" href="styles.css" />
@@ -25,7 +26,10 @@
     <div id="viewer-container">
       <div id="controls">
         <button id="toggle-explode">Szétszedés</button>
+        <button id="toggle-view-mode">Színes</button>
         <button id="reset-view">Alaphelyzet</button>
+        <button id="zoom-in">Zoom +</button>
+        <button id="zoom-out">Zoom -</button>
         <button id="export-gltf">GLTF Export</button>
       </div>
     </div>
@@ -40,6 +44,7 @@
       let sceneManager;
       let geometryBuilder;
       let exploder;
+      let viewModeManager;
       let allMeshes;
 
       // Inicializálás
@@ -54,6 +59,7 @@
           );
           geometryBuilder = new GeometryBuilder();
           exploder = new Exploder();
+          viewModeManager = new ViewModeManager(sceneManager, geometryBuilder);
 
           console.log("Manager objektumok létrehozva");
 
@@ -76,9 +82,22 @@
           sceneManager.addAllMeshes(allMeshes);
           console.log("Mesh-ek hozzáadva a scene-hez");
 
+          // ViewModeManager inicializálása - ELŐSZÖR mentjük az eredeti anyagokat
+          viewModeManager.saveOriginalMaterials(allMeshes);
+          console.log("Eredeti anyagok mentve");
+
           // Exploder inicializálása
           exploder.saveOriginalPositions(allMeshes);
+          exploder.setViewModeManager(viewModeManager);
           console.log("Eredeti pozíciók mentve");
+
+          // Alapértelmezett tervrajz nézet beállítása - FORCE módon
+          viewModeManager.switchToBlueprint(
+            allMeshes,
+            elementManager.getAllElements(),
+            true
+          );
+          console.log("Tervrajz nézet beállítva alapértelmezettként");
 
           // Summary generálása
           const summary = elementManager.generateSummary();
@@ -114,6 +133,20 @@
               : "Szétszedés";
           });
 
+        // Nézet váltás gomb
+        document
+          .getElementById("toggle-view-mode")
+          .addEventListener("click", function () {
+            viewModeManager.toggle(allMeshes, elementManager.getAllElements());
+
+            // Gomb szöveg frissítése
+            const newMode =
+              viewModeManager.getCurrentMode() === "realistic"
+                ? "Tervrajz"
+                : "Színes";
+            this.textContent = newMode;
+          });
+
         // Alaphelyzet gomb
         document
           .getElementById("reset-view")
@@ -125,8 +158,22 @@
                 "Szétszedés";
             }
 
-            // Nézet visszaállítása
+            // Nézet visszaállítása (kamera pozíció)
             sceneManager.resetView();
+          });
+
+        // Zoom In gomb
+        document
+          .getElementById("zoom-in")
+          .addEventListener("click", function () {
+            sceneManager.zoomCamera(-50); // Negatív érték = közelebb
+          });
+
+        // Zoom Out gomb
+        document
+          .getElementById("zoom-out")
+          .addEventListener("click", function () {
+            sceneManager.zoomCamera(50); // Pozitív érték = távolabb
           });
 
         // GLTF export gomb

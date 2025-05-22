@@ -8,6 +8,12 @@ class Exploder {
     this.originalPositions = new Map();
     this.isExploded = false;
     this.animationDuration = 500; // ms
+    this.viewModeManager = null; // ViewModeManager referencia
+  }
+
+  // ViewModeManager beállítása
+  setViewModeManager(viewModeManager) {
+    this.viewModeManager = viewModeManager;
   }
 
   // Eredeti pozíciók mentése
@@ -98,6 +104,16 @@ class Exploder {
       mesh.position.z =
         startPosition.z + (targetPosition.z - startPosition.z) * easedProgress;
 
+      // Edge pozíciók frissítése blueprint módban
+      if (
+        this.viewModeManager &&
+        this.viewModeManager.getCurrentMode() === "blueprint"
+      ) {
+        this.viewModeManager.updateEdgePositions(
+          new Map([[mesh.userData.elementId, mesh]])
+        );
+      }
+
       if (progress < 1) {
         requestAnimationFrame(animate);
       }
@@ -130,6 +146,14 @@ class Exploder {
     });
 
     this.isExploded = exploded;
+
+    // Edge pozíciók frissítése blueprint módban
+    if (
+      this.viewModeManager &&
+      this.viewModeManager.getCurrentMode() === "blueprint"
+    ) {
+      this.viewModeManager.updateEdgePositions(meshes);
+    }
   }
 
   // Egyedi elem robbantása

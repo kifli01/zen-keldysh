@@ -72,18 +72,18 @@ class SceneManager {
 
   // Fények hozzáadása
   createLights() {
-    // Ambient light - általános megvilágítás
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    // Ambient light - erősebb általános megvilágítás
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // 0.5 -> 0.7
     this.scene.add(ambientLight);
 
-    // Directional light - irányított fény árnyékokkal
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    // Directional light - gyengébb irányított fény
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.2); // 0.6 -> 0.4
     directionalLight.position.set(50, 100, 50);
     directionalLight.castShadow = true;
 
-    // Árnyék beállítások
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
+    // Árnyék beállítások - lágyabb árnyékok
+    directionalLight.shadow.mapSize.width = 1024; // 2048 -> 1024
+    directionalLight.shadow.mapSize.height = 1024; // 2048 -> 1024
     directionalLight.shadow.camera.near = 0.5;
     directionalLight.shadow.camera.far = 500;
     directionalLight.shadow.camera.left = -200;
@@ -93,8 +93,8 @@ class SceneManager {
 
     this.scene.add(directionalLight);
 
-    // További lágyabb fény oldalt
-    const sideLight = new THREE.DirectionalLight(0xffffff, 0.3);
+    // További lágyabb fény oldalt - erősebb
+    const sideLight = new THREE.DirectionalLight(0xffffff, 0.4); // 0.3 -> 0.4
     sideLight.position.set(-50, 50, -50);
     this.scene.add(sideLight);
   }
@@ -171,14 +171,27 @@ class SceneManager {
     this.scene.position.y -= deltaMove.y * panSpeed;
   }
 
-  // Kamera zoom
+  // Kamera zoom - javított verzió
   zoomCamera(deltaY) {
     const zoomSpeed = 0.1;
-    this.camera.position.z += deltaY * zoomSpeed;
-    this.camera.position.z = Math.max(
-      50,
-      Math.min(400, this.camera.position.z)
+    const zoomFactor = 1 + deltaY * zoomSpeed * 0.01;
+
+    // A kamera pozíciót a középponttól való távolság alapján skálázzuk
+    const target = new THREE.Vector3(0, 0, 0); // Középpont
+    const direction = this.camera.position.clone().sub(target);
+    const newDistance = direction.length() * zoomFactor;
+
+    // Távolság korlátozása
+    const clampedDistance = Math.max(50, Math.min(400, newDistance));
+
+    // Új pozíció számítása
+    direction.normalize();
+    this.camera.position.copy(
+      target.clone().add(direction.multiplyScalar(clampedDistance))
     );
+
+    // Biztosítjuk, hogy a kamera a középpontra néz
+    this.camera.lookAt(target);
   }
 
   // Mesh hozzáadása a scene-hez
