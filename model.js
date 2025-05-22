@@ -342,65 +342,97 @@ const minigolfElements = [
     },
   },
 
-  // Lábak (8 db)
+  // Kezdő záró elem
+  {
+    id: "wall_start",
+    name: "Kezdő záró elem",
+    type: ELEMENT_TYPES.WALL,
+    material: "PINE_SOLID",
+    geometry: {
+      type: GEOMETRY_TYPES.BOX,
+      dimensions: {
+        width: COURSE_DIMENSIONS.width + 2 * COURSE_DIMENSIONS.frameWidth, // 92 cm (oldalkeret szélességéig)
+        height: COURSE_DIMENSIONS.sideHeight / 2 + 0.4,
+        length: 0.6, // 6 mm vastag
+      },
+    },
+    transform: {
+      position: {
+        x: -COURSE_DIMENSIONS.length / 2 - 0.3, // A pálya elejénél
+        y:
+          -COURSE_DIMENSIONS.topPlateThickness -
+          COURSE_DIMENSIONS.frameHeight / 2 -
+          COURSE_DIMENSIONS.turfThickness, // Fű magasságával lejjebb tolva
+        z: 0,
+      },
+    },
+    explode: {
+      offset: { x: -40, y: 0, z: 0 },
+    },
+  },
+
+  // Lábak (8 db) - keresztlécek közepén
   ...Array.from({ length: 8 }, (_, i) => {
-    // Láb pozíciók kiszámítása
+    // Láb pozíciók kiszámítása - keresztlécek pozícióihoz igazítva
+    const spacing =
+      COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
+
     const legPositions = [
-      // Első láb pozíciók (első keresztlécnél)
+      // Első keresztlécnél (bal és jobb oldal)
       {
-        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.frameWidth / 2,
+        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2,
         z:
           -COURSE_DIMENSIONS.width / 2 +
           COURSE_DIMENSIONS.frameWidth +
           COURSE_DIMENSIONS.legDiameter / 2,
       },
       {
-        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.frameWidth / 2,
+        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2,
         z:
           COURSE_DIMENSIONS.width / 2 -
           COURSE_DIMENSIONS.frameWidth -
           COURSE_DIMENSIONS.legDiameter / 2,
       },
-      // Első harmad lábak
+      // 1. belső keresztlécnél
       {
-        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 3,
+        x: -COURSE_DIMENSIONS.length / 2 + spacing,
         z:
           -COURSE_DIMENSIONS.width / 2 +
           COURSE_DIMENSIONS.frameWidth +
           COURSE_DIMENSIONS.legDiameter / 2,
       },
       {
-        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 3,
+        x: -COURSE_DIMENSIONS.length / 2 + spacing,
         z:
           COURSE_DIMENSIONS.width / 2 -
           COURSE_DIMENSIONS.frameWidth -
           COURSE_DIMENSIONS.legDiameter / 2,
       },
-      // Második harmad lábak
+      // 2. belső keresztlécnél
       {
-        x: -COURSE_DIMENSIONS.length / 2 + (2 * COURSE_DIMENSIONS.length) / 3,
+        x: -COURSE_DIMENSIONS.length / 2 + 2 * spacing,
         z:
           -COURSE_DIMENSIONS.width / 2 +
           COURSE_DIMENSIONS.frameWidth +
           COURSE_DIMENSIONS.legDiameter / 2,
       },
       {
-        x: -COURSE_DIMENSIONS.length / 2 + (2 * COURSE_DIMENSIONS.length) / 3,
+        x: -COURSE_DIMENSIONS.length / 2 + 2 * spacing,
         z:
           COURSE_DIMENSIONS.width / 2 -
           COURSE_DIMENSIONS.frameWidth -
           COURSE_DIMENSIONS.legDiameter / 2,
       },
-      // Hátsó lábak
+      // Hátsó keresztlécnél
       {
-        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.frameWidth / 2,
+        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
         z:
           -COURSE_DIMENSIONS.width / 2 +
           COURSE_DIMENSIONS.frameWidth +
           COURSE_DIMENSIONS.legDiameter / 2,
       },
       {
-        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.frameWidth / 2,
+        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
         z:
           COURSE_DIMENSIONS.width / 2 -
           COURSE_DIMENSIONS.frameWidth -
