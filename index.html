@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Minigolf Pálya Viewer - Refaktorált v1.1.0</title>
+    <title>Minigolf Pálya Viewer - v1.2.0</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
 
-    <!-- Új moduláris struktúra -->
+    <!-- Moduláris struktúra -->
     <script src="constants.js"></script>
     <script src="element-manager.js"></script>
     <script src="model.js"></script>
@@ -24,13 +24,27 @@
   </head>
   <body>
     <div id="viewer-container">
+      <!-- Fő vezérlők -->
       <div id="controls">
         <button id="toggle-explode">Szétszedés</button>
         <button id="toggle-view-mode">Színes</button>
-        <button id="reset-view">Alaphelyzet</button>
+        <button id="export-gltf">GLTF Export</button>
+      </div>
+
+      <!-- Új nézet váltó gombok -->
+      <div id="view-controls">
+        <div class="view-label">Nézetek:</div>
+        <button id="view-top">Felül</button>
+        <button id="view-bottom">Alul</button>
+        <button id="view-front">Elöl</button>
+        <button id="view-back">Hátul</button>
+        <button id="view-left">Bal</button>
+        <button id="view-right">Jobb</button>
+        <hr />
         <button id="zoom-in">Zoom +</button>
         <button id="zoom-out">Zoom -</button>
-        <button id="export-gltf">GLTF Export</button>
+        <hr />
+        <button id="reset-view">Alaphelyzet</button>
       </div>
     </div>
     <div id="summary-panel">
@@ -50,7 +64,7 @@
       // Inicializálás
       function initialize() {
         try {
-          console.log("Inicializálás kezdete...");
+          console.log("Inicializálás kezdete v1.2.0...");
 
           // Manager objektumok létrehozása
           elementManager = new ElementManager();
@@ -113,7 +127,7 @@
           setupEventListeners();
           console.log("Event listener-ek beállítva");
 
-          console.log("Inicializálás sikeres!");
+          console.log("Inicializálás sikeres v1.2.0!");
         } catch (error) {
           console.error("Hiba az inicializálás során:", error);
         }
@@ -182,6 +196,43 @@
           .addEventListener("click", function () {
             exportGLTF(false);
           });
+
+        // ÚJ: Nézet váltó gombok
+        document
+          .getElementById("view-top")
+          .addEventListener("click", function () {
+            sceneManager.setTopView();
+          });
+
+        document
+          .getElementById("view-bottom")
+          .addEventListener("click", function () {
+            sceneManager.setBottomView();
+          });
+
+        document
+          .getElementById("view-front")
+          .addEventListener("click", function () {
+            sceneManager.setFrontView();
+          });
+
+        document
+          .getElementById("view-back")
+          .addEventListener("click", function () {
+            sceneManager.setBackView();
+          });
+
+        document
+          .getElementById("view-left")
+          .addEventListener("click", function () {
+            sceneManager.setLeftView();
+          });
+
+        document
+          .getElementById("view-right")
+          .addEventListener("click", function () {
+            sceneManager.setRightView();
+          });
       }
 
       // GLTF exportálási funkció
@@ -249,7 +300,7 @@
 
       // Debug funkciók (fejlesztéshez)
       function debugInfo() {
-        console.log("=== DEBUG INFO ===");
+        console.log("=== DEBUG INFO v1.2.0 ===");
         console.log(
           "Element Manager:",
           elementManager.getAllElements().length + " elem"

@@ -1,6 +1,7 @@
 /**
  * Scene Manager
  * THREE.js scene, kamera, fények és kontrolok kezelése
+ * v1.2.0 - Ortografikus nézetek hozzáadva
  */
 
 class SceneManager {
@@ -21,6 +22,23 @@ class SceneManager {
     // Alapértelmezett kamera pozíció
     this.defaultCameraPosition = { x: -200, y: 100, z: 150 };
 
+    // Előre definiált nézetek - csak irányok
+    this.viewPresets = {
+      default: {
+        direction: { x: -200, y: 100, z: 150 },
+        target: { x: 0, y: 0, z: 0 },
+      },
+      top: { direction: { x: 0, y: 1, z: 0 }, target: { x: 0, y: 0, z: 0 } },
+      bottom: {
+        direction: { x: 0, y: -1, z: 0 },
+        target: { x: 0, y: 0, z: 0 },
+      },
+      front: { direction: { x: -1, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } },
+      back: { direction: { x: 1, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } },
+      left: { direction: { x: 0, y: 0, z: -1 }, target: { x: 0, y: 0, z: 0 } },
+      right: { direction: { x: 0, y: 0, z: 1 }, target: { x: 0, y: 0, z: 0 } },
+    };
+
     // Animáció loop
     this.animationId = null;
   }
@@ -34,7 +52,7 @@ class SceneManager {
     this.setupEventListeners();
     this.startAnimationLoop();
 
-    console.log("Scene Manager initialized");
+    console.log("Scene Manager v1.2.0 initialized");
   }
 
   // Scene létrehozása
@@ -194,6 +212,105 @@ class SceneManager {
     this.camera.lookAt(target);
   }
 
+  // ÚJ: Kamera pozíció váltása előre definiált nézetekre
+  setViewPreset(viewName, animate = false) {
+    const preset = this.viewPresets[viewName];
+    if (!preset) {
+      console.warn(`Ismeretlen nézet: ${viewName}`);
+      return;
+    }
+
+    // Scene pozíció és forgatás nullázása
+    this.scene.position.set(0, 0, 0);
+    this.scene.rotation.set(0, 0, 0);
+
+    // Jelenlegi távolság megőrzése
+    const currentDistance = this.camera.position.length();
+
+    let newPosition;
+
+    if (viewName === "default") {
+      // Default nézetnél az eredeti pozíciót használjuk
+      newPosition = new THREE.Vector3(
+        preset.direction.x,
+        preset.direction.y,
+        preset.direction.z
+      );
+    } else {
+      // Más nézeteknél az irányt normalizáljuk és megszorozzuk a jelenlegi távolsággal
+      const direction = new THREE.Vector3(
+        preset.direction.x,
+        preset.direction.y,
+        preset.direction.z
+      ).normalize();
+
+      newPosition = direction.multiplyScalar(currentDistance);
+    }
+
+    // Azonnali pozíció beállítás - nincs animáció
+    this.camera.position.set(newPosition.x, newPosition.y, newPosition.z);
+    this.camera.lookAt(preset.target.x, preset.target.y, preset.target.z);
+  }
+
+  // ÚJ: Kamera animáció egy pozícióba
+  animateCameraToPosition(targetPosition, targetLookAt, duration = 800) {
+    const startPosition = this.camera.position.clone();
+    const startLookAt = new THREE.Vector3(0, 0, 0); // Jelenlegi célpont
+
+    const startTime = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Easing function (ease-out)
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+
+      // Pozíció interpoláció
+      this.camera.position.x =
+        startPosition.x + (targetPosition.x - startPosition.x) * easedProgress;
+      this.camera.position.y =
+        startPosition.y + (targetPosition.y - startPosition.y) * easedProgress;
+      this.camera.position.z =
+        startPosition.z + (targetPosition.z - startPosition.z) * easedProgress;
+
+      // LookAt interpoláció
+      const currentLookAt = startLookAt
+        .clone()
+        .lerp(
+          new THREE.Vector3(targetLookAt.x, targetLookAt.y, targetLookAt.z),
+          easedProgress
+        );
+      this.camera.lookAt(currentLookAt);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    animate();
+  }
+
+  // ÚJ: Gyors nézet váltó gombok funkciói
+  setTopView() {
+    this.setViewPreset("top");
+  }
+  setBottomView() {
+    this.setViewPreset("bottom");
+  }
+  setFrontView() {
+    this.setViewPreset("front");
+  }
+  setBackView() {
+    this.setViewPreset("back");
+  }
+  setLeftView() {
+    this.setViewPreset("left");
+  }
+  setRightView() {
+    this.setViewPreset("right");
+  }
+
   // Mesh hozzáadása a scene-hez
   addMesh(elementId, mesh) {
     this.scene.add(mesh);
@@ -238,17 +355,7 @@ class SceneManager {
 
   // Nézet visszaállítása
   resetView() {
-    // Scene pozíció és forgatás nullázása
-    this.scene.position.set(0, 0, 0);
-    this.scene.rotation.set(0, 0, 0);
-
-    // Kamera eredeti pozícióba
-    this.camera.position.set(
-      this.defaultCameraPosition.x,
-      this.defaultCameraPosition.y,
-      this.defaultCameraPosition.z
-    );
-    this.camera.lookAt(0, 0, 0);
+    this.setViewPreset("default");
   }
 
   // Animáció loop
@@ -324,6 +431,7 @@ class SceneManager {
       cameraPosition: this.camera.position,
       scenePosition: this.scene.position,
       sceneRotation: this.scene.rotation,
+      version: "1.2.0",
     };
   }
 
@@ -344,6 +452,6 @@ class SceneManager {
 
     // Event listeners eltávolítása
     // (Ez bonyolultabb lenne, mert névtelen függvényeket használunk)
-    console.log("Scene Manager destroyed");
+    console.log("Scene Manager v1.2.0 destroyed");
   }
 }
