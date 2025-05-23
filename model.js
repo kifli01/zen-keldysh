@@ -50,7 +50,7 @@ const minigolfElements = [
 
           // 4x3 rács (kevesebb lyuk, arányos eloszlás)
           const xSteps = 4;
-          const zSteps = 3;
+          const zSteps = 4;
           const xSpacing = sectorWidth / (xSteps - 1);
           const zSpacing = sectorDepth / (zSteps - 1);
 
@@ -68,14 +68,14 @@ const minigolfElements = [
               if (distanceFromMainHole > 8) {
                 holes.push({
                   type: "circle",
-                  radius: 0.5, // 10mm átmérő = 5mm sugár
+                  radius: 0.8, // 16mm átmérő = 8mm sugár
                   position: { x, y: 0, z },
                 });
               }
             }
           }
 
-          holes.splice(7, 1);
+          // holes.splice(7, 1);
 
           return holes;
         })(),
@@ -96,8 +96,8 @@ const minigolfElements = [
           const sectorWidth = sectorXEnd - sectorXStart - 20;
           const sectorDepth = sectorZEnd - sectorZStart - 20;
 
-          const xSteps = 3; // rövidebb szektor
-          const zSteps = 3;
+          const xSteps = 4; // rövidebb szektor
+          const zSteps = 4;
           const xSpacing = sectorWidth / (xSteps - 1);
           const zSpacing = sectorDepth / (zSteps - 1);
 
@@ -108,7 +108,7 @@ const minigolfElements = [
 
               holes.push({
                 type: "circle",
-                radius: 0.5, // 10mm átmérő = 5mm sugár
+                radius: 0.8, // 16mm átmérő = 8mm sugár
                 position: { x, y: 0, z },
               });
             }
@@ -134,7 +134,7 @@ const minigolfElements = [
           const sectorDepth = sectorZEnd - sectorZStart - 20;
 
           const xSteps = 4;
-          const zSteps = 3;
+          const zSteps = 4;
           const xSpacing = sectorWidth / (xSteps - 1);
           const zSpacing = sectorDepth / (zSteps - 1);
 
@@ -145,7 +145,7 @@ const minigolfElements = [
 
               holes.push({
                 type: "circle",
-                radius: 0.5, // 10mm átmérő = 5mm sugár
+                radius: 0.8, // 16mm átmérő = 8mm sugár
                 position: { x, y: 0, z },
               });
             }
