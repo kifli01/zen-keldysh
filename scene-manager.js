@@ -20,12 +20,12 @@ class SceneManager {
     };
 
     // Alapértelmezett kamera pozíció
-    this.defaultCameraPosition = { x: -200, y: 100, z: 150 };
+    this.defaultCameraPosition = { x: -190, y: 90, z: 200 };
 
     // Előre definiált nézetek - csak irányok
     this.viewPresets = {
       default: {
-        direction: { x: -200, y: 100, z: 150 },
+        direction: this.defaultCameraPosition,
         target: { x: 0, y: 0, z: 0 },
       },
       top: { direction: { x: 0, y: 1, z: 0 }, target: { x: 0, y: 0, z: 0 } },
@@ -64,7 +64,7 @@ class SceneManager {
   // Kamera létrehozása
   createCamera() {
     const aspect = this.container.clientWidth / this.container.clientHeight;
-    this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.1, 1000);
 
     this.camera.position.set(
       this.defaultCameraPosition.x,
