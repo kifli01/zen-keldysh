@@ -68,7 +68,6 @@ const COURSE_DIMENSIONS = {
   length: 250, // cm
   width: 80, // cm
   topPlateThickness: 0.9, // 9 mm
-  bottomPlateThickness: 0.6, // 6 mm
   turfThickness: 0.6, // 6 mm
   holeRadius: 5.4, // átmérő: 10.8 cm
   holePositionX: 40, // A lyuk pozíciója a pálya végétől (cm)
@@ -77,7 +76,7 @@ const COURSE_DIMENSIONS = {
   sideWidth: 6, // 6 cm széles oldallécek
   sideHeight: 12, // 12 cm magas oldallécek
   legDiameter: 6, // 6 cm átmérőjű lábak
-  legHeight: 15, // 15 cm magas lábak
+  legHeight: 12, // 12 cm magas lábak
   crossBeamCount: 2, // belső keresztlécek száma (+ 2 szélső = összesen 4)
   crossBeamWidth: 12, // keresztlécek szélessége (2x6cm)
 };

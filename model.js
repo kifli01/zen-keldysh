@@ -34,47 +34,7 @@ const minigolfElements = [
       position: { x: 0, y: -COURSE_DIMENSIONS.topPlateThickness / 2, z: 0 },
     },
     explode: {
-      offset: { x: 0, y: 20, z: 0 },
-    },
-  },
-
-  // Alsó rétegelt lemez
-  {
-    id: "bottom_plate",
-    name: "Alsó rétegelt lemez",
-    type: ELEMENT_TYPES.PLATE,
-    material: "PINE_PLYWOOD_DARK",
-    geometry: {
-      type: GEOMETRY_TYPES.EXTRUDE,
-      dimensions: {
-        width: COURSE_DIMENSIONS.width, // 80 cm
-        height: COURSE_DIMENSIONS.bottomPlateThickness, // 0.6 cm
-        length: COURSE_DIMENSIONS.length, // 250 cm
-      },
-      holes: [
-        {
-          type: "circle",
-          radius: COURSE_DIMENSIONS.holeRadius, // 5.4 cm
-          position: {
-            x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.holePositionX,
-            y: 0,
-            z: 0,
-          },
-        },
-      ],
-    },
-    transform: {
-      position: {
-        x: 0,
-        y:
-          -COURSE_DIMENSIONS.frameHeight -
-          COURSE_DIMENSIONS.topPlateThickness -
-          COURSE_DIMENSIONS.bottomPlateThickness / 2,
-        z: 0,
-      },
-    },
-    explode: {
-      offset: { x: 0, y: -60, z: 0 },
+      offset: { x: 0, y: 30, z: 0 },
     },
   },
 
@@ -107,7 +67,7 @@ const minigolfElements = [
       position: { x: 0, y: COURSE_DIMENSIONS.turfThickness / 2, z: 0 },
     },
     explode: {
-      offset: { x: 0, y: 40, z: 0 },
+      offset: { x: 0, y: 60, z: 0 },
     },
   },
 
@@ -135,7 +95,7 @@ const minigolfElements = [
       },
     },
     explode: {
-      offset: { x: 0, y: -20, z: -25 },
+      offset: { x: 0, y: 0, z: -25 },
     },
   },
 
@@ -162,7 +122,7 @@ const minigolfElements = [
       },
     },
     explode: {
-      offset: { x: 0, y: -20, z: 25 },
+      offset: { x: 0, y: 0, z: 25 },
     },
   },
 
@@ -190,7 +150,7 @@ const minigolfElements = [
       },
     },
     explode: {
-      offset: { x: 0, y: -20, z: 0 },
+      offset: { x: 0, y: 0, z: 0 },
     },
   },
 
@@ -217,7 +177,7 @@ const minigolfElements = [
       },
     },
     explode: {
-      offset: { x: 0, y: -20, z: 0 },
+      offset: { x: 0, y: 0, z: 0 },
     },
   },
 
@@ -250,7 +210,7 @@ const minigolfElements = [
         },
       },
       explode: {
-        offset: { x: 0, y: -20, z: 0 },
+        offset: { x: 0, y: 0, z: 0 },
       },
       spacing: spacing,
     };
@@ -281,7 +241,7 @@ const minigolfElements = [
       },
     },
     explode: {
-      offset: { x: 0, y: 60, z: -40 },
+      offset: { x: 0, y: 0, z: -60 },
     },
   },
 
@@ -309,7 +269,7 @@ const minigolfElements = [
       },
     },
     explode: {
-      offset: { x: 0, y: 60, z: 40 },
+      offset: { x: 0, y: 0, z: 60 },
     },
   },
 
@@ -338,7 +298,7 @@ const minigolfElements = [
       },
     },
     explode: {
-      offset: { x: 40, y: 60, z: 0 },
+      offset: { x: 40, y: 0, z: 0 },
     },
   },
 
@@ -353,12 +313,12 @@ const minigolfElements = [
       dimensions: {
         width: COURSE_DIMENSIONS.width + 2 * COURSE_DIMENSIONS.frameWidth, // 92 cm (oldalkeret szélességéig)
         height: COURSE_DIMENSIONS.sideHeight / 2 + 0.4,
-        length: 0.6, // 6 mm vastag
+        length: 2, // 6 mm vastag
       },
     },
     transform: {
       position: {
-        x: -COURSE_DIMENSIONS.length / 2 - 0.3, // A pálya elejénél
+        x: -COURSE_DIMENSIONS.length / 2 - 1, // A pálya elejénél
         y:
           -COURSE_DIMENSIONS.topPlateThickness -
           COURSE_DIMENSIONS.frameHeight / 2 -
@@ -367,7 +327,7 @@ const minigolfElements = [
       },
     },
     explode: {
-      offset: { x: -40, y: 40, z: 0 },
+      offset: { x: -40, y: 0, z: 0 },
     },
   },
 
@@ -461,13 +421,12 @@ const minigolfElements = [
           y:
             -COURSE_DIMENSIONS.frameHeight -
             COURSE_DIMENSIONS.topPlateThickness -
-            COURSE_DIMENSIONS.bottomPlateThickness -
             COURSE_DIMENSIONS.legHeight / 2,
           z: pos.z,
         },
       },
       explode: {
-        offset: { x: 0, y: -80, z: 0 },
+        offset: { x: 0, y: -30, z: 0 },
       },
     };
   }),
