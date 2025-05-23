@@ -1,11 +1,12 @@
 /**
  * Minigolf Model Definition
+ * v1.2.0 - 12mm faalap + 8mm vízelvezető lyukak
  * Csak az elemek leírása - új struktúrával
  */
 
 // Minigolf pálya elemei
 const minigolfElements = [
-  // Fő alaplap (felső rétegelt lemez)
+  // Fő alaplap (felső rétegelt lemez) - 12mm vastagság
   {
     id: "top_plate",
     name: "Faalap",
@@ -15,10 +16,11 @@ const minigolfElements = [
       type: GEOMETRY_TYPES.EXTRUDE,
       dimensions: {
         width: COURSE_DIMENSIONS.width, // 80 cm
-        height: COURSE_DIMENSIONS.topPlateThickness, // 0.9 cm
+        height: 1.2, // 12mm = 1.2 cm (frissítve)
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
       holes: [
+        // Fő lyuk (golflyuk)
         {
           type: "circle",
           radius: COURSE_DIMENSIONS.holeRadius, // 5.4 cm
@@ -28,17 +30,140 @@ const minigolfElements = [
             z: 0,
           },
         },
+        // Vízelvezető lyukak a fő lyuk szektorában (hátsó szakasz - ahol a golflyuk van)
+        ...(() => {
+          const holes = [];
+          const mainHoleX = 250 / 2 - 85; // fő lyuk X pozíciója (165cm a bal széltől)
+          const frameWidth = 6; // oldalsó lécek szélessége
+          const crossBeamWidth = 12;
+          const spacing = 250 / 3; // keresztlécek távolsága
+
+          // Hátsó szektor határai (ahol a fő lyuk van)
+          const sectorXStart = -250 / 2 + 2 * spacing + crossBeamWidth / 2; // frame_cross_2 után
+          const sectorXEnd = 250 / 2 - crossBeamWidth; // frame_cross_back előtt
+          const sectorZStart = -80 / 2 + frameWidth; // bal oldalsó léc után
+          const sectorZEnd = 80 / 2 - frameWidth; // jobb oldalsó léc előtt
+
+          // Szektor méretei - nagyobb belső margóval (10cm)
+          const sectorWidth = sectorXEnd - sectorXStart - 20; // 10cm szél mindkét oldalon
+          const sectorDepth = sectorZEnd - sectorZStart - 20; // 10cm szél mindkét oldalon
+
+          // 4x3 rács (kevesebb lyuk, arányos eloszlás)
+          const xSteps = 4;
+          const zSteps = 3;
+          const xSpacing = sectorWidth / (xSteps - 1);
+          const zSpacing = sectorDepth / (zSteps - 1);
+
+          for (let i = 0; i < xSteps; i++) {
+            for (let j = 0; j < zSteps; j++) {
+              const x = sectorXStart + 10 + i * xSpacing;
+              const z = sectorZStart + 10 + j * zSpacing;
+
+              // Ellenőrizzük hogy nem ütközik-e a fő lyukkal
+              const distanceFromMainHole = Math.sqrt(
+                Math.pow(x - mainHoleX, 2) + Math.pow(z - 0, 2)
+              );
+
+              // 8cm távolság a fő lyuktól (biztonságos távolság)
+              if (distanceFromMainHole > 8) {
+                holes.push({
+                  type: "circle",
+                  radius: 0.5, // 10mm átmérő = 5mm sugár
+                  position: { x, y: 0, z },
+                });
+              }
+            }
+          }
+
+          holes.splice(7, 1);
+
+          return holes;
+        })(),
+
+        // Vízelvezető lyukak az első szektorban
+        ...(() => {
+          const holes = [];
+          const frameWidth = 6;
+          const crossBeamWidth = 12;
+          const spacing = 250 / 3;
+
+          // Első szektor határai
+          const sectorXStart = -250 / 2 + crossBeamWidth; // frame_cross_front után
+          const sectorXEnd = -250 / 2 + spacing - crossBeamWidth / 2; // frame_cross_1 előtt
+          const sectorZStart = -80 / 2 + frameWidth; // bal oldalsó léc után
+          const sectorZEnd = 80 / 2 - frameWidth; // jobb oldalsó léc előtt
+
+          const sectorWidth = sectorXEnd - sectorXStart - 20;
+          const sectorDepth = sectorZEnd - sectorZStart - 20;
+
+          const xSteps = 3; // rövidebb szektor
+          const zSteps = 3;
+          const xSpacing = sectorWidth / (xSteps - 1);
+          const zSpacing = sectorDepth / (zSteps - 1);
+
+          for (let i = 0; i < xSteps; i++) {
+            for (let j = 0; j < zSteps; j++) {
+              const x = sectorXStart + 10 + i * xSpacing;
+              const z = sectorZStart + 10 + j * zSpacing;
+
+              holes.push({
+                type: "circle",
+                radius: 0.5, // 10mm átmérő = 5mm sugár
+                position: { x, y: 0, z },
+              });
+            }
+          }
+
+          return holes;
+        })(),
+
+        // Vízelvezető lyukak a középső szektorban (frame_cross_1 és frame_cross_2 között)
+        ...(() => {
+          const holes = [];
+          const frameWidth = 6;
+          const crossBeamWidth = 12;
+          const spacing = 250 / 3;
+
+          // Középső szektor határai
+          const sectorXStart = -250 / 2 + spacing + crossBeamWidth / 2; // frame_cross_1 után
+          const sectorXEnd = -250 / 2 + 2 * spacing - crossBeamWidth / 2; // frame_cross_2 előtt
+          const sectorZStart = -80 / 2 + frameWidth;
+          const sectorZEnd = 80 / 2 - frameWidth;
+
+          const sectorWidth = sectorXEnd - sectorXStart - 20;
+          const sectorDepth = sectorZEnd - sectorZStart - 20;
+
+          const xSteps = 4;
+          const zSteps = 3;
+          const xSpacing = sectorWidth / (xSteps - 1);
+          const zSpacing = sectorDepth / (zSteps - 1);
+
+          for (let i = 0; i < xSteps; i++) {
+            for (let j = 0; j < zSteps; j++) {
+              const x = sectorXStart + 10 + i * xSpacing;
+              const z = sectorZStart + 10 + j * zSpacing;
+
+              holes.push({
+                type: "circle",
+                radius: 0.5, // 10mm átmérő = 5mm sugár
+                position: { x, y: 0, z },
+              });
+            }
+          }
+
+          return holes;
+        })(),
       ],
     },
     transform: {
-      position: { x: 0, y: -COURSE_DIMENSIONS.topPlateThickness / 2, z: 0 },
+      position: { x: 0, y: -1.2 / 2, z: 0 }, // 12mm/2 = 0.6 cm
     },
     explode: {
       offset: { x: 0, y: 30, z: 0 },
     },
   },
 
-  // Műfű borítás
+  // Műfű borítás - ugyanazok a lyukak
   {
     id: "turf",
     name: "Műfű borítás",
@@ -52,6 +177,7 @@ const minigolfElements = [
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
       holes: [
+        // Fő lyuk (golflyuk)
         {
           type: "circle",
           radius: COURSE_DIMENSIONS.holeRadius, // 5.4 cm
@@ -88,9 +214,7 @@ const minigolfElements = [
     transform: {
       position: {
         x: 0,
-        y:
-          -COURSE_DIMENSIONS.frameHeight / 2 -
-          COURSE_DIMENSIONS.topPlateThickness,
+        y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Frissített faalap vastagság
         z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth / 2,
       },
     },
@@ -115,9 +239,7 @@ const minigolfElements = [
     transform: {
       position: {
         x: 0,
-        y:
-          -COURSE_DIMENSIONS.frameHeight / 2 -
-          COURSE_DIMENSIONS.topPlateThickness,
+        y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Frissített faalap vastagság
         z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth / 2,
       },
     },
@@ -143,9 +265,7 @@ const minigolfElements = [
     transform: {
       position: {
         x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2,
-        y:
-          -COURSE_DIMENSIONS.frameHeight / 2 -
-          COURSE_DIMENSIONS.topPlateThickness,
+        y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Frissített faalap vastagság
         z: 0,
       },
     },
@@ -170,9 +290,7 @@ const minigolfElements = [
     transform: {
       position: {
         x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
-        y:
-          -COURSE_DIMENSIONS.frameHeight / 2 -
-          COURSE_DIMENSIONS.topPlateThickness,
+        y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Frissített faalap vastagság
         z: 0,
       },
     },
@@ -203,9 +321,7 @@ const minigolfElements = [
       transform: {
         position: {
           x: posX,
-          y:
-            -COURSE_DIMENSIONS.frameHeight / 2 -
-            COURSE_DIMENSIONS.topPlateThickness,
+          y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Frissített faalap vastagság
           z: 0,
         },
       },
@@ -320,7 +436,7 @@ const minigolfElements = [
       position: {
         x: -COURSE_DIMENSIONS.length / 2 - 1, // A pálya elejénél
         y:
-          -COURSE_DIMENSIONS.topPlateThickness -
+          -1.2 - // Frissített faalap vastagság
           COURSE_DIMENSIONS.frameHeight / 2 -
           COURSE_DIMENSIONS.turfThickness, // Fű magasságával lejjebb tolva
         z: 0,
@@ -420,7 +536,7 @@ const minigolfElements = [
           x: pos.x,
           y:
             -COURSE_DIMENSIONS.frameHeight -
-            COURSE_DIMENSIONS.topPlateThickness -
+            1.2 - // Frissített faalap vastagság
             COURSE_DIMENSIONS.legHeight / 2,
           z: pos.z,
         },
