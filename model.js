@@ -460,14 +460,16 @@ const minigolfElements = [
         z:
           -COURSE_DIMENSIONS.width / 2 +
           COURSE_DIMENSIONS.frameWidth +
-          COURSE_DIMENSIONS.legDiameter / 2,
+          COURSE_DIMENSIONS.legDiameter / 2 +
+          COURSE_DIMENSIONS.legInset,
       },
       {
         x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2,
         z:
           COURSE_DIMENSIONS.width / 2 -
           COURSE_DIMENSIONS.frameWidth -
-          COURSE_DIMENSIONS.legDiameter / 2,
+          COURSE_DIMENSIONS.legDiameter / 2 -
+          COURSE_DIMENSIONS.legInset,
       },
       // 1. belső keresztlécnél
       {
@@ -475,14 +477,16 @@ const minigolfElements = [
         z:
           -COURSE_DIMENSIONS.width / 2 +
           COURSE_DIMENSIONS.frameWidth +
-          COURSE_DIMENSIONS.legDiameter / 2,
+          COURSE_DIMENSIONS.legDiameter / 2 +
+          COURSE_DIMENSIONS.legInset,
       },
       {
         x: -COURSE_DIMENSIONS.length / 2 + spacing,
         z:
           COURSE_DIMENSIONS.width / 2 -
           COURSE_DIMENSIONS.frameWidth -
-          COURSE_DIMENSIONS.legDiameter / 2,
+          COURSE_DIMENSIONS.legDiameter / 2 -
+          COURSE_DIMENSIONS.legInset,
       },
       // 2. belső keresztlécnél
       {
@@ -490,14 +494,16 @@ const minigolfElements = [
         z:
           -COURSE_DIMENSIONS.width / 2 +
           COURSE_DIMENSIONS.frameWidth +
-          COURSE_DIMENSIONS.legDiameter / 2,
+          COURSE_DIMENSIONS.legDiameter / 2 +
+          COURSE_DIMENSIONS.legInset,
       },
       {
         x: -COURSE_DIMENSIONS.length / 2 + 2 * spacing,
         z:
           COURSE_DIMENSIONS.width / 2 -
           COURSE_DIMENSIONS.frameWidth -
-          COURSE_DIMENSIONS.legDiameter / 2,
+          COURSE_DIMENSIONS.legDiameter / 2 -
+          COURSE_DIMENSIONS.legInset,
       },
       // Hátsó keresztlécnél
       {
@@ -505,14 +511,16 @@ const minigolfElements = [
         z:
           -COURSE_DIMENSIONS.width / 2 +
           COURSE_DIMENSIONS.frameWidth +
-          COURSE_DIMENSIONS.legDiameter / 2,
+          COURSE_DIMENSIONS.legDiameter / 2 +
+          COURSE_DIMENSIONS.legInset,
       },
       {
         x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
         z:
           COURSE_DIMENSIONS.width / 2 -
           COURSE_DIMENSIONS.frameWidth -
-          COURSE_DIMENSIONS.legDiameter / 2,
+          COURSE_DIMENSIONS.legDiameter / 2 -
+          COURSE_DIMENSIONS.legInset,
       },
     ];
 

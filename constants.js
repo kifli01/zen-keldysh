@@ -71,6 +71,7 @@ const COURSE_DIMENSIONS = {
   sideHeight: 12, // 12 cm magas oldallécek
   legDiameter: 6, // 6 cm átmérőjű lábak
   legHeight: 12, // 12 cm magas lábak
+  legInset: 3, // 4cm-rel bentebb
   crossBeamCount: 2, // belső keresztlécek száma (+ 2 szélső = összesen 4)
   crossBeamWidth: 12, // keresztlécek szélessége (2x6cm)
 };
