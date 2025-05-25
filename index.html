@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Minigolf Pálya Viewer - v1.2.0</title>
+    <title>Minigolf Pálya Viewer - v1.3.0</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
@@ -12,6 +12,7 @@
 
     <!-- Moduláris struktúra -->
     <script src="constants.js"></script>
+    <script src="hole-generator.js"></script>
     <script src="element-manager.js"></script>
     <script src="model.js"></script>
     <script src="geometry-builder.js"></script>
@@ -64,7 +65,7 @@
       // Inicializálás
       function initialize() {
         try {
-          console.log("Inicializálás kezdete v1.2.0...");
+          console.log("Inicializálás kezdete v1.3.0...");
 
           // Manager objektumok létrehozása
           elementManager = new ElementManager();
@@ -127,7 +128,7 @@
           setupEventListeners();
           console.log("Event listener-ek beállítva");
 
-          console.log("Inicializálás sikeres v1.2.0!");
+          console.log("Inicializálás sikeres v1.3.0!");
         } catch (error) {
           console.error("Hiba az inicializálás során:", error);
         }
@@ -300,7 +301,7 @@
 
       // Debug funkciók (fejlesztéshez)
       function debugInfo() {
-        console.log("=== DEBUG INFO v1.2.0 ===");
+        console.log("=== DEBUG INFO v1.3.0 ===");
         console.log(
           "Element Manager:",
           elementManager.getAllElements().length + " elem"
