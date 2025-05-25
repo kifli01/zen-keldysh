@@ -93,7 +93,7 @@ const minigolfElements = [
       ],
     },
     transform: {
-      position: { x: 0, y: -1.2 / 2, z: 0 }, // 12mm/2 = 0.6 cm
+      position: { x: 0, y: 0, z: 0 }, // 12mm/2 = 0.6 cm
     },
     explode: {
       offset: { x: 0, y: 30, z: 0 },
@@ -287,8 +287,8 @@ const minigolfElements = [
       position: {
         x: 0,
         y:
-          COURSE_DIMENSIONS.turfThickness / 2 +
-          5 -
+          COURSE_DIMENSIONS.turfThickness +
+          COURSE_DIMENSIONS.sideVerticalShift -
           COURSE_DIMENSIONS.sideHeight / 2, // 5cm-rel a borítás felett
         z: -COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.sideWidth / 2,
       },
@@ -315,8 +315,8 @@ const minigolfElements = [
       position: {
         x: 0,
         y:
-          COURSE_DIMENSIONS.turfThickness / 2 +
-          5 -
+          COURSE_DIMENSIONS.turfThickness +
+          COURSE_DIMENSIONS.sideVerticalShift -
           COURSE_DIMENSIONS.sideHeight / 2,
         z: COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.sideWidth / 2,
       },
@@ -344,8 +344,8 @@ const minigolfElements = [
       position: {
         x: COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.sideWidth / 2,
         y:
-          COURSE_DIMENSIONS.turfThickness / 2 +
-          5 -
+          COURSE_DIMENSIONS.turfThickness +
+          COURSE_DIMENSIONS.sideVerticalShift -
           COURSE_DIMENSIONS.sideHeight / 2,
         z: 0,
       },
@@ -364,18 +364,15 @@ const minigolfElements = [
     geometry: {
       type: GEOMETRY_TYPES.BOX,
       dimensions: {
-        width: COURSE_DIMENSIONS.width + 2 * COURSE_DIMENSIONS.frameWidth, // 92 cm (oldalkeret szélességéig)
-        height: COURSE_DIMENSIONS.sideHeight / 2 + 0.4,
-        length: 2, // 6 mm vastag
+        width: COURSE_DIMENSIONS.width + 2 * COURSE_DIMENSIONS.sideWidth, // 92 cm (oldalkeret szélességéig)
+        height: COURSE_DIMENSIONS.frontHeight,
+        length: COURSE_DIMENSIONS.frontWidth,
       },
     },
     transform: {
       position: {
-        x: -COURSE_DIMENSIONS.length / 2 - 1, // A pálya elejénél
-        y:
-          -1.2 - // Frissített faalap vastagság
-          COURSE_DIMENSIONS.frameHeight / 2 -
-          COURSE_DIMENSIONS.turfThickness, // Fű magasságával lejjebb tolva
+        x: -COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.frontWidth / 2,
+        y: -COURSE_DIMENSIONS.frontHeight / 2,
         z: 0,
       },
     },
@@ -405,7 +402,7 @@ const minigolfElements = [
       },
     },
     explode: {
-      offset: { x: -60, y: 10, z: 0 },
+      offset: { x: 0, y: 100, z: 0 },
     },
   },
 

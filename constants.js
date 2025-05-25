@@ -27,7 +27,7 @@ const MATERIALS = {
   PINE_PLYWOOD: {
     name: "Lucfenyő rétegelt lemez",
     density: 0.5, // g/cm³
-    color: 0xbf9f7e,
+    color: 0xa47b51,
     shininess: 10,
   },
   PINE_SOLID: {
@@ -74,13 +74,21 @@ const COURSE_DIMENSIONS = {
   turfThickness: 0.6, // 6 mm
   holeRadius: 5.4, // átmérő: 10.8 cm
   holePositionX: 45, // A lyuk pozíciója a pálya végétől (cm)
+  frontWidth: 2, // 2cm első takaró léc
+  // frontHeight: 16 - 6 - 0.9, // sideHeight - sideVerticalShift - topPlateThickness
   frameWidth: 6, // 6 cm széles lécek
   frameHeight: 4, // 4 cm magas lécek
-  sideWidth: 6, // 6 cm széles oldallécek
-  sideHeight: 12, // 12 cm magas oldallécek
+  sideWidth: 5, // 5 cm széles oldallécek
+  sideHeight: 16, // 16 cm magas oldallécek
+  sideVerticalShift: 6, // 6 cm-re a borítástól felfelé
   legDiameter: 6, // 6 cm átmérőjű lábak
   legHeight: 12, // 12 cm magas lábak
   legInset: 3, // 4cm-rel bentebb
   crossBeamCount: 2, // belső keresztlécek száma (+ 2 szélső = összesen 4)
   crossBeamWidth: 12, // keresztlécek szélessége (2x6cm)
 };
+
+COURSE_DIMENSIONS.frontHeight =
+  COURSE_DIMENSIONS.sideHeight -
+  COURSE_DIMENSIONS.sideVerticalShift -
+  COURSE_DIMENSIONS.turfThickness;
