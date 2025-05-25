@@ -1,12 +1,13 @@
 /**
  * Element Manager
  * Minigolf elemek kezelése, számítások, összesítések
+ * v1.4.0 - Element ID-k hozzáadása a summary-hoz
  */
 
 class ElementManager {
   constructor() {
     this.elements = new Map();
-    this.version = "1.1.0"; // Verzió a refaktorálás után
+    this.version = "1.4.0"; // Verzió a refaktorálás után
   }
 
   // Elem hozzáadása alapértékekkel
@@ -150,6 +151,7 @@ class ElementManager {
       [ELEMENT_TYPES.FRAME]: "Váz",
       [ELEMENT_TYPES.LEG]: "Lábak",
       [ELEMENT_TYPES.WALL]: "Oldalfalak",
+      [ELEMENT_TYPES.BALL]: "Labda",
     };
     return typeNames[type] || type;
   }
@@ -234,6 +236,7 @@ class ElementManager {
           name: typeName,
           material: elements[0].material.name, // Első elem anyaga (általában azonos típusban)
           elements: elements.map((el) => ({
+            id: el.id, // Element ID hozzáadása
             name: el.name,
             count: 1,
             dimensions: el.geometry.dimensions,

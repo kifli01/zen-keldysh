@@ -38,6 +38,10 @@ class GeometryBuilder {
         const radius = dim.radius || dim.diameter / 2;
         return new THREE.CylinderGeometry(radius, radius, dim.height, 16);
 
+      case GEOMETRY_TYPES.SPHERE:
+        const sphereRadius = dim.radius || dim.diameter / 2;
+        return new THREE.SphereGeometry(sphereRadius, 16, 12); // 16 szegmens, 12 gyűrű
+
       case GEOMETRY_TYPES.EXTRUDE:
         return this.createExtrudeGeometry(element);
 
