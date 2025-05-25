@@ -34,6 +34,10 @@ class ViewModeManager {
         color: 0xd8d8d8, // sötétebb szürke
         transparent: false,
       }),
+      ball: new THREE.MeshLambertMaterial({
+        color: 0xf8f8f8, // nagyon világos szürke (fehér labda)
+        transparent: false,
+      }),
     };
 
     // Wireframe anyagok (körvonalakhoz)

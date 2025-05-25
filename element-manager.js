@@ -151,6 +151,7 @@ class ElementManager {
       [ELEMENT_TYPES.FRAME]: "Váz",
       [ELEMENT_TYPES.LEG]: "Lábak",
       [ELEMENT_TYPES.WALL]: "Oldalfalak",
+      [ELEMENT_TYPES.BALL]: "Labda",
     };
     return typeNames[type] || type;
   }

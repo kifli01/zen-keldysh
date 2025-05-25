@@ -1,6 +1,7 @@
 /**
  * Minigolf Constants
  * Közös konstansok és alapértékek a minigolf pálya elemekhez
+ * v1.3.0 - Labda típus és fehér műanyag anyag hozzáadva
  */
 
 // Geometria típusok
@@ -8,6 +9,7 @@ const GEOMETRY_TYPES = {
   BOX: "box",
   CYLINDER: "cylinder",
   EXTRUDE: "extrude",
+  SPHERE: "sphere", // Új típus a gömb alakú labdához
 };
 
 // Elem típusok
@@ -17,6 +19,7 @@ const ELEMENT_TYPES = {
   FRAME: "frame",
   LEG: "leg",
   WALL: "wall",
+  BALL: "ball", // Új típus a labdához
 };
 
 // Anyag definíciók
@@ -38,6 +41,12 @@ const MATERIALS = {
     density: 0.2, // g/cm³
     color: 0x96b965, // Realisztikus műfű szín - OliveDrab árnyalat
     shininess: 2, // Mattos felület, kevésbé fényes
+  },
+  WHITE_PLASTIC: {
+    name: "Fehér műanyag",
+    density: 0.9, // g/cm³
+    color: 0xffffff, // Fehér
+    shininess: 30, // Fényes felület
   },
 };
 
