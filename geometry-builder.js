@@ -1,11 +1,19 @@
 /**
  * Geometry Builder
  * THREE.js geometriák és mesh-ek létrehozása elem definíciók alapján
+ * v1.5.0 - CSG műveletek támogatása
  */
 
 class GeometryBuilder {
   constructor() {
     this.materialCache = new Map();
+    this.csgManager = null; // CSG Manager referencia
+  }
+
+  // ÚJ: CSG Manager beállítása
+  setCSGManager(csgManager) {
+    this.csgManager = csgManager;
+    console.log("CSG Manager beállítva a GeometryBuilder-ben");
   }
 
   // THREE.js material létrehozása anyag definíció alapján
@@ -27,6 +35,67 @@ class GeometryBuilder {
 
   // THREE.js geometria létrehozása elem alapján
   createGeometry(element) {
+    const geom = element.geometry;
+
+    // ÚJ: CSG műveletek ellenőrzése
+    if (this.csgManager && (geom.holes || geom.csgOperations)) {
+      return this.createCSGGeometry(element);
+    }
+
+    // Hagyományos geometria létrehozás
+    return this.createStandardGeometry(element);
+  }
+
+  // ÚJ: CSG geometria létrehozása
+  createCSGGeometry(element) {
+    const geom = element.geometry;
+
+    // Alap geometria létrehozása
+    const baseGeometry = this.createStandardGeometry(element);
+
+    let csgOperations = [];
+
+    // Lyukak konvertálása CSG műveletekre (kompatibilitás)
+    if (geom.holes) {
+      const holeOperations = this.csgManager.convertHolesToCSGOperations(
+        geom.holes
+      );
+      csgOperations = csgOperations.concat(holeOperations);
+    }
+
+    // Direkt CSG műveletek hozzáadása
+    if (geom.csgOperations) {
+      csgOperations = csgOperations.concat(geom.csgOperations);
+    }
+
+    // CSG műveletek végrehajtása
+    if (csgOperations.length > 0) {
+      // Pozíció alapú CSG műveletek alkalmazása
+      const positionedOperations = csgOperations.map((operation) => {
+        const positioned = { ...operation };
+
+        // Ha van pozíció megadva, alkalmazzuk
+        if (operation.position) {
+          positioned.params = {
+            ...positioned.params,
+            position: operation.position,
+          };
+        }
+
+        return positioned;
+      });
+
+      return this.csgManager.createCSGGeometry(
+        baseGeometry,
+        positionedOperations
+      );
+    }
+
+    return baseGeometry;
+  }
+
+  // ÁTNEVEZETT: Hagyományos geometria létrehozása (régi createGeometry logika)
+  createStandardGeometry(element) {
     const geom = element.geometry;
     const dim = geom.dimensions;
 
@@ -51,8 +120,41 @@ class GeometryBuilder {
     }
   }
 
-  // Extrude geometria létrehozása (lyukakkal)
+  // MÓDOSÍTOTT: Extrude geometria létrehozása - CSG nélküli fallback
   createExtrudeGeometry(element) {
+    const dim = element.geometry.dimensions;
+    const holes = element.geometry.holes || [];
+
+    // Ha van CSG Manager és lyukak, próbáljuk CSG-vel
+    if (this.csgManager && holes.length > 0) {
+      // Alap box geometria
+      const baseGeometry = new THREE.BoxGeometry(
+        dim.length,
+        dim.height,
+        dim.width
+      );
+
+      // Lyukak konvertálása CSG műveletekre
+      const csgOperations = this.csgManager.convertHolesToCSGOperations(holes);
+
+      if (csgOperations.length > 0) {
+        try {
+          return this.csgManager.createCSGGeometry(baseGeometry, csgOperations);
+        } catch (error) {
+          console.warn(
+            "CSG extrude hiba, fallback THREE.ExtrudeGeometry-ra:",
+            error
+          );
+        }
+      }
+    }
+
+    // Fallback: hagyományos THREE.ExtrudeGeometry
+    return this.createLegacyExtrudeGeometry(element);
+  }
+
+  // ÚJ: Legacy ExtrudeGeometry (eredeti implementáció)
+  createLegacyExtrudeGeometry(element) {
     const dim = element.geometry.dimensions;
     const holes = element.geometry.holes || [];
 
@@ -135,6 +237,13 @@ class GeometryBuilder {
       elementId: element.id,
       elementName: element.name,
       elementType: element.type,
+      // ÚJ: CSG metadata
+      hasCSGOperations: !!(
+        element.geometry.holes || element.geometry.csgOperations
+      ),
+      csgOperationCount:
+        (element.geometry.holes?.length || 0) +
+        (element.geometry.csgOperations?.length || 0),
     };
 
     return mesh;
@@ -145,8 +254,37 @@ class GeometryBuilder {
     const meshes = new Map();
 
     elements.forEach((element) => {
-      const mesh = this.createMesh(element);
-      meshes.set(element.id, mesh);
+      try {
+        const mesh = this.createMesh(element);
+        meshes.set(element.id, mesh);
+
+        // ÚJ: CSG műveletek naplózása
+        if (mesh.userData.hasCSGOperations && CSG_DEBUG.logOperations) {
+          console.log(
+            `CSG mesh létrehozva: ${element.id} (${mesh.userData.csgOperationCount} művelet)`
+          );
+        }
+      } catch (error) {
+        console.error(`Mesh létrehozás hiba (${element.id}):`, error);
+
+        // Fallback: egyszerű box mesh
+        const fallbackGeometry = new THREE.BoxGeometry(10, 10, 10);
+        const fallbackMaterial = new THREE.MeshBasicMaterial({
+          color: 0xff0000,
+          wireframe: true,
+        });
+        const fallbackMesh = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
+
+        fallbackMesh.userData = {
+          elementId: element.id,
+          elementName: element.name + " (HIBA)",
+          elementType: element.type,
+          hasError: true,
+        };
+
+        meshes.set(element.id, fallbackMesh);
+        console.warn(`Fallback mesh használata: ${element.id}`);
+      }
     });
 
     return meshes;
@@ -155,9 +293,14 @@ class GeometryBuilder {
   // Material cache ürítése
   clearCache() {
     this.materialCache.clear();
+
+    // ÚJ: CSG cache is törlése
+    if (this.csgManager) {
+      this.csgManager.clearCache();
+    }
   }
 
-  // Lyuk mesh létrehozása (vizuális célokra)
+  // Lyuk mesh létrehozása (vizuális célokra) - LEGACY
   createHoleMesh(element) {
     const holes = element.geometry.holes || [];
     const holeMeshes = [];
@@ -200,6 +343,15 @@ class GeometryBuilder {
     return holeMeshes;
   }
 
+  // ÚJ: CSG státusz lekérdezése
+  getCSGStatus() {
+    return {
+      csgManagerAvailable: !!this.csgManager,
+      csgLibraryAvailable: this.csgManager?.isCSGAvailable || false,
+      cacheSize: this.csgManager?.getCacheSize() || 0,
+    };
+  }
+
   // Debug info kiírása
   logElementInfo(element, mesh) {
     console.log(`Element: ${element.name} (${element.id})`);
@@ -209,6 +361,21 @@ class GeometryBuilder {
     console.log(`- Dimensions:`, element.geometry.dimensions);
     console.log(`- Position:`, mesh.position);
     console.log(`- Calculated:`, element.calculated);
+
+    // ÚJ: CSG info
+    if (mesh.userData.hasCSGOperations) {
+      console.log(`- CSG Operations: ${mesh.userData.csgOperationCount}`);
+    }
+
     console.log("---");
+  }
+
+  // ÚJ: Cleanup
+  destroy() {
+    this.clearCache();
+
+    if (this.csgManager) {
+      this.csgManager.destroy();
+    }
   }
 }

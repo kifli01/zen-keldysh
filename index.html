@@ -2,17 +2,22 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Minigolf Pálya Viewer - v1.4.0</title>
+    <title>Minigolf Pálya Viewer - v1.5.0</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
     />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
+
+    <!-- ES6 modules és importmap támogatás -->
+    <script
+      async
+      src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"
+    ></script>
 
     <!-- Moduláris struktúra -->
     <script src="constants.js"></script>
     <script src="hole-generator.js"></script>
+    <script src="csg-manager.js"></script>
     <script src="element-manager.js"></script>
     <script src="model.js"></script>
     <script src="geometry-builder.js"></script>
@@ -24,6 +29,18 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- Importmap a CSG könyvtárakhoz - kompatibilis verziók -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+          "three/examples/jsm/exporters/GLTFExporter.js": "https://unpkg.com/three@0.158.0/examples/jsm/exporters/GLTFExporter.js",
+          "three-mesh-bvh": "https://unpkg.com/three-mesh-bvh@0.7.6/build/index.module.js",
+          "three-bvh-csg": "https://unpkg.com/three-bvh-csg@0.0.17/build/index.module.js"
+        }
+      }
+    </script>
+
     <div id="viewer-container">
       <!-- Fő vezérlők -->
       <div id="controls">
@@ -53,19 +70,86 @@
       <!-- A summary javascript-ből lesz feltöltve -->
     </div>
 
-    <script>
+    <!-- CSG inicializálás és főalkalmazás -->
+    <script type="module">
+      // Minden könyvtár ES6 importokkal
+      import * as THREE from "three";
+      import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
+      import * as ThreeMeshBVH from "three-mesh-bvh";
+      import * as ThreeBVHCSG from "three-bvh-csg";
+
+      // THREE.js globálisan elérhetővé tétele
+      window.THREE = THREE;
+      window.GLTFExporter = GLTFExporter;
+
       // Globális változók
       let elementManager;
       let sceneManager;
       let geometryBuilder;
       let exploder;
       let viewModeManager;
+      let csgManager;
       let allMeshes;
 
-      // Inicializálás
+      // CSG inicializálás
+      function initializeCSG() {
+        try {
+          // Könyvtárak hozzáférhetősége ellenőrzése
+          if (!ThreeMeshBVH || !ThreeBVHCSG) {
+            console.warn(
+              "CSG könyvtárak nem töltődtek be, fallback módra váltás"
+            );
+            return false;
+          }
+
+          // Globális objektumok létrehozása kompatibilitás miatt
+          window.MeshBVH = ThreeMeshBVH.MeshBVH;
+          window.CSGAPI = ThreeBVHCSG;
+
+          // CSG wrapper objektum
+          window.CSG = {
+            // Alapvető osztályok
+            Brush: ThreeBVHCSG.Brush,
+            Evaluator: ThreeBVHCSG.Evaluator,
+
+            // Operációk
+            ADDITION: ThreeBVHCSG.ADDITION,
+            SUBTRACTION: ThreeBVHCSG.SUBTRACTION,
+            INTERSECTION: ThreeBVHCSG.INTERSECTION,
+            DIFFERENCE: ThreeBVHCSG.DIFFERENCE,
+
+            // Kompatibilitási funkciók
+            fromMesh: (mesh) => {
+              const brush = new ThreeBVHCSG.Brush(mesh.geometry, mesh.material);
+              brush.position.copy(mesh.position);
+              brush.rotation.copy(mesh.rotation);
+              brush.scale.copy(mesh.scale);
+              brush.updateMatrixWorld();
+              return brush;
+            },
+
+            toMesh: (brush, matrix) => {
+              const mesh = new THREE.Mesh(brush.geometry, brush.material);
+              if (matrix) mesh.applyMatrix4(matrix);
+              return mesh;
+            },
+          };
+
+          console.log("CSG könyvtárak sikeresen inicializálva (ES6 modules)");
+          return true;
+        } catch (error) {
+          console.error("CSG inicializálás hiba:", error);
+          return false;
+        }
+      }
+
+      // Főalkalmazás inicializálása
       function initialize() {
         try {
-          console.log("Inicializálás kezdete v1.4.0...");
+          console.log("Inicializálás kezdete v1.5.0...");
+
+          // CSG inicializálás
+          const csgAvailable = initializeCSG();
 
           // Manager objektumok létrehozása
           elementManager = new ElementManager();
@@ -75,6 +159,17 @@
           geometryBuilder = new GeometryBuilder();
           exploder = new Exploder();
           viewModeManager = new ViewModeManager(sceneManager, geometryBuilder);
+
+          // CSG Manager létrehozása ha elérhető
+          if (csgAvailable && typeof CSGManager !== "undefined") {
+            csgManager = new CSGManager();
+            geometryBuilder.setCSGManager(csgManager);
+            console.log("CSG Manager inicializálva");
+          } else {
+            console.log(
+              "CSG Manager nem elérhető, hagyományos módban folytatás"
+            );
+          }
 
           console.log("Manager objektumok létrehozva");
 
@@ -128,7 +223,7 @@
           setupEventListeners();
           console.log("Event listener-ek beállítva");
 
-          console.log("Inicializálás sikeres v1.4.0!");
+          console.log("Inicializálás sikeres v1.5.0!");
         } catch (error) {
           console.error("Hiba az inicializálás során:", error);
         }
@@ -198,7 +293,7 @@
             exportGLTF(false);
           });
 
-        // ÚJ: Nézet váltó gombok
+        // Nézet váltó gombok
         document
           .getElementById("view-top")
           .addEventListener("click", function () {
@@ -301,7 +396,7 @@
 
       // Debug funkciók (fejlesztéshez)
       function debugInfo() {
-        console.log("=== DEBUG INFO v1.4.0 ===");
+        console.log("=== DEBUG INFO v1.5.0 ===");
         console.log(
           "Element Manager:",
           elementManager.getAllElements().length + " elem"
@@ -310,6 +405,10 @@
         console.log("Exploder:", exploder.getState());
         console.log("Mesh-ek:", allMeshes.size);
         console.log("Súly:", elementManager.getTotalWeight().toFixed(2) + " g");
+        // CSG debug info
+        if (csgManager) {
+          console.log("CSG Manager:", csgManager.getDebugInfo());
+        }
         console.log("==================");
       }
 
@@ -317,6 +416,7 @@
       window.debugInfo = debugInfo;
       window.elementManager = () => elementManager;
       window.sceneManager = () => sceneManager;
+      window.csgManager = () => csgManager;
 
       // Egyedi elem láthatóság kapcsoló funkció
       window.toggleElementVisibility = function (elementId, isVisible) {
@@ -346,5 +446,7 @@
       // Inicializálás indítása az oldal betöltése után
       document.addEventListener("DOMContentLoaded", initialize);
     </script>
+
+    <!-- CSG Manager eltávolítva, mert modulként importáljuk -->
   </body>
 </html>

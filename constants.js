@@ -1,7 +1,7 @@
 /**
  * Minigolf Constants
  * Közös konstansok és alapértékek a minigolf pálya elemekhez
- * v1.3.0 - Labda típus és fehér műanyag anyag hozzáadva
+ * v1.5.0 - CSG műveletek támogatása
  */
 
 // Geometria típusok
@@ -92,3 +92,36 @@ COURSE_DIMENSIONS.frontHeight =
   COURSE_DIMENSIONS.sideHeight -
   COURSE_DIMENSIONS.sideVerticalShift -
   COURSE_DIMENSIONS.turfThickness;
+
+// ÚJ: CSG beállítások
+const CSG_CONFIG = {
+  enabled: true, // CSG műveletek engedélyezése
+  useWorker: false, // Web Worker használata (jelenleg nem támogatott)
+  maxOperations: 50, // Maximális batch műveletek száma
+  cacheSize: 100, // Geometria cache méret
+  enableProfiling: false, // Performance profiling
+};
+
+// ÚJ: CSG művelet típusok
+const CSG_OPERATIONS = {
+  SUBTRACT: "subtract",
+  UNION: "union",
+  INTERSECT: "intersect",
+};
+
+// ÚJ: CSG Performance beállítások
+const CSG_PERFORMANCE = {
+  enableCache: true, // Geometria cache engedélyezése
+  enableProfiling: false, // Performance mérés (debug módban)
+  warnThreshold: 100, // ms - figyelmeztetés ha lassú a művelet
+  maxCacheAge: 300000, // 5 perc - cache lejárati idő
+  batchSize: 10, // Batch műveletek mérete
+};
+
+// ÚJ: CSG Debug beállítások
+const CSG_DEBUG = {
+  logOperations: false, // CSG műveletek naplózása
+  showTimings: false, // Időmérések megjelenítése
+  validateGeometry: false, // Geometria validálás
+  wireframeResults: false, // Eredmények wireframe módban
+};

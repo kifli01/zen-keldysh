@@ -1,37 +1,52 @@
 /**
  * Minigolf Model Definition
- * v1.3.0 - HoleGenerator használata, egyszerűsített lyuk generálás
+ * v1.5.0 - CSG műveletek használata, top_plate és turf CSG-re átállítva
  * Csak az elemek leírása - új struktúrával
  */
 
 // Minigolf pálya elemei
 const minigolfElements = [
   // Fő alaplap (felső rétegelt lemez) - 12mm vastagság
+  // ÚJ: CSG műveletekkel
   {
     id: "top_plate",
     name: "Faalap",
     type: ELEMENT_TYPES.PLATE,
     material: "PINE_PLYWOOD",
     geometry: {
-      type: GEOMETRY_TYPES.EXTRUDE,
+      type: GEOMETRY_TYPES.BOX, // VÁLTOZÁS: BOX geometria CSG műveletekkel
       dimensions: {
         width: COURSE_DIMENSIONS.width, // 80 cm
         height: 1.2, // 12mm = 1.2 cm
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
-      holes: [
-        // Fő lyuk (golflyuk)
-        createHole({
+      // TESZT: Egyszerű áttörő lyuk először
+      csgOperations: [
+        // 1. Felső rész: 174mm átmérő, 3mm mélység
+        createCSGOperation({
           type: "circle",
-          radius: COURSE_DIMENSIONS.holeRadius, // 5.4 cm
+          radius: 8.7, // 174mm / 2 = 87mm = 8.7cm
           position: {
-            x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.holePositionX, // 85 cm a bal széltől
-            y: 0,
+            x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.holePositionX,
+            y: 0.43, // Felső pozíció: faalap teteje felé eltolva
             z: 0,
           },
+          depth: 0.5, // 3mm = 0.3cm mélység
         }),
 
-        // Vízelvezető lyukak - első szektor
+        // 2. Alsó rész: 112mm átmérő, teljes áttörés
+        createCSGOperation({
+          type: "circle",
+          radius: 5.6, // 112mm / 2 = 56mm = 5.6cm
+          position: {
+            x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.holePositionX,
+            y: 0, // Középső pozíció
+            z: 0,
+          },
+          depth: 2.0, // Teljes áttörés
+        }),
+
+        // Vízelvezető lyukak - első szektor (CSG)
         ...createHoleGrid({
           area: defineArea(
             -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth,
@@ -42,11 +57,16 @@ const minigolfElements = [
             COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth
           ),
           grid: { x: 4, z: 4 },
-          holeParams: { type: "circle", radius: 0.8 },
+          holeParams: {
+            type: "circle",
+            radius: 0.8,
+            depth: 1.2 + 0.1, // Átmegy a lapon
+          },
           margin: 10,
+          useCSG: true, // ÚJ: CSG műveletek használata
         }),
 
-        // Vízelvezető lyukak - középső szektor
+        // Vízelvezető lyukak - középső szektor (CSG)
         ...createHoleGrid({
           area: defineArea(
             -COURSE_DIMENSIONS.length / 2 +
@@ -59,11 +79,16 @@ const minigolfElements = [
             COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth
           ),
           grid: { x: 4, z: 4 },
-          holeParams: { type: "circle", radius: 0.8 },
+          holeParams: {
+            type: "circle",
+            radius: 0.8,
+            depth: 1.2 + 0.1,
+          },
           margin: 10,
+          useCSG: true, // ÚJ: CSG műveletek használata
         }),
 
-        // Vízelvezető lyukak - hátsó szektor (szűrve a fő lyuk környékét)
+        // Vízelvezető lyukak - hátsó szektor (szűrve a fő lyuk környékét) (CSG)
         ...(() => {
           const mainHoleX =
             COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.holePositionX;
@@ -77,15 +102,20 @@ const minigolfElements = [
               COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth
             ),
             grid: { x: 4, z: 4 },
-            holeParams: { type: "circle", radius: 0.8 },
+            holeParams: {
+              type: "circle",
+              radius: 0.8,
+              depth: 1.2 + 0.1,
+            },
             margin: 10,
+            useCSG: true, // ÚJ: CSG műveletek használata
           });
 
           // Szűrjük ki a fő lyuk közelében lévő lyukakat
-          return holes.filter((hole) => {
+          return holes.filter((operation) => {
             const distance = Math.sqrt(
-              Math.pow(hole.position.x - mainHoleX, 2) +
-                Math.pow(hole.position.z - 0, 2)
+              Math.pow(operation.position.x - mainHoleX, 2) +
+                Math.pow(operation.position.z - 0, 2)
             );
             return distance > 8; // 8cm biztonsági távolság
           });
@@ -93,48 +123,49 @@ const minigolfElements = [
       ],
     },
     transform: {
-      position: { x: 0, y: 0, z: 0 }, // 12mm/2 = 0.6 cm
+      position: { x: 0, y: 0, z: 0 },
     },
     explode: {
       offset: { x: 0, y: 30, z: 0 },
     },
   },
 
-  // Műfű borítás - csak a fő lyuk
+  // Műfű borítás - CSG-re átállítva
   {
     id: "turf",
     name: "Műfű borítás",
     type: ELEMENT_TYPES.COVERING,
     material: "ARTIFICIAL_GRASS",
     geometry: {
-      type: GEOMETRY_TYPES.EXTRUDE,
+      type: GEOMETRY_TYPES.BOX, // VÁLTOZÁS: BOX geometria CSG műveletekkel
       dimensions: {
         width: COURSE_DIMENSIONS.width, // 80 cm
         height: COURSE_DIMENSIONS.turfThickness, // 0.6 cm
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
-      holes: [
-        // Fő lyuk (golflyuk) - csak ez kell a műfűhöz
-        createHole({
+      // ÚJ: CSG művelet - felső lyuk mérete a műfűhöz
+      csgOperations: [
+        createCSGOperation({
           type: "circle",
-          radius: COURSE_DIMENSIONS.holeRadius, // 5.4 cm
+          radius: 5.4, // Egyenlőre ugyanaz mint a faalap
           position: {
             x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.holePositionX,
             y: 0,
             z: 0,
           },
+          depth: COURSE_DIMENSIONS.turfThickness + 0.2, // Mélyebb vágás - átmegy a műfűn
         }),
       ],
     },
     transform: {
-      position: { x: 0, y: COURSE_DIMENSIONS.turfThickness / 2, z: 0 },
+      position: { x: 0, y: COURSE_DIMENSIONS.turfThickness / 2 + 0.7, z: 0 }, // Magasabbra helyezve: +0.7cm
     },
     explode: {
       offset: { x: 0, y: 60, z: 0 },
     },
   },
 
-  // Váz - hosszanti lécek (2 db)
+  // Váz - hosszanti lécek (2 db) - VÁLTOZATLAN
   {
     id: "frame_long_left",
     name: "Bal hosszanti léc",
@@ -185,7 +216,7 @@ const minigolfElements = [
     },
   },
 
-  // Váz - keresztlécek (első és hátsó)
+  // Váz - keresztlécek (első és hátsó) - VÁLTOZATLAN
   {
     id: "frame_cross_front",
     name: "Első keresztléc",
@@ -236,7 +267,7 @@ const minigolfElements = [
     },
   },
 
-  // Váz - belső keresztlécek (2 db)
+  // Váz - belső keresztlécek (2 db) - VÁLTOZATLAN
   ...Array.from({ length: COURSE_DIMENSIONS.crossBeamCount }, (_, i) => {
     const spacing =
       COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
@@ -269,7 +300,7 @@ const minigolfElements = [
     };
   }),
 
-  // Oldalfalak (2 db)
+  // Oldalfalak (2 db) - VÁLTOZATLAN
   {
     id: "wall_left",
     name: "Bal oldali fal",
@@ -326,7 +357,7 @@ const minigolfElements = [
     },
   },
 
-  // Végfal
+  // Végfal - VÁLTOZATLAN
   {
     id: "wall_end",
     name: "Végfal",
@@ -355,7 +386,7 @@ const minigolfElements = [
     },
   },
 
-  // Kezdő záró elem
+  // Kezdő záró elem - VÁLTOZATLAN
   {
     id: "wall_start",
     name: "Kezdő záró elem",
@@ -381,7 +412,7 @@ const minigolfElements = [
     },
   },
 
-  // Minigolf labda - 43mm átmérő
+  // Minigolf labda - 43mm átmérő - VÁLTOZATLAN
   {
     id: "golf_ball",
     name: "Minigolf labda",
@@ -406,7 +437,7 @@ const minigolfElements = [
     },
   },
 
-  // Lábak (8 db) - keresztlécek közepén
+  // Lábak (8 db) - keresztlécek közepén - VÁLTOZATLAN
   ...Array.from({ length: 8 }, (_, i) => {
     // Láb pozíciók kiszámítása - keresztlécek pozícióihoz igazítva
     const spacing =
