@@ -1,6 +1,7 @@
 /**
  * Exploder
  * Robbantott nézet kezelése - elemek szétszedése és visszaállítása
+ * v1.1.0 - Wireframe layer támogatás
  */
 
 class Exploder {
@@ -79,7 +80,7 @@ class Exploder {
     }
   }
 
-  // Animáció egy pozícióba
+  // MÓDOSÍTOTT: Animáció egy pozícióba - wireframe layer támogatással
   animateToPosition(mesh, targetPosition, duration = this.animationDuration) {
     const startPosition = {
       x: mesh.position.x,
@@ -104,12 +105,13 @@ class Exploder {
       mesh.position.z =
         startPosition.z + (targetPosition.z - startPosition.z) * easedProgress;
 
-      // Edge pozíciók frissítése blueprint módban
+      // ÚJ: Wireframe pozíciók frissítése blueprint módban
       if (
         this.viewModeManager &&
         this.viewModeManager.getCurrentMode() === "blueprint"
       ) {
-        this.viewModeManager.updateEdgePositions(
+        // Wireframe layer frissítése az aktuális mesh-hez
+        this.viewModeManager.updateWireframePositions(
           new Map([[mesh.userData.elementId, mesh]])
         );
       }
@@ -122,7 +124,7 @@ class Exploder {
     animate();
   }
 
-  // Azonnali pozíció beállítás (animáció nélkül)
+  // MÓDOSÍTOTT: Azonnali pozíció beállítás - wireframe layer támogatással
   setPositionImmediate(meshes, elements, exploded = false) {
     elements.forEach((element) => {
       const mesh = meshes.get(element.id);
@@ -147,12 +149,12 @@ class Exploder {
 
     this.isExploded = exploded;
 
-    // Edge pozíciók frissítése blueprint módban
+    // ÚJ: Wireframe pozíciók frissítése blueprint módban
     if (
       this.viewModeManager &&
       this.viewModeManager.getCurrentMode() === "blueprint"
     ) {
-      this.viewModeManager.updateEdgePositions(meshes);
+      this.viewModeManager.updateWireframePositions(meshes);
     }
   }
 

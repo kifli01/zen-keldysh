@@ -1,7 +1,7 @@
 /**
  * View Mode Manager
  * Váltás színes nézet és tervrajz stílus között
- * v1.6.0 - Toon shader és papírszerű megjelenés
+ * v1.7.0 - Saját wireframe layer implementáció + lyukak körvonalai
  */
 
 class ViewModeManager {
@@ -12,6 +12,9 @@ class ViewModeManager {
 
     // Eredeti anyagok mentése
     this.originalMaterials = new Map();
+
+    // ÚJ: Wireframe layer
+    this.wireframeLayer = new Map(); // elementId -> wireframe mesh
 
     // ÚJ: Képességek ellenőrzése
     this.capabilities = {
@@ -104,7 +107,15 @@ class ViewModeManager {
       }),
     };
 
-    // Wireframe anyagok (körvonalakhoz) - fallback
+    // ÚJ: Egységes wireframe anyag
+    this.wireframeMaterial = new THREE.LineBasicMaterial({
+      color: 0x333333, // Sötét szürke
+      linewidth: 2,
+      transparent: true,
+      opacity: 0.8,
+    });
+
+    // Wireframe anyagok (legacy) - most üres lesz
     this.wireframeMaterials = new Map();
   }
 
@@ -429,11 +440,527 @@ class ViewModeManager {
     });
   }
 
-  // MÓDOSÍTOTT: Váltás tervrajz nézetbe - DEBUG módban
+  // ÚJ: Wireframe layer létrehozása
+  createWireframeLayer(meshes, elements) {
+    console.log("🔧 Wireframe layer létrehozása...");
+
+    elements.forEach((element) => {
+      const mesh = meshes.get(element.id);
+      if (!mesh) return;
+
+      // 1. Alap wireframe geometria létrehozása (befoglaló forma)
+      const wireframeGeometry = this.createWireframeGeometry(mesh);
+
+      if (wireframeGeometry) {
+        const wireframeMesh = new THREE.LineSegments(
+          wireframeGeometry,
+          this.wireframeMaterial
+        );
+
+        // Pozíció, forgatás, skálázás másolása
+        wireframeMesh.position.copy(mesh.position);
+        wireframeMesh.rotation.copy(mesh.rotation);
+        wireframeMesh.scale.copy(mesh.scale);
+
+        // Metadata
+        wireframeMesh.userData = {
+          isWireframe: true,
+          parentId: element.id,
+          elementType: element.type,
+        };
+
+        // Scene-hez adás és tárolás
+        this.sceneManager.scene.add(wireframeMesh);
+        this.wireframeLayer.set(element.id, wireframeMesh);
+
+        console.log(`✅ Wireframe létrehozva: ${element.id}`);
+      }
+
+      // 2. ÚJ: Lyukak körvonalainak hozzáadása
+      this.addHoleOutlines(element, mesh);
+    });
+
+    console.log(`🎯 Wireframe layer kész: ${this.wireframeLayer.size} elem`);
+  }
+
+  // ÚJ: Wireframe geometria létrehozása - lyukak nélküli verzió
+  createWireframeGeometry(mesh) {
+    try {
+      let geometry;
+
+      // CSG eredményhez egyszerűsített befoglaló forma készítése
+      if (mesh.userData.hasCSGOperations) {
+        console.log(
+          `🔧 CSG mesh egyszerűsített wireframe: ${mesh.userData.elementId}`
+        );
+        geometry = this.createSimplifiedBoundingGeometry(mesh);
+      } else {
+        // Nem CSG mesh esetén az eredeti geometria használata
+        geometry = mesh.geometry;
+      }
+
+      // EdgesGeometry létrehozása
+      const edgesGeometry = new THREE.EdgesGeometry(geometry, 15); // 15 fok threshold
+
+      // Ha egyszerűsített geometriát készítettünk, azt később tisztítjuk fel
+      if (geometry !== mesh.geometry) {
+        // A geometry-t később dispose-oljuk amikor a wireframe mesh törlődik
+      }
+
+      return edgesGeometry;
+    } catch (error) {
+      console.error(
+        `Wireframe geometria hiba (${mesh.userData.elementId}):`,
+        error
+      );
+      return null;
+    }
+  }
+
+  // ÚJ: Egyszerűsített befoglaló geometria készítése (lyukak nélkül)
+  createSimplifiedBoundingGeometry(mesh) {
+    const userData = mesh.userData;
+
+    // Bounding box alapján egyszerűsített forma készítése
+    const box = new THREE.Box3().setFromObject(mesh);
+    const size = box.getSize(new THREE.Vector3());
+
+    // Elem típus alapján megfelelő egyszerűsített geometria
+    switch (userData.elementType) {
+      case "plate":
+      case "covering":
+      case "frame":
+      case "wall":
+        // Box geometria
+        return new THREE.BoxGeometry(size.x, size.y, size.z);
+
+      case "leg":
+        // Cylinder geometria
+        const radius = Math.max(size.x, size.z) / 2;
+        return new THREE.CylinderGeometry(radius, radius, size.y, 16);
+
+      case "ball":
+        // Sphere geometria
+        const sphereRadius = Math.max(size.x, size.y, size.z) / 2;
+        return new THREE.SphereGeometry(sphereRadius, 16, 12);
+
+      default:
+        // Fallback: box
+        return new THREE.BoxGeometry(size.x, size.y, size.z);
+    }
+  }
+
+  // ÚJ: Lyukak körvonalainak hozzáadása
+  addHoleOutlines(element, mesh) {
+    // CSG műveletek ellenőrzése
+    const csgOperations = element.geometry.csgOperations;
+    const holes = element.geometry.holes; // Legacy holes támogatás
+
+    let holeCount = 0;
+
+    // 1. CSG műveletek alapján lyukak keresése
+    if (csgOperations && csgOperations.length > 0) {
+      csgOperations.forEach((operation, index) => {
+        if (operation.type === "subtract") {
+          const holeOutlines = this.createHoleOutlineGeometry(operation, mesh);
+          if (holeOutlines && holeOutlines.length > 0) {
+            // Több körvonal hozzáadása (felső és alsó)
+            holeOutlines.forEach((holeOutline, outlineIndex) => {
+              this.addHoleOutlineToScene(
+                holeOutline,
+                mesh,
+                element.id,
+                `csg_${index}_${holeOutline.type}`
+              );
+              holeCount++;
+            });
+          }
+        }
+      });
+    }
+
+    // 2. Legacy holes támogatás
+    if (holes && holes.length > 0) {
+      holes.forEach((hole, index) => {
+        const holeOutlines = this.createLegacyHoleOutlineGeometry(hole, mesh);
+        if (holeOutlines && holeOutlines.length > 0) {
+          // Több körvonal hozzáadása (felső és alsó)
+          holeOutlines.forEach((holeOutline, outlineIndex) => {
+            this.addHoleOutlineToScene(
+              holeOutline,
+              mesh,
+              element.id,
+              `legacy_${index}_${holeOutline.type}`
+            );
+            holeCount++;
+          });
+        }
+      });
+    }
+
+    if (holeCount > 0) {
+      console.log(`🔵 ${holeCount} lyuk körvonal hozzáadva: ${element.id}`);
+    }
+  }
+
+  // ÚJ: CSG művelet alapján lyuk körvonal készítése
+  createHoleOutlineGeometry(csgOperation, parentMesh) {
+    try {
+      const position = csgOperation.position || { x: 0, y: 0, z: 0 };
+      const depth = csgOperation.params.height || 10; // Lyuk mélysége
+
+      let outlines = []; // Több körvonal tárolása
+
+      switch (csgOperation.geometry) {
+        case "cylinder":
+          // Kör körvonal - felső és alsó
+          const radius = csgOperation.params.radius;
+          const segments = csgOperation.params.segments || 32;
+
+          // Felső körvonal
+          const topCircleGeometry = new THREE.CircleGeometry(radius, segments);
+          const topEdgesGeometry = new THREE.EdgesGeometry(topCircleGeometry);
+          topEdgesGeometry.rotateX(Math.PI / 2);
+
+          outlines.push({
+            geometry: topEdgesGeometry,
+            position: {
+              x: position.x,
+              y: position.y + depth / 2, // Felső pozíció
+              z: position.z,
+            },
+            rotation: csgOperation.rotation || { x: 0, y: 0, z: 0 },
+            type: "top",
+          });
+
+          // Alsó körvonal
+          const bottomCircleGeometry = new THREE.CircleGeometry(
+            radius,
+            segments
+          );
+          const bottomEdgesGeometry = new THREE.EdgesGeometry(
+            bottomCircleGeometry
+          );
+          bottomEdgesGeometry.rotateX(Math.PI / 2);
+
+          outlines.push({
+            geometry: bottomEdgesGeometry,
+            position: {
+              x: position.x,
+              y: position.y - depth / 2, // Alsó pozíció
+              z: position.z,
+            },
+            rotation: csgOperation.rotation || { x: 0, y: 0, z: 0 },
+            type: "bottom",
+          });
+          break;
+
+        case "box":
+          // Téglalap körvonal - felső és alsó
+          const width = csgOperation.params.width;
+          const length =
+            csgOperation.params.length || csgOperation.params.height;
+
+          // Felső téglalap
+          const topPlaneGeometry = new THREE.PlaneGeometry(width, length);
+          const topPlaneEdges = new THREE.EdgesGeometry(topPlaneGeometry);
+          topPlaneEdges.rotateX(Math.PI / 2);
+
+          outlines.push({
+            geometry: topPlaneEdges,
+            position: {
+              x: position.x,
+              y: position.y + depth / 2, // Felső pozíció
+              z: position.z,
+            },
+            rotation: csgOperation.rotation || { x: 0, y: 0, z: 0 },
+            type: "top",
+          });
+
+          // Alsó téglalap
+          const bottomPlaneGeometry = new THREE.PlaneGeometry(width, length);
+          const bottomPlaneEdges = new THREE.EdgesGeometry(bottomPlaneGeometry);
+          bottomPlaneEdges.rotateX(Math.PI / 2);
+
+          outlines.push({
+            geometry: bottomPlaneEdges,
+            position: {
+              x: position.x,
+              y: position.y - depth / 2, // Alsó pozíció
+              z: position.z,
+            },
+            rotation: csgOperation.rotation || { x: 0, y: 0, z: 0 },
+            type: "bottom",
+          });
+          break;
+
+        default:
+          console.warn(
+            `Nem támogatott lyuk geometria: ${csgOperation.geometry}`
+          );
+          return [];
+      }
+
+      return outlines;
+    } catch (error) {
+      console.error("CSG lyuk körvonal hiba:", error);
+      return [];
+    }
+  }
+
+  // ÚJ: Legacy hole körvonal készítése
+  createLegacyHoleOutlineGeometry(hole, parentMesh) {
+    try {
+      const depth = hole.depth || 10; // Alapértelmezett mélység
+      let outlines = [];
+
+      switch (hole.type) {
+        case "circle":
+          const radius = hole.radius;
+
+          // Felső körvonal
+          const topCircleGeometry = new THREE.CircleGeometry(radius, 32);
+          const topEdgesGeometry = new THREE.EdgesGeometry(topCircleGeometry);
+          topEdgesGeometry.rotateX(Math.PI / 2);
+
+          outlines.push({
+            geometry: topEdgesGeometry,
+            position: {
+              x: hole.position.x,
+              y: hole.position.y + depth / 2,
+              z: hole.position.z,
+            },
+            rotation: hole.rotation || { x: 0, y: 0, z: 0 },
+            type: "top",
+          });
+
+          // Alsó körvonal
+          const bottomCircleGeometry = new THREE.CircleGeometry(radius, 32);
+          const bottomEdgesGeometry = new THREE.EdgesGeometry(
+            bottomCircleGeometry
+          );
+          bottomEdgesGeometry.rotateX(Math.PI / 2);
+
+          outlines.push({
+            geometry: bottomEdgesGeometry,
+            position: {
+              x: hole.position.x,
+              y: hole.position.y - depth / 2,
+              z: hole.position.z,
+            },
+            rotation: hole.rotation || { x: 0, y: 0, z: 0 },
+            type: "bottom",
+          });
+          break;
+
+        case "square":
+          // Felső téglalap
+          const topPlaneGeometry = new THREE.PlaneGeometry(
+            hole.width,
+            hole.height
+          );
+          const topPlaneEdges = new THREE.EdgesGeometry(topPlaneGeometry);
+          topPlaneEdges.rotateX(Math.PI / 2);
+
+          outlines.push({
+            geometry: topPlaneEdges,
+            position: {
+              x: hole.position.x,
+              y: hole.position.y + depth / 2,
+              z: hole.position.z,
+            },
+            rotation: hole.rotation || { x: 0, y: 0, z: 0 },
+            type: "top",
+          });
+
+          // Alsó téglalap
+          const bottomPlaneGeometry = new THREE.PlaneGeometry(
+            hole.width,
+            hole.height
+          );
+          const bottomPlaneEdges = new THREE.EdgesGeometry(bottomPlaneGeometry);
+          bottomPlaneEdges.rotateX(Math.PI / 2);
+
+          outlines.push({
+            geometry: bottomPlaneEdges,
+            position: {
+              x: hole.position.x,
+              y: hole.position.y - depth / 2,
+              z: hole.position.z,
+            },
+            rotation: hole.rotation || { x: 0, y: 0, z: 0 },
+            type: "bottom",
+          });
+          break;
+
+        default:
+          console.warn(`Nem támogatott legacy lyuk típus: ${hole.type}`);
+          return [];
+      }
+
+      return outlines;
+    } catch (error) {
+      console.error("Legacy lyuk körvonal hiba:", error);
+      return [];
+    }
+  }
+
+  // ÚJ: Téglalap körvonal geometria készítése
+  createRectangleOutlineGeometry(width, height) {
+    const shape = new THREE.Shape();
+    const halfWidth = width / 2;
+    const halfHeight = height / 2;
+
+    // Külső téglalap
+    shape.moveTo(-halfWidth, -halfHeight);
+    shape.lineTo(halfWidth, -halfHeight);
+    shape.lineTo(halfWidth, halfHeight);
+    shape.lineTo(-halfWidth, halfHeight);
+    shape.lineTo(-halfWidth, -halfHeight);
+
+    // Belső téglalap (lyuk)
+    const innerWidth = width - 0.02;
+    const innerHeight = height - 0.02;
+    const innerHalfWidth = innerWidth / 2;
+    const innerHalfHeight = innerHeight / 2;
+
+    const holePath = new THREE.Path();
+    holePath.moveTo(-innerHalfWidth, -innerHalfHeight);
+    holePath.lineTo(-innerHalfWidth, innerHalfHeight);
+    holePath.lineTo(innerHalfWidth, innerHalfHeight);
+    holePath.lineTo(innerHalfWidth, -innerHalfHeight);
+    holePath.lineTo(-innerHalfWidth, -innerHalfHeight);
+
+    shape.holes.push(holePath);
+
+    return new THREE.ShapeGeometry(shape);
+  }
+
+  // ÚJ: Lyuk körvonal hozzáadása a scene-hez
+  addHoleOutlineToScene(holeOutline, parentMesh, elementId, holeId) {
+    try {
+      // LineSegments használata a wireframe vonalakhoz
+      const holeWireframe = new THREE.LineSegments(
+        holeOutline.geometry,
+        this.wireframeMaterial
+      );
+
+      // Eredeti lyuk pozíció mentése (explode támogatáshoz)
+      const originalHolePosition = {
+        x: holeOutline.position.x,
+        y: holeOutline.position.y,
+        z: holeOutline.position.z,
+      };
+
+      // Pozíció beállítása (parent mesh + hole offset)
+      holeWireframe.position.set(
+        parentMesh.position.x + holeOutline.position.x,
+        parentMesh.position.y + holeOutline.position.y,
+        parentMesh.position.z + holeOutline.position.z
+      );
+
+      // Forgatás alkalmazása
+      if (holeOutline.rotation) {
+        holeWireframe.rotation.set(
+          holeOutline.rotation.x,
+          holeOutline.rotation.y,
+          holeOutline.rotation.z
+        );
+      }
+
+      // Parent mesh forgatásának alkalmazása
+      holeWireframe.rotation.x += parentMesh.rotation.x;
+      holeWireframe.rotation.y += parentMesh.rotation.y;
+      holeWireframe.rotation.z += parentMesh.rotation.z;
+
+      // Metadata
+      holeWireframe.userData = {
+        isHoleOutline: true,
+        parentId: elementId,
+        holeId: holeId,
+        originalHolePosition: originalHolePosition, // Explode támogatáshoz
+      };
+
+      // Scene-hez adás
+      this.sceneManager.scene.add(holeWireframe);
+
+      // Wireframe layer-hez tárolás (kombinált kulcs)
+      const combinedKey = `${elementId}_hole_${holeId}`;
+      this.wireframeLayer.set(combinedKey, holeWireframe);
+    } catch (error) {
+      console.error("Lyuk körvonal scene hozzáadás hiba:", error);
+    }
+  }
+
+  // ÚJ: Wireframe layer eltávolítása
+  removeWireframeLayer() {
+    console.log("🧹 Wireframe layer eltávolítása...");
+
+    this.wireframeLayer.forEach((wireframeMesh, elementId) => {
+      // Scene-ből eltávolítás
+      this.sceneManager.scene.remove(wireframeMesh);
+
+      // Cleanup
+      wireframeMesh.geometry.dispose();
+
+      // Ha egyszerűsített geometria volt használva az edges-hez, azt is tisztítjuk
+      if (wireframeMesh.userData.hasSimplifiedGeometry) {
+        // A simplified geometry már dispose-olva van a wireframe geometry-val együtt
+      }
+
+      // Material nem kell dispose-olni, mert közös
+    });
+
+    this.wireframeLayer.clear();
+    console.log("✅ Wireframe layer törölve");
+  }
+
+  // ÚJ: Wireframe pozíciók frissítése (explode támogatáshoz)
+  updateWireframePositions(meshes) {
+    this.wireframeLayer.forEach((wireframeMesh, key) => {
+      // Alap wireframe elemek frissítése
+      if (!key.includes("_hole_")) {
+        const originalMesh = meshes.get(key);
+        if (originalMesh && wireframeMesh) {
+          wireframeMesh.position.copy(originalMesh.position);
+          wireframeMesh.rotation.copy(originalMesh.rotation);
+          wireframeMesh.scale.copy(originalMesh.scale);
+        }
+      } else {
+        // Lyuk körvonalak frissítése
+        const elementId = key.split("_hole_")[0];
+        const originalMesh = meshes.get(elementId);
+
+        if (
+          originalMesh &&
+          wireframeMesh &&
+          wireframeMesh.userData.isHoleOutline
+        ) {
+          // Parent mesh pozíciójához képest relatív pozíció
+          const holePosition = wireframeMesh.userData.originalHolePosition || {
+            x: 0,
+            y: 0,
+            z: 0,
+          };
+
+          wireframeMesh.position.set(
+            originalMesh.position.x + holePosition.x,
+            originalMesh.position.y + holePosition.y,
+            originalMesh.position.z + holePosition.z
+          );
+
+          // Parent mesh forgatásának alkalmazása
+          wireframeMesh.rotation.copy(originalMesh.rotation);
+        }
+      }
+    });
+  }
+
+  // MÓDOSÍTOTT: Váltás tervrajz nézetbe - wireframe layer használatával
   switchToBlueprint(meshes, elements, force = false) {
     if (this.currentMode === "blueprint" && !force) return;
 
-    console.log("🔄 Váltás tervrajz nézetbe...");
+    console.log("🔄 Váltás tervrajz nézetbe (wireframe layer)...");
 
     // Eredeti anyagok mentése (ha még nem történt meg)
     if (this.originalMaterials.size === 0) {
@@ -447,7 +974,7 @@ class ViewModeManager {
     this.sceneManager.scene.background = new THREE.Color(0xffffff);
     console.log("✅ Háttér fehérre állítva");
 
-    // Anyagok cseréje - toon shader vagy fallback
+    // Eredeti mesh-ek anyagcseréje (fehér/toon)
     elements.forEach((element) => {
       const mesh = meshes.get(element.id);
       if (!mesh) return;
@@ -468,10 +995,18 @@ class ViewModeManager {
       mesh.material = material;
       mesh.castShadow = false;
       mesh.receiveShadow = false;
-
-      // NINCS körvonal - tiszta papír makettszerű megjelenés
-      // Az outline hatást a shader adja
     });
+
+    // ÚJ: Wireframe layer létrehozása
+    this.createWireframeLayer(meshes, elements);
+
+    // ÚJ: Ha exploded állapotban vagyunk, wireframe pozíciók frissítése
+    if (this.isCurrentlyExploded()) {
+      console.log(
+        "🔧 Exploded állapot észlelve, wireframe pozíciók frissítése..."
+      );
+      this.updateWireframePositions(meshes);
+    }
 
     // Fények módosítása (egyenletes megvilágítás)
     this.setBlueprintLighting();
@@ -480,9 +1015,30 @@ class ViewModeManager {
     console.log(
       `✅ Tervrajz nézet aktív (shader: ${
         this.capabilities.customShaders ? "✅" : "❌"
-      })`
+      }, wireframe: ${this.wireframeLayer.size} elem)`
     );
-    console.log(`📊 Toon materials ready: ${!!this.toonMaterials}`);
+  }
+
+  // ÚJ: Exploded állapot ellenőrzése (mesh pozíciók alapján)
+  isCurrentlyExploded() {
+    // Ellenőrizzük hogy vannak-e mesh-ek eredeti pozíciótól eltérő helyzetben
+    let hasMovedMeshes = false;
+
+    this.wireframeLayer.forEach((wireframeMesh, key) => {
+      if (!key.includes("_hole_")) {
+        // Ez egy alap wireframe elem
+        const elementId = key;
+
+        // Ha van eredeti pozíció tárolva valahol, összehasonlíthatjuk
+        // Egyszerűbb megoldás: megnézzük hogy van-e nem nulla pozíció
+        if (wireframeMesh.position.length() > 1) {
+          // 1-nél nagyobb távolság a középponttól
+          hasMovedMeshes = true;
+        }
+      }
+    });
+
+    return hasMovedMeshes;
   }
 
   // ÚJ: Blueprint anyag kiválasztása (shader vagy fallback)
@@ -509,9 +1065,14 @@ class ViewModeManager {
     }
   }
 
-  // Váltás színes nézetbe (változatlan)
+  // MÓDOSÍTOTT: Váltás színes nézetbe - wireframe layer eltávolítással
   switchToRealistic(meshes, elements) {
     if (this.currentMode === "realistic") return;
+
+    console.log("🔄 Váltás színes nézetbe...");
+
+    // ÚJ: Wireframe layer eltávolítása
+    this.removeWireframeLayer();
 
     // Árnyékok bekapcsolása
     this.sceneManager.renderer.shadowMap.enabled = true;
@@ -551,16 +1112,13 @@ class ViewModeManager {
       mesh.material = realisticMaterial;
       mesh.castShadow = element.display.castShadow;
       mesh.receiveShadow = element.display.receiveShadow;
-
-      // Edge outline eltávolítása
-      this.removeEdgeOutline(element.id);
     });
 
     // Fények visszaállítása
     this.setRealisticLighting();
 
     this.currentMode = "realistic";
-    console.log("Színes nézet aktív");
+    console.log("✅ Színes nézet aktív");
   }
 
   // Toggle - váltás a két nézet között
@@ -572,57 +1130,20 @@ class ViewModeManager {
     }
   }
 
-  // Edge outline pozíció frissítése (explode-hoz)
+  // MÓDOSÍTOTT: Edge pozíció frissítése - most wireframe layert frissít
   updateEdgePositions(meshes) {
-    this.wireframeMaterials.forEach((edgeLines, elementId) => {
-      const mesh = meshes.get(elementId);
-      if (mesh && edgeLines) {
-        edgeLines.position.copy(mesh.position);
-        edgeLines.rotation.copy(mesh.rotation);
-        edgeLines.scale.copy(mesh.scale);
-      }
-    });
+    this.updateWireframePositions(meshes);
   }
 
-  // Edge outline hozzáadása - ERŐSEBB KONTÚROK
+  // DEPRECATED: Legacy edge outline funkciók - wireframe layer váltja fel
   addEdgeOutline(mesh, elementId) {
-    // CSG eredményhez is adunk edge-et a jobb láthatóságért
-    const isCSGResult = mesh.userData.hasCSGOperations;
-    if (isCSGResult) {
-      console.log(`CSG mesh körvonal hozzáadva: ${elementId}`);
-    }
-
-    const edges = new THREE.EdgesGeometry(mesh.geometry, 15); // Csökkentett threshold = több vonal
-    const edgeMaterial = new THREE.LineBasicMaterial({
-      color: 0x333333, // Sötétebb szürke
-      linewidth: 2, // Vastagabb vonalak
-      transparent: true,
-      opacity: 0.8, // Erősebb körvonal
-    });
-
-    const edgeLines = new THREE.LineSegments(edges, edgeMaterial);
-    edgeLines.position.copy(mesh.position);
-    edgeLines.rotation.copy(mesh.rotation);
-    edgeLines.scale.copy(mesh.scale);
-
-    edgeLines.userData = { isEdgeOutline: true, parentId: elementId };
-
-    this.sceneManager.scene.add(edgeLines);
-    this.wireframeMaterials.set(elementId, edgeLines);
+    // Ez a funkció már nem használatos, wireframe layer váltja fel
+    console.warn("addEdgeOutline deprecated - wireframe layer használatos");
   }
 
-  // Edge outline eltávolítása
   removeEdgeOutline(elementId) {
-    const edgeLines = this.wireframeMaterials.get(elementId);
-    if (edgeLines) {
-      this.sceneManager.scene.remove(edgeLines);
-
-      // Cleanup
-      edgeLines.geometry.dispose();
-      edgeLines.material.dispose();
-
-      this.wireframeMaterials.delete(elementId);
-    }
+    // Ez a funkció már nem használatos
+    console.warn("removeEdgeOutline deprecated - wireframe layer használatos");
   }
 
   // MÓDOSÍTOTT: Blueprint megvilágítás - tiszta fehér háttér
@@ -672,14 +1193,22 @@ class ViewModeManager {
       ...this.capabilities,
       toonMaterialsReady: !!this.toonMaterials,
       shadersLoaded: this.capabilities.customShaders,
+      wireframeLayerSize: this.wireframeLayer.size,
     };
   }
 
-  // Cleanup
+  // MÓDOSÍTOTT: Cleanup - wireframe layer is törölve
   destroy() {
-    // Wireframe meshek eltávolítása
+    // ÚJ: Wireframe layer cleanup
+    this.removeWireframeLayer();
+
+    // Legacy wireframe meshek eltávolítása (ha maradt volna)
     this.wireframeMaterials.forEach((edgeLines, elementId) => {
-      this.removeEdgeOutline(elementId);
+      if (edgeLines && edgeLines.parent) {
+        this.sceneManager.scene.remove(edgeLines);
+        if (edgeLines.geometry) edgeLines.geometry.dispose();
+        if (edgeLines.material) edgeLines.material.dispose();
+      }
     });
 
     // Blueprint anyagok cleanup
@@ -699,6 +1228,9 @@ class ViewModeManager {
       });
     }
 
+    // ÚJ: Wireframe material cleanup
+    this.wireframeMaterial.dispose();
+
     // Textúrák cleanup
     Object.values(this.textures).forEach((texture) => {
       texture.dispose();
@@ -706,5 +1238,6 @@ class ViewModeManager {
 
     this.originalMaterials.clear();
     this.wireframeMaterials.clear();
+    this.wireframeLayer.clear();
   }
 }
