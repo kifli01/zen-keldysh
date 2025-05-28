@@ -137,6 +137,7 @@ async function initialize() {
     console.log("Scene setup kész");
 
     // Elemek betöltése
+    minigolfElements = await window.loadModels();
     minigolfElements.forEach((element) => {
       elementManager.addElement(element);
     });
