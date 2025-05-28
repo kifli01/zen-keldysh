@@ -71,31 +71,31 @@ class ViewModeManager {
     // Realistic anyagok - valószerű textúrákkal
     this.realisticMaterials = {
       plate: new THREE.MeshPhongMaterial({
-        color: 0xa47b51,
-        map: this.textures.wood,
+        color: 0xb99379,
+        // map: this.textures.wood,
         shininess: 10,
         transparent: false,
       }),
       frame: new THREE.MeshPhongMaterial({
-        color: 0xbf9f7e,
+        color: 0xecc5a9,
         map: this.textures.wood,
         shininess: 10,
         transparent: false,
       }),
       covering: new THREE.MeshPhongMaterial({
-        color: 0x96b965,
+        color: 0xa5bc49,
         map: this.textures.grass,
         shininess: 2,
         transparent: false,
       }),
       wall: new THREE.MeshPhongMaterial({
-        color: 0xbf9f7e,
+        color: 0xecc5a9,
         map: this.textures.wood,
         shininess: 10,
         transparent: false,
       }),
       leg: new THREE.MeshPhongMaterial({
-        color: 0xbf9f7e,
+        color: 0xecc5a9,
         map: this.textures.wood,
         shininess: 10,
         transparent: false,
@@ -175,7 +175,7 @@ class ViewModeManager {
 
       // Közös shader uniforms
       const commonUniforms = {
-        lightDirection: { value: new THREE.Vector3(1, 1, 1).normalize() },
+        lightDirection: { value: new THREE.Vector3(3, 1, 1).normalize() },
         paperStrength: { value: 0.0 }, // KIKAPCSOLVA TESZTELÉSHEZ
         paperTexture: { value: this.textures.paper },
       };
@@ -343,7 +343,7 @@ class ViewModeManager {
     canvas.height = 512;
     const context = canvas.getContext("2d");
 
-    context.fillStyle = "#8B4513";
+    context.fillStyle = "#AF815F";
     context.fillRect(0, 0, 512, 512);
 
     for (let i = 0; i < 20; i++) {
@@ -375,7 +375,7 @@ class ViewModeManager {
     canvas.height = 512;
     const context = canvas.getContext("2d");
 
-    context.fillStyle = "#228B22";
+    context.fillStyle = "#A5BC49";
     context.fillRect(0, 0, 512, 512);
 
     for (let i = 0; i < 1000; i++) {
@@ -1158,7 +1158,7 @@ class ViewModeManager {
     lightsToRemove.forEach((light) => this.sceneManager.scene.remove(light));
 
     // Erős, egyenletes világítás - minden fehér legyen
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // Erősebb intenzitás
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Erősebb intenzitás
     this.sceneManager.scene.add(ambientLight);
 
     // Mentés a későbbi visszaállításhoz

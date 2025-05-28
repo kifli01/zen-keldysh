@@ -74,7 +74,7 @@
         float NdotL = max(0.3, dot(normalize(vNormal), normalize(lightDirection)));
 
         // SOKKAL világosabb alapértelmezett lighting
-        float lightLevel = mix(0.8, 1.0, NdotL); // 80%-100% közötti világítás
+        float lightLevel = mix(0.85, 1.0, NdotL); // 80%-100% közötti világítás
 
         // Minimális paper textúra
         vec2 paperUv = vUv * 20.0;

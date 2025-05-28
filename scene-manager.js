@@ -91,12 +91,13 @@ class SceneManager {
   // Fények hozzáadása
   createLights() {
     // Ambient light - erősebb általános megvilágítás
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // 0.5 -> 0.7
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9); // 0.5 -> 0.7
+    ambientLight.position.set(3, 1, 1);
     this.scene.add(ambientLight);
 
     // Directional light - gyengébb irányított fény
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.2); // 0.6 -> 0.4
-    directionalLight.position.set(50, 100, 50);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9); // 0.6 -> 0.4
+    directionalLight.position.set(150, 100, 50);
     directionalLight.castShadow = true;
 
     // Árnyék beállítások - lágyabb árnyékok
@@ -112,8 +113,8 @@ class SceneManager {
     this.scene.add(directionalLight);
 
     // További lágyabb fény oldalt - erősebb
-    const sideLight = new THREE.DirectionalLight(0xffffff, 0.4); // 0.3 -> 0.4
-    sideLight.position.set(-50, 50, -50);
+    const sideLight = new THREE.DirectionalLight(0xffffff, 0.9); // 0.3 -> 0.4
+    sideLight.position.set(3, 1, 1);
     this.scene.add(sideLight);
   }
 
