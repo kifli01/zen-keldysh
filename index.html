@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Minigolf Pálya Viewer - v1.6.0</title>
+    <title>Minigolf Pálya Viewer - v1.6.1</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
@@ -311,7 +311,7 @@
       // Főalkalmazás inicializálása
       function initialize() {
         try {
-          console.log("Inicializálás kezdete v1.6.0...");
+          console.log("Inicializálás kezdete v1.6.1...");
 
           // Könyvtárak ellenőrzése
           const csgAvailable = initializeCSG();
@@ -326,6 +326,11 @@
           geometryBuilder = new GeometryBuilder();
           exploder = new Exploder();
           viewModeManager = new ViewModeManager(sceneManager, geometryBuilder);
+
+          // ÚJ: Keresztreferenciák beállítása
+          exploder.setViewModeManager(viewModeManager);
+          viewModeManager.setExploder(exploder);
+          console.log("✅ Keresztreferenciák beállítva");
 
           // Új funkciók beállítása
           if (postProcessingAvailable) {
@@ -376,7 +381,6 @@
 
           // Exploder inicializálása
           exploder.saveOriginalPositions(allMeshes);
-          exploder.setViewModeManager(viewModeManager);
           console.log("Eredeti pozíciók mentve");
 
           // Alapértelmezett tervrajz nézet beállítása - FORCE módon
@@ -401,7 +405,7 @@
           setupEventListeners();
           console.log("Event listener-ek beállítva");
 
-          console.log("Inicializálás sikeres v1.6.0!");
+          console.log("Inicializálás sikeres v1.6.1!");
         } catch (error) {
           console.error("Hiba az inicializálás során:", error);
         }
@@ -574,13 +578,14 @@
 
       // Debug funkciók (fejlesztéshez)
       function debugInfo() {
-        console.log("=== DEBUG INFO v1.6.0 ===");
+        console.log("=== DEBUG INFO v1.6.1 ===");
         console.log(
           "Element Manager:",
           elementManager.getAllElements().length + " elem"
         );
         console.log("Scene Manager:", sceneManager.getSceneInfo());
         console.log("Exploder:", exploder.getState());
+        console.log("View Mode Manager:", viewModeManager.getCapabilities());
         console.log("Mesh-ek:", allMeshes.size);
         console.log("Súly:", elementManager.getTotalWeight().toFixed(2) + " g");
         // CSG debug info
@@ -598,6 +603,8 @@
       window.elementManager = () => elementManager;
       window.sceneManager = () => sceneManager;
       window.csgManager = () => csgManager;
+      window.viewModeManager = () => viewModeManager;
+      window.exploder = () => exploder;
 
       // Egyedi elem láthatóság kapcsoló funkció
       window.toggleElementVisibility = function (elementId, isVisible) {
@@ -608,13 +615,20 @@
         if (mesh) {
           mesh.visible = isVisible;
 
-          // Ha blueprint módban vagyunk, az edge outline is kell
+          // Ha blueprint módban vagyunk, az wireframe layer is kell frissíteni
           if (viewModeManager.getCurrentMode() === "blueprint") {
-            const edgeLines =
-              viewModeManager.wireframeMaterials?.get(elementId);
-            if (edgeLines) {
-              edgeLines.visible = isVisible;
+            const wireframeMesh =
+              viewModeManager.wireframeLayer?.get(elementId);
+            if (wireframeMesh) {
+              wireframeMesh.visible = isVisible;
             }
+
+            // Lyuk körvonalak is frissítése
+            viewModeManager.wireframeLayer?.forEach((wireframe, key) => {
+              if (key.startsWith(`${elementId}_hole_`)) {
+                wireframe.visible = isVisible;
+              }
+            });
           }
 
           // Render frissítés

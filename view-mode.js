@@ -1,7 +1,7 @@
 /**
  * View Mode Manager
  * Váltás színes nézet és tervrajz stílus között
- * v1.7.0 - Saját wireframe layer implementáció + lyukak körvonalai
+ * v1.8.0 - Wireframe layer pozíció javítás exploded állapot kezeléshez
  */
 
 class ViewModeManager {
@@ -15,6 +15,9 @@ class ViewModeManager {
 
     // ÚJ: Wireframe layer
     this.wireframeLayer = new Map(); // elementId -> wireframe mesh
+
+    // ÚJ: Exploder referencia tárolása
+    this.exploder = null;
 
     // ÚJ: Képességek ellenőrzése
     this.capabilities = {
@@ -117,6 +120,12 @@ class ViewModeManager {
 
     // Wireframe anyagok (legacy) - most üres lesz
     this.wireframeMaterials = new Map();
+  }
+
+  // ÚJ: Exploder referencia beállítása
+  setExploder(exploder) {
+    this.exploder = exploder;
+    console.log("✅ Exploder referencia beállítva ViewModeManager-ben");
   }
 
   // ÚJ: Post-processing elérhetőség beállítása
@@ -252,36 +261,6 @@ class ViewModeManager {
       console.error("❌ Toon shader anyagok létrehozási hiba:", error);
       console.log("📴 Fallback anyagokra váltás...");
       return false;
-    }
-  }
-
-  // ÚJ: Outline shader anyag létrehozása
-  createOutlineShaderMaterial() {
-    try {
-      const vertexShader = document.getElementById(
-        "outlineVertexShader"
-      )?.textContent;
-      const fragmentShader = document.getElementById(
-        "outlineFragmentShader"
-      )?.textContent;
-
-      if (!vertexShader || !fragmentShader) {
-        return null;
-      }
-
-      return new THREE.ShaderMaterial({
-        uniforms: {
-          outlineColor: { value: new THREE.Color(0x333333) },
-          outlineThickness: { value: 2.0 },
-        },
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
-        side: THREE.BackSide,
-        transparent: true,
-      });
-    } catch (error) {
-      console.error("Outline shader hiba:", error);
-      return null;
     }
   }
 
@@ -805,37 +784,6 @@ class ViewModeManager {
     }
   }
 
-  // ÚJ: Téglalap körvonal geometria készítése
-  createRectangleOutlineGeometry(width, height) {
-    const shape = new THREE.Shape();
-    const halfWidth = width / 2;
-    const halfHeight = height / 2;
-
-    // Külső téglalap
-    shape.moveTo(-halfWidth, -halfHeight);
-    shape.lineTo(halfWidth, -halfHeight);
-    shape.lineTo(halfWidth, halfHeight);
-    shape.lineTo(-halfWidth, halfHeight);
-    shape.lineTo(-halfWidth, -halfHeight);
-
-    // Belső téglalap (lyuk)
-    const innerWidth = width - 0.02;
-    const innerHeight = height - 0.02;
-    const innerHalfWidth = innerWidth / 2;
-    const innerHalfHeight = innerHeight / 2;
-
-    const holePath = new THREE.Path();
-    holePath.moveTo(-innerHalfWidth, -innerHalfHeight);
-    holePath.lineTo(-innerHalfWidth, innerHalfHeight);
-    holePath.lineTo(innerHalfWidth, innerHalfHeight);
-    holePath.lineTo(innerHalfWidth, -innerHalfHeight);
-    holePath.lineTo(-innerHalfWidth, -innerHalfHeight);
-
-    shape.holes.push(holePath);
-
-    return new THREE.ShapeGeometry(shape);
-  }
-
   // ÚJ: Lyuk körvonal hozzáadása a scene-hez
   addHoleOutlineToScene(holeOutline, parentMesh, elementId, holeId) {
     try {
@@ -915,7 +863,7 @@ class ViewModeManager {
     console.log("✅ Wireframe layer törölve");
   }
 
-  // ÚJ: Wireframe pozíciók frissítése (explode támogatáshoz)
+  // JAVÍTOTT: Wireframe pozíciók frissítése (explode támogatáshoz)
   updateWireframePositions(meshes) {
     this.wireframeLayer.forEach((wireframeMesh, key) => {
       // Alap wireframe elemek frissítése
@@ -956,7 +904,7 @@ class ViewModeManager {
     });
   }
 
-  // MÓDOSÍTOTT: Váltás tervrajz nézetbe - wireframe layer használatával
+  // JAVÍTOTT: Váltás tervrajz nézetbe - exploded állapot figyelése
   switchToBlueprint(meshes, elements, force = false) {
     if (this.currentMode === "blueprint" && !force) return;
 
@@ -1000,8 +948,8 @@ class ViewModeManager {
     // ÚJ: Wireframe layer létrehozása
     this.createWireframeLayer(meshes, elements);
 
-    // ÚJ: Ha exploded állapotban vagyunk, wireframe pozíciók frissítése
-    if (this.isCurrentlyExploded()) {
+    // JAVÍTOTT: Exploded állapot ellenőrzése és wireframe pozíciók frissítése
+    if (this.exploder && this.exploder.getState().isExploded) {
       console.log(
         "🔧 Exploded állapot észlelve, wireframe pozíciók frissítése..."
       );
@@ -1017,28 +965,6 @@ class ViewModeManager {
         this.capabilities.customShaders ? "✅" : "❌"
       }, wireframe: ${this.wireframeLayer.size} elem)`
     );
-  }
-
-  // ÚJ: Exploded állapot ellenőrzése (mesh pozíciók alapján)
-  isCurrentlyExploded() {
-    // Ellenőrizzük hogy vannak-e mesh-ek eredeti pozíciótól eltérő helyzetben
-    let hasMovedMeshes = false;
-
-    this.wireframeLayer.forEach((wireframeMesh, key) => {
-      if (!key.includes("_hole_")) {
-        // Ez egy alap wireframe elem
-        const elementId = key;
-
-        // Ha van eredeti pozíció tárolva valahol, összehasonlíthatjuk
-        // Egyszerűbb megoldás: megnézzük hogy van-e nem nulla pozíció
-        if (wireframeMesh.position.length() > 1) {
-          // 1-nél nagyobb távolság a középponttól
-          hasMovedMeshes = true;
-        }
-      }
-    });
-
-    return hasMovedMeshes;
   }
 
   // ÚJ: Blueprint anyag kiválasztása (shader vagy fallback)
@@ -1133,17 +1059,6 @@ class ViewModeManager {
   // MÓDOSÍTOTT: Edge pozíció frissítése - most wireframe layert frissít
   updateEdgePositions(meshes) {
     this.updateWireframePositions(meshes);
-  }
-
-  // DEPRECATED: Legacy edge outline funkciók - wireframe layer váltja fel
-  addEdgeOutline(mesh, elementId) {
-    // Ez a funkció már nem használatos, wireframe layer váltja fel
-    console.warn("addEdgeOutline deprecated - wireframe layer használatos");
-  }
-
-  removeEdgeOutline(elementId) {
-    // Ez a funkció már nem használatos
-    console.warn("removeEdgeOutline deprecated - wireframe layer használatos");
   }
 
   // MÓDOSÍTOTT: Blueprint megvilágítás - tiszta fehér háttér
