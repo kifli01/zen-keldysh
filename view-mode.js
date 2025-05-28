@@ -128,7 +128,13 @@ class ViewModeManager {
     console.log("✅ Exploder referencia beállítva ViewModeManager-ben");
   }
 
-  // ÚJ: Post-processing elérhetőség beállítása
+  // ÚJ: Exploder referencia beállítása
+  setExploder(exploder) {
+    this.exploder = exploder;
+    console.log("✅ Exploder referencia beállítva ViewModeManager-ben");
+  }
+
+  // ÚJ: Post-processing elérhetőság beállítása
   setPostProcessingAvailable(available) {
     this.capabilities.postProcessing = available;
     console.log(`Post-processing támogatás: ${available ? "✅" : "❌"}`);
@@ -949,11 +955,15 @@ class ViewModeManager {
     this.createWireframeLayer(meshes, elements);
 
     // JAVÍTOTT: Exploded állapot ellenőrzése és wireframe pozíciók frissítése
-    if (this.exploder && this.exploder.getState().isExploded) {
+    const isExploded = this.exploder && this.exploder.getState().isExploded;
+    if (isExploded) {
       console.log(
         "🔧 Exploded állapot észlelve, wireframe pozíciók frissítése..."
       );
-      this.updateWireframePositions(meshes);
+      // Kis késleltetés hogy a wireframe layer létrejöjjön
+      setTimeout(() => {
+        this.updateWireframePositions(meshes);
+      }, 50);
     }
 
     // Fények módosítása (egyenletes megvilágítás)
@@ -963,7 +973,7 @@ class ViewModeManager {
     console.log(
       `✅ Tervrajz nézet aktív (shader: ${
         this.capabilities.customShaders ? "✅" : "❌"
-      }, wireframe: ${this.wireframeLayer.size} elem)`
+      }, wireframe: ${this.wireframeLayer.size} elem, exploded: ${isExploded})`
     );
   }
 

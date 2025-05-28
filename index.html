@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Minigolf Pálya Viewer - v1.6.1</title>
+    <title>Minigolf Pálya Viewer - v1.6.3</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
@@ -92,17 +92,12 @@
     </script>
   </head>
   <body>
-    <!-- Importmap a CSG könyvtárakhoz -->
+    <!-- Egyszerűsített importmap - csak a szükséges könyvtárak -->
     <script type="importmap">
       {
         "imports": {
           "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
           "three/examples/jsm/exporters/GLTFExporter.js": "https://unpkg.com/three@0.158.0/examples/jsm/exporters/GLTFExporter.js",
-          "three/examples/jsm/postprocessing/EffectComposer.js": "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/EffectComposer.js",
-          "three/examples/jsm/postprocessing/RenderPass.js": "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/RenderPass.js",
-          "three/examples/jsm/postprocessing/OutlinePass.js": "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/OutlinePass.js",
-          "three/examples/jsm/postprocessing/ShaderPass.js": "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/ShaderPass.js",
-          "three/examples/jsm/shaders/FXAAShader.js": "https://unpkg.com/three@0.158.0/examples/jsm/shaders/FXAAShader.js",
           "three-mesh-bvh": "https://unpkg.com/three-mesh-bvh@0.7.6/build/index.module.js",
           "three-bvh-csg": "https://unpkg.com/three-bvh-csg@0.0.17/build/index.module.js"
         }
@@ -138,65 +133,17 @@
       <!-- A summary javascript-ből lesz feltöltve -->
     </div>
 
-    <!-- Outline Shader -->
-    <script id="outlineVertexShader" type="x-shader/x-vertex">
-      varying vec3 vNormal;
-      varying vec3 vViewPosition;
-
-      void main() {
-        vNormal = normalize(normalMatrix * normal);
-        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-        vViewPosition = -mvPosition.xyz;
-        gl_Position = projectionMatrix * mvPosition;
-      }
-    </script>
-
-    <script id="outlineFragmentShader" type="x-shader/x-fragment">
-      uniform vec3 outlineColor;
-      uniform float outlineThickness;
-
-      varying vec3 vNormal;
-      varying vec3 vViewPosition;
-
-      void main() {
-        vec3 normal = normalize(vNormal);
-        vec3 viewDir = normalize(vViewPosition);
-
-        // Fresnel effect for outline
-        float fresnel = 1.0 - abs(dot(normal, viewDir));
-        fresnel = pow(fresnel, outlineThickness);
-
-        if (fresnel < 0.5) {
-          discard;
-        }
-
-        gl_FragColor = vec4(outlineColor, 1.0);
-      }
-    </script>
-
     <!-- CSG inicializálás és főalkalmazás -->
     <script type="module">
-      // Minden könyvtár ES6 importokkal
+      // Csak a szükséges könyvtárak importálása
       import * as THREE from "three";
       import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
-      import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-      import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-      import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
-      import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
-      import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
       import * as ThreeMeshBVH from "three-mesh-bvh";
       import * as ThreeBVHCSG from "three-bvh-csg";
 
       // THREE.js globálisan elérhetővé tétele
       window.THREE = THREE;
       window.GLTFExporter = GLTFExporter;
-
-      // Post-processing objektumok globálisan
-      window.EffectComposer = EffectComposer;
-      window.RenderPass = RenderPass;
-      window.OutlinePass = OutlinePass;
-      window.ShaderPass = ShaderPass;
-      window.FXAAShader = FXAAShader;
 
       // Globális változók
       let elementManager;
@@ -259,40 +206,11 @@
         }
       }
 
-      // Post-processing elérhetőség ellenőrzése
-      function checkPostProcessingAvailability() {
-        try {
-          const available = {
-            EffectComposer: !!EffectComposer,
-            RenderPass: !!RenderPass,
-            OutlinePass: !!OutlinePass,
-            ShaderPass: !!ShaderPass,
-            FXAAShader: !!FXAAShader,
-          };
-
-          console.log("Post-processing könyvtárak:", available);
-
-          const allAvailable = Object.values(available).every(Boolean);
-          if (allAvailable) {
-            console.log("✅ Minden post-processing könyvtár elérhető");
-          } else {
-            console.warn("⚠️ Néhány post-processing könyvtár hiányzik");
-          }
-
-          return allAvailable;
-        } catch (error) {
-          console.error("Post-processing ellenőrzés hiba:", error);
-          return false;
-        }
-      }
-
       // Shader elérhetőség ellenőrzése
       function checkShaderAvailability() {
         const shaders = {
           toonVertex: document.getElementById("toonVertexShader"),
           toonFragment: document.getElementById("toonFragmentShader"),
-          outlineVertex: document.getElementById("outlineVertexShader"),
-          outlineFragment: document.getElementById("outlineFragmentShader"),
         };
 
         const missing = Object.entries(shaders)
@@ -311,11 +229,10 @@
       // Főalkalmazás inicializálása
       function initialize() {
         try {
-          console.log("Inicializálás kezdete v1.6.1...");
+          console.log("Inicializálás kezdete v1.6.3...");
 
           // Könyvtárak ellenőrzése
           const csgAvailable = initializeCSG();
-          const postProcessingAvailable = checkPostProcessingAvailability();
           const shadersAvailable = checkShaderAvailability();
 
           // Manager objektumok létrehozása
@@ -327,17 +244,12 @@
           exploder = new Exploder();
           viewModeManager = new ViewModeManager(sceneManager, geometryBuilder);
 
-          // ÚJ: Keresztreferenciák beállítása
+          // Keresztreferenciák beállítása
           exploder.setViewModeManager(viewModeManager);
           viewModeManager.setExploder(exploder);
           console.log("✅ Keresztreferenciák beállítva");
 
-          // Új funkciók beállítása
-          if (postProcessingAvailable) {
-            viewModeManager.setPostProcessingAvailable(true);
-            console.log("Post-processing támogatás engedélyezve");
-          }
-
+          // Shader támogatás beállítása
           if (shadersAvailable) {
             viewModeManager.setShadersAvailable(true);
             console.log("Custom shader támogatás engedélyezve");
@@ -375,7 +287,7 @@
           sceneManager.addAllMeshes(allMeshes);
           console.log("Mesh-ek hozzáadva a scene-hez");
 
-          // ViewModeManager inicializálása - ELŐSZÖR mentjük az eredeti anyagokat
+          // ViewModeManager inicializálása
           viewModeManager.saveOriginalMaterials(allMeshes);
           console.log("Eredeti anyagok mentve");
 
@@ -383,7 +295,7 @@
           exploder.saveOriginalPositions(allMeshes);
           console.log("Eredeti pozíciók mentve");
 
-          // Alapértelmezett tervrajz nézet beállítása - FORCE módon
+          // Alapértelmezett tervrajz nézet beállítása
           viewModeManager.switchToBlueprint(
             allMeshes,
             elementManager.getAllElements(),
@@ -405,7 +317,7 @@
           setupEventListeners();
           console.log("Event listener-ek beállítva");
 
-          console.log("Inicializálás sikeres v1.6.1!");
+          console.log("Inicializálás sikeres v1.6.3!");
         } catch (error) {
           console.error("Hiba az inicializálás során:", error);
         }
@@ -578,7 +490,7 @@
 
       // Debug funkciók (fejlesztéshez)
       function debugInfo() {
-        console.log("=== DEBUG INFO v1.6.1 ===");
+        console.log("=== DEBUG INFO v1.6.3 ===");
         console.log(
           "Element Manager:",
           elementManager.getAllElements().length + " elem"
@@ -592,8 +504,6 @@
         if (csgManager) {
           console.log("CSG Manager:", csgManager.getDebugInfo());
         }
-        // Új: Shader és post-processing info
-        console.log("Post-processing:", checkPostProcessingAvailability());
         console.log("Shaders:", checkShaderAvailability());
         console.log("==================");
       }
