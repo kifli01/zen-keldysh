@@ -156,11 +156,21 @@ class ViewModeManager {
   // ÚJ: Toon shader anyagok létrehozása + ERROR HANDLING
   createToonShaderMaterials() {
     try {
-      // Shader kódok lekérése a HTML-ből
-      const vertexShader =
-        document.getElementById("toonVertexShader")?.textContent;
-      const fragmentShader =
-        document.getElementById("toonFragmentShader")?.textContent;
+      // Shader kódok lekérése globális változóból vagy DOM-ból
+      let vertexShader, fragmentShader;
+
+      // Először próbáljuk a globális változóból (külső fájlok)
+      if (window.toonShaderCode) {
+        vertexShader = window.toonShaderCode.vertex;
+        fragmentShader = window.toonShaderCode.fragment;
+        console.log("✅ Shader kódok külső fájlokból");
+      } else {
+        // Fallback: DOM-ból
+        vertexShader = document.getElementById("toonVertexShader")?.textContent;
+        fragmentShader =
+          document.getElementById("toonFragmentShader")?.textContent;
+        console.log("⚠️ Shader kódok DOM fallback-ből");
+      }
 
       if (!vertexShader || !fragmentShader) {
         console.warn(
