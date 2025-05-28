@@ -21,7 +21,6 @@ let exploder;
 let viewModeManager;
 let csgManager;
 let allMeshes;
-let shaderLoader;
 
 // CSG inicializálás
 function initializeCSG() {
@@ -74,115 +73,7 @@ function initializeCSG() {
 }
 
 // Shader elérhetőség ellenőrzése
-async function checkShaderAvailability() {
-  try {
-    // Ellenőrizzük hogy a ShaderLoader elérhető-e
-    if (typeof ShaderLoader === "undefined") {
-      console.warn("⚠️ ShaderLoader nem elérhető, DOM fallback használata");
-      return checkEmbeddedShaders();
-    }
-
-    // ShaderLoader inicializálása
-    shaderLoader = new ShaderLoader();
-
-    // Shader betöltés külső fájlokból vagy DOM fallback
-    const shaders = await shaderLoader.loadShadersWithFallback();
-
-    if (shaders && shaders.vertex && shaders.fragment) {
-      console.log("✅ Minden shader elérhető");
-
-      // Shader kódok globálisan elérhetővé tétele ViewModeManager számára
-      window.toonShaderCode = shaders;
-
-      return true;
-    } else {
-      console.warn("⚠️ Shader kódok hiányoznak");
-      return false;
-    }
-  } catch (error) {
-    console.error("❌ Shader ellenőrzés hiba:", error);
-    console.log("🔄 Fallback DOM shader ellenőrzésre váltás...");
-    return checkEmbeddedShaders();
-  }
-}
-
-// DOM-ból shader ellenőrzés (fallback)
-function checkEmbeddedShaders() {
-  // Hozzáadunk fallback DOM shader elemeket ha nincsenek
-  if (!document.getElementById("toonVertexShader")) {
-    const vertexScript = document.createElement("script");
-    vertexScript.id = "toonVertexShader";
-    vertexScript.type = "x-shader/x-vertex";
-    vertexScript.textContent = `
-      varying vec3 vWorldPosition;
-      varying vec3 vNormal;
-      varying vec2 vUv;
-
-      void main() {
-        vUv = uv;
-        vNormal = normalize(normalMatrix * normal);
-        vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-        vWorldPosition = worldPosition.xyz;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `;
-    document.head.appendChild(vertexScript);
-  }
-
-  if (!document.getElementById("toonFragmentShader")) {
-    const fragmentScript = document.createElement("script");
-    fragmentScript.id = "toonFragmentShader";
-    fragmentScript.type = "x-shader/x-fragment";
-    fragmentScript.textContent = `
-      uniform vec3 color;
-      uniform vec3 lightDirection;
-      uniform float paperStrength;
-      uniform sampler2D paperTexture;
-
-      varying vec3 vWorldPosition;
-      varying vec3 vNormal;
-      varying vec2 vUv;
-
-      // Paper noise function
-      float hash(vec2 p) {
-        return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
-      }
-
-      float noise(vec2 p) {
-        vec2 i = floor(p);
-        vec2 f = fract(p);
-        f = f * f * (3.0 - 2.0 * f);
-        return mix(
-          mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
-          mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),
-          f.y
-        );
-      }
-
-      void main() {
-        // EGYSZERŰSÍTETT világítás - mindig világos
-        float NdotL = max(0.3, dot(normalize(vNormal), normalize(lightDirection)));
-
-        // SOKKAL világosabb alapértelmezett lighting
-        float lightLevel = mix(0.85, 1.0, NdotL); // 80%-100% közötti világítás
-
-        // Minimális paper textúra
-        vec2 paperUv = vUv * 20.0;
-        float paperNoise = noise(paperUv) * 0.02; // Nagyon kis hatás
-
-        // Tiszta színek, minimális árnyékolás
-        vec3 finalColor = color * lightLevel;
-        finalColor += vec3(paperNoise) * paperStrength;
-
-        // Brightening - még világosabb
-        finalColor = mix(finalColor, vec3(1.0), 0.1); // 10% fehér hozzáadása
-
-        gl_FragColor = vec4(finalColor, 1.0);
-      }
-    `;
-    document.head.appendChild(fragmentScript);
-  }
-
+function checkShaderAvailability() {
   const shaders = {
     toonVertex: document.getElementById("toonVertexShader"),
     toonFragment: document.getElementById("toonFragmentShader"),
@@ -193,7 +84,7 @@ function checkEmbeddedShaders() {
     .map(([name]) => name);
 
   if (missing.length === 0) {
-    console.log("✅ Shader-ek elérhetőek DOM fallback-ből");
+    console.log("✅ Minden shader elérhető");
     return true;
   } else {
     console.warn("⚠️ Hiányzó shaderek:", missing);
@@ -204,11 +95,11 @@ function checkEmbeddedShaders() {
 // Főalkalmazás inicializálása
 async function initialize() {
   try {
-    console.log("Inicializálás kezdete v1.8.0...");
+    console.log("Inicializálás kezdete v1.8.1...");
 
     // Könyvtárak ellenőrzése
     const csgAvailable = initializeCSG();
-    const shadersAvailable = await checkShaderAvailability();
+    const shadersAvailable = checkShaderAvailability();
 
     // Manager objektumok létrehozása
     elementManager = new ElementManager();
@@ -298,29 +189,29 @@ async function initialize() {
       console.log("Event listener-ek beállítva");
     }
 
-    console.log("Inicializálás sikeres v1.8.0!");
+    console.log("Inicializálás sikeres v1.8.1!");
   } catch (error) {
     console.error("Hiba az inicializálás során:", error);
   }
 }
 
 // Globális hozzáférés debug-hoz
-window.debugInfo = async () => {
-  console.log("=== DEBUG INFO v1.8.0 ===");
+window.debugInfo = () => {
+  console.log("=== DEBUG INFO v1.8.1 ===");
   console.log(
     "Element Manager:",
     elementManager?.getAllElements().length + " elem"
   );
   console.log("Scene Manager:", sceneManager?.getSceneInfo());
   console.log("Exploder:", exploder?.getState());
-  console.log("View Mode Manager:", viewModeManager?.getCapabilities());
+  console.log("View Mode Manager:", viewModeManager?.getCurrentMode());
   console.log("Mesh-ek:", allMeshes?.size);
   console.log("Súly:", elementManager?.getTotalWeight().toFixed(2) + " g");
   // CSG debug info
   if (csgManager) {
     console.log("CSG Manager:", csgManager.getDebugInfo());
   }
-  console.log("Shaders:", await checkShaderAvailability());
+  console.log("Shaders:", checkShaderAvailability());
   console.log("==================");
 };
 
@@ -329,7 +220,6 @@ window.sceneManager = () => sceneManager;
 window.csgManager = () => csgManager;
 window.viewModeManager = () => viewModeManager;
 window.exploder = () => exploder;
-window.shaderLoader = () => shaderLoader;
 
 // Egyedi elem láthatóság kapcsoló funkció
 window.toggleElementVisibility = function (elementId, isVisible) {
@@ -374,5 +264,4 @@ export {
   viewModeManager,
   csgManager,
   allMeshes,
-  shaderLoader,
 };

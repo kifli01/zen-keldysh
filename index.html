@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Minigolf Pálya Viewer - v1.8.0</title>
+    <title>Minigolf Pálya Viewer - v1.8.1</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
@@ -25,11 +25,73 @@
     <script src="scene-manager.js"></script>
     <script src="view-mode.js"></script>
     <script src="summary.js"></script>
-    <script src="shader-loader.js"></script>
     <script src="event-handlers.js"></script>
 
     <!-- CSS -->
     <link rel="stylesheet" href="styles.css" />
+
+    <!-- Toon Shader kódok -->
+    <script id="toonVertexShader" type="x-shader/x-vertex">
+      varying vec3 vWorldPosition;
+      varying vec3 vNormal;
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        vNormal = normalize(normalMatrix * normal);
+        vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+        vWorldPosition = worldPosition.xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    </script>
+
+    <script id="toonFragmentShader" type="x-shader/x-fragment">
+      uniform vec3 color;
+      uniform vec3 lightDirection;
+      uniform float paperStrength;
+      uniform sampler2D paperTexture;
+
+      varying vec3 vWorldPosition;
+      varying vec3 vNormal;
+      varying vec2 vUv;
+
+      // Paper noise function
+      float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+      }
+
+      float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        return mix(
+          mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+          mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),
+          f.y
+        );
+      }
+
+      void main() {
+        // EGYSZERŰSÍTETT világítás - mindig világos
+        float NdotL = max(0.3, dot(normalize(vNormal), normalize(lightDirection)));
+
+        // SOKKAL világosabb alapértelmezett lighting
+        float lightLevel = mix(0.85, 1.0, NdotL); // 80%-100% közötti világítás
+
+        // Minimális paper textúra
+        vec2 paperUv = vUv * 20.0;
+        float paperNoise = noise(paperUv) * 0.02; // Nagyon kis hatás
+
+        // Tiszta színek, minimális árnyékolás
+        vec3 finalColor = color * lightLevel;
+        finalColor += vec3(paperNoise) * paperStrength;
+
+        // Brightening - még világosabb
+        finalColor = mix(finalColor, vec3(1.0), 0.1); // 10% fehér hozzáadása
+
+        gl_FragColor = vec4(finalColor, 1.0);
+      }
+    </script>
   </head>
   <body>
     <!-- Import map és főalkalmazás -->
