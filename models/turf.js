@@ -14,15 +14,14 @@ export const elements = [
       },
       // ÚJ: CSG művelet - felső lyuk mérete a műfűhöz
       csgOperations: [
-        createCSGOperation({
-          type: "circle",
-          radius: 5.4, // Egyenlőre ugyanaz mint a faalap
+        createCircleHole({
+          radius: 5.4,
           position: {
             x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.holePositionX,
             y: 0,
             z: 0,
           },
-          depth: COURSE_DIMENSIONS.turfThickness + 0.2, // Mélyebb vágás - átmegy a műfűn
+          depth: COURSE_DIMENSIONS.turfThickness,
         }),
       ],
     },

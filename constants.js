@@ -73,7 +73,7 @@ const COURSE_DIMENSIONS = {
   topPlateThickness: 0.9, // 9 mm
   turfThickness: 0.6, // 6 mm
   holeRadius: 5.4, // átmérő: 10.8 cm
-  holePositionX: 45, // A lyuk pozíciója a pálya végétől (cm)
+  holePositionX: 50, // A lyuk pozíciója a pálya végétől (cm)
   frontWidth: 2, // 2cm első takaró léc
   // frontHeight: 16 - 6 - 0.9, // sideHeight - sideVerticalShift - topPlateThickness
   frameWidth: 6, // 6 cm széles lécek
