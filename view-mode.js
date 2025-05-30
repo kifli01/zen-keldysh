@@ -1,7 +1,7 @@
 /**
  * View Mode Manager
  * Váltás színes nézet és tervrajz stílus között
- * v1.9.0 - Tisztított verzió, felesleges metódusok eltávolítva
+ * v2.0.0 - Legacy holes támogatás eltávolítva, dupla rotáció javítva
  */
 
 class ViewModeManager {
@@ -325,14 +325,12 @@ class ViewModeManager {
     }
   }
 
-  // Lyukak körvonalainak hozzáadása
+  // Lyukak körvonalainak hozzáadása - CSAK CSG műveletek
   addHoleOutlines(element, mesh) {
     const csgOperations = element.geometry.csgOperations;
-    const holes = element.geometry.holes;
-
     let holeCount = 0;
 
-    // CSG műveletek alapján lyukak keresése
+    // Csak CSG műveletek alapján lyukak keresése
     if (csgOperations && csgOperations.length > 0) {
       csgOperations.forEach((operation, index) => {
         if (operation.type === "subtract") {
@@ -352,30 +350,12 @@ class ViewModeManager {
       });
     }
 
-    // Legacy holes támogatás
-    if (holes && holes.length > 0) {
-      holes.forEach((hole, index) => {
-        const holeOutlines = this.createLegacyHoleOutlineGeometry(hole, mesh);
-        if (holeOutlines && holeOutlines.length > 0) {
-          holeOutlines.forEach((holeOutline, outlineIndex) => {
-            this.addHoleOutlineToScene(
-              holeOutline,
-              mesh,
-              element.id,
-              `legacy_${index}_${holeOutline.type}`
-            );
-            holeCount++;
-          });
-        }
-      });
-    }
-
     if (holeCount > 0) {
       console.log(`🔵 ${holeCount} lyuk körvonal hozzáadva: ${element.id}`);
     }
   }
 
-  // CSG művelet alapján lyuk körvonal készítése
+  // CSG művelet alapján lyuk körvonal készítése - JAVÍTOTT rotáció és pozíció kezelés v3
   createHoleOutlineGeometry(csgOperation, parentMesh) {
     try {
       const position = csgOperation.position || { x: 0, y: 0, z: 0 };
@@ -383,28 +363,35 @@ class ViewModeManager {
 
       let outlines = [];
 
+      // ÚJ: Lyuk tengely meghatározása CSG rotáció alapján
+      const holeAxis = this.determineHoleAxis(csgOperation.rotation);
+      const depthOffsets = this.calculateDepthOffsets(depth, holeAxis);
+
       switch (csgOperation.geometry) {
         case "cylinder":
           const radius = csgOperation.params.radius;
           const segments = csgOperation.params.segments || 32;
 
-          // Felső körvonal
+          // Felső körvonal - JAVÍTOTT pozícióval
           const topCircleGeometry = new THREE.CircleGeometry(radius, segments);
           const topEdgesGeometry = new THREE.EdgesGeometry(topCircleGeometry);
-          topEdgesGeometry.rotateX(Math.PI / 2);
+
+          this.applyCSGRotationToGeometry(
+            topEdgesGeometry,
+            csgOperation.rotation
+          );
 
           outlines.push({
             geometry: topEdgesGeometry,
             position: {
-              x: position.x,
-              y: position.y + depth / 2,
-              z: position.z,
+              x: position.x + depthOffsets.top.x,
+              y: position.y + depthOffsets.top.y,
+              z: position.z + depthOffsets.top.z,
             },
-            rotation: csgOperation.rotation || { x: 0, y: 0, z: 0 },
             type: "top",
           });
 
-          // Alsó körvonal
+          // Alsó körvonal - JAVÍTOTT pozícióval
           const bottomCircleGeometry = new THREE.CircleGeometry(
             radius,
             segments
@@ -412,16 +399,19 @@ class ViewModeManager {
           const bottomEdgesGeometry = new THREE.EdgesGeometry(
             bottomCircleGeometry
           );
-          bottomEdgesGeometry.rotateX(Math.PI / 2);
+
+          this.applyCSGRotationToGeometry(
+            bottomEdgesGeometry,
+            csgOperation.rotation
+          );
 
           outlines.push({
             geometry: bottomEdgesGeometry,
             position: {
-              x: position.x,
-              y: position.y - depth / 2,
-              z: position.z,
+              x: position.x + depthOffsets.bottom.x,
+              y: position.y + depthOffsets.bottom.y,
+              z: position.z + depthOffsets.bottom.z,
             },
-            rotation: csgOperation.rotation || { x: 0, y: 0, z: 0 },
             type: "bottom",
           });
           break;
@@ -431,35 +421,38 @@ class ViewModeManager {
           const length =
             csgOperation.params.length || csgOperation.params.height;
 
-          // Felső téglalap
+          // Felső téglalap - JAVÍTOTT pozícióval
           const topPlaneGeometry = new THREE.PlaneGeometry(width, length);
           const topPlaneEdges = new THREE.EdgesGeometry(topPlaneGeometry);
-          topPlaneEdges.rotateX(Math.PI / 2);
+
+          this.applyCSGRotationToGeometry(topPlaneEdges, csgOperation.rotation);
 
           outlines.push({
             geometry: topPlaneEdges,
             position: {
-              x: position.x,
-              y: position.y + depth / 2,
-              z: position.z,
+              x: position.x + depthOffsets.top.x,
+              y: position.y + depthOffsets.top.y,
+              z: position.z + depthOffsets.top.z,
             },
-            rotation: csgOperation.rotation || { x: 0, y: 0, z: 0 },
             type: "top",
           });
 
-          // Alsó téglalap
+          // Alsó téglalap - JAVÍTOTT pozícióval
           const bottomPlaneGeometry = new THREE.PlaneGeometry(width, length);
           const bottomPlaneEdges = new THREE.EdgesGeometry(bottomPlaneGeometry);
-          bottomPlaneEdges.rotateX(Math.PI / 2);
+
+          this.applyCSGRotationToGeometry(
+            bottomPlaneEdges,
+            csgOperation.rotation
+          );
 
           outlines.push({
             geometry: bottomPlaneEdges,
             position: {
-              x: position.x,
-              y: position.y - depth / 2,
-              z: position.z,
+              x: position.x + depthOffsets.bottom.x,
+              y: position.y + depthOffsets.bottom.y,
+              z: position.z + depthOffsets.bottom.z,
             },
-            rotation: csgOperation.rotation || { x: 0, y: 0, z: 0 },
             type: "bottom",
           });
           break;
@@ -478,104 +471,83 @@ class ViewModeManager {
     }
   }
 
-  // Legacy hole körvonal készítése
-  createLegacyHoleOutlineGeometry(hole, parentMesh) {
-    try {
-      const depth = hole.depth || 10;
-      let outlines = [];
+  // ÚJ: Lyuk tengely meghatározása CSG rotáció alapján
+  determineHoleAxis(csgRotation) {
+    if (!csgRotation) {
+      return "y"; // Alapértelmezett: Y tengely (függőleges)
+    }
 
-      switch (hole.type) {
-        case "circle":
-          const radius = hole.radius;
+    // CSG rotációk a hole-generator.js-ből:
+    // X tengely: {x: 0, y: 0, z: Math.PI/2}
+    // Z tengely: {x: Math.PI/2, y: 0, z: 0}
+    // Y tengely: {x: 0, y: 0, z: 0}
 
-          // Felső körvonal
-          const topCircleGeometry = new THREE.CircleGeometry(radius, 32);
-          const topEdgesGeometry = new THREE.EdgesGeometry(topCircleGeometry);
-          topEdgesGeometry.rotateX(Math.PI / 2);
+    const threshold = 0.1; // Kis tolerancia a floating point hibákhoz
 
-          outlines.push({
-            geometry: topEdgesGeometry,
-            position: {
-              x: hole.position.x,
-              y: hole.position.y + depth / 2,
-              z: hole.position.z,
-            },
-            rotation: hole.rotation || { x: 0, y: 0, z: 0 },
-            type: "top",
-          });
-
-          // Alsó körvonal
-          const bottomCircleGeometry = new THREE.CircleGeometry(radius, 32);
-          const bottomEdgesGeometry = new THREE.EdgesGeometry(
-            bottomCircleGeometry
-          );
-          bottomEdgesGeometry.rotateX(Math.PI / 2);
-
-          outlines.push({
-            geometry: bottomEdgesGeometry,
-            position: {
-              x: hole.position.x,
-              y: hole.position.y - depth / 2,
-              z: hole.position.z,
-            },
-            rotation: hole.rotation || { x: 0, y: 0, z: 0 },
-            type: "bottom",
-          });
-          break;
-
-        case "square":
-          // Felső téglalap
-          const topPlaneGeometry = new THREE.PlaneGeometry(
-            hole.width,
-            hole.height
-          );
-          const topPlaneEdges = new THREE.EdgesGeometry(topPlaneGeometry);
-          topPlaneEdges.rotateX(Math.PI / 2);
-
-          outlines.push({
-            geometry: topPlaneEdges,
-            position: {
-              x: hole.position.x,
-              y: hole.position.y + depth / 2,
-              z: hole.position.z,
-            },
-            rotation: hole.rotation || { x: 0, y: 0, z: 0 },
-            type: "top",
-          });
-
-          // Alsó téglalap
-          const bottomPlaneGeometry = new THREE.PlaneGeometry(
-            hole.width,
-            hole.height
-          );
-          const bottomPlaneEdges = new THREE.EdgesGeometry(bottomPlaneGeometry);
-          bottomPlaneEdges.rotateX(Math.PI / 2);
-
-          outlines.push({
-            geometry: bottomPlaneEdges,
-            position: {
-              x: hole.position.x,
-              y: hole.position.y - depth / 2,
-              z: hole.position.z,
-            },
-            rotation: hole.rotation || { x: 0, y: 0, z: 0 },
-            type: "bottom",
-          });
-          break;
-
-        default:
-          console.warn(`Nem támogatott legacy lyuk típus: ${hole.type}`);
-          return [];
-      }
-
-      return outlines;
-    } catch (error) {
-      console.error("Legacy lyuk körvonal hiba:", error);
-      return [];
+    if (Math.abs(csgRotation.z - Math.PI / 2) < threshold) {
+      return "x"; // X tengely irányú lyuk
+    } else if (Math.abs(csgRotation.x - Math.PI / 2) < threshold) {
+      return "z"; // Z tengely irányú lyuk
+    } else {
+      return "y"; // Y tengely irányú lyuk (alapértelmezett)
     }
   }
 
-  // Lyuk körvonal hozzáadása a scene-hez
+  // ÚJ: Mélység offsetek számítása tengely szerint
+  calculateDepthOffsets(depth, axis) {
+    const halfDepth = depth / 2;
+
+    switch (axis) {
+      case "x":
+        return {
+          top: { x: halfDepth, y: 0, z: 0 },
+          bottom: { x: -halfDepth, y: 0, z: 0 },
+        };
+      case "z":
+        return {
+          top: { x: 0, y: 0, z: halfDepth },
+          bottom: { x: 0, y: 0, z: -halfDepth },
+        };
+      case "y":
+      default:
+        return {
+          top: { x: 0, y: halfDepth, z: 0 },
+          bottom: { x: 0, y: -halfDepth, z: 0 },
+        };
+    }
+  }
+
+  // ÚJ: CSG rotáció alkalmazása wireframe geometrián - DEBUG infóval
+  applyCSGRotationToGeometry(geometry, csgRotation) {
+    // Alapértelmezett orientáció: XY sík -> XZ síkra forgatás (vízszintes)
+    geometry.rotateX(Math.PI / 2);
+
+    // Ha van CSG rotáció, alkalmazzuk azt is
+    if (
+      csgRotation &&
+      (csgRotation.x !== 0 || csgRotation.y !== 0 || csgRotation.z !== 0)
+    ) {
+      const rotationMatrix = new THREE.Matrix4();
+      rotationMatrix.makeRotationFromEuler(
+        new THREE.Euler(csgRotation.x, csgRotation.y, csgRotation.z)
+      );
+      geometry.applyMatrix4(rotationMatrix);
+
+      // Debug info a tengely meghatározásához
+      const axis = this.determineHoleAxis(csgRotation);
+      console.log(
+        `🔄 CSG wireframe: ${axis} tengely, rotáció: x:${(
+          (csgRotation.x * 180) /
+          Math.PI
+        ).toFixed(1)}° y:${((csgRotation.y * 180) / Math.PI).toFixed(1)}° z:${(
+          (csgRotation.z * 180) /
+          Math.PI
+        ).toFixed(1)}°`
+      );
+    }
+  }
+
+  // Lyuk körvonal hozzáadása a scene-hez - EGYSZERŰSÍTETT rotáció kezelés
   addHoleOutlineToScene(holeOutline, parentMesh, elementId, holeId) {
     try {
       const holeWireframe = new THREE.LineSegments(
@@ -589,23 +561,20 @@ class ViewModeManager {
         z: holeOutline.position.z,
       };
 
+      // Pozíció beállítása (parent + hole offset)
       holeWireframe.position.set(
         parentMesh.position.x + holeOutline.position.x,
         parentMesh.position.y + holeOutline.position.y,
         parentMesh.position.z + holeOutline.position.z
       );
 
-      if (holeOutline.rotation) {
-        holeWireframe.rotation.set(
-          holeOutline.rotation.x,
-          holeOutline.rotation.y,
-          holeOutline.rotation.z
-        );
-      }
-
-      holeWireframe.rotation.x += parentMesh.rotation.x;
-      holeWireframe.rotation.y += parentMesh.rotation.y;
-      holeWireframe.rotation.z += parentMesh.rotation.z;
+      // JAVÍTÁS v2: Csak parent mesh rotációját alkalmazzuk
+      // A CSG rotáció már a geometriában van az applyCSGRotationToGeometry-ban
+      holeWireframe.rotation.set(
+        parentMesh.rotation.x,
+        parentMesh.rotation.y,
+        parentMesh.rotation.z
+      );
 
       holeWireframe.userData = {
         isHoleOutline: true,
@@ -640,6 +609,7 @@ class ViewModeManager {
   updateWireframePositions(meshes) {
     this.wireframeLayer.forEach((wireframeMesh, key) => {
       if (!key.includes("_hole_")) {
+        // Sima elem wireframe
         const originalMesh = meshes.get(key);
         if (originalMesh && wireframeMesh) {
           wireframeMesh.position.copy(originalMesh.position);
@@ -647,6 +617,7 @@ class ViewModeManager {
           wireframeMesh.scale.copy(originalMesh.scale);
         }
       } else {
+        // Lyuk wireframe
         const elementId = key.split("_hole_")[0];
         const originalMesh = meshes.get(elementId);
 
@@ -661,12 +632,14 @@ class ViewModeManager {
             z: 0,
           };
 
+          // Pozíció frissítése
           wireframeMesh.position.set(
             originalMesh.position.x + holePosition.x,
             originalMesh.position.y + holePosition.y,
             originalMesh.position.z + holePosition.z
           );
 
+          // JAVÍTÁS: Rotáció frissítése - csak parent rotáció
           wireframeMesh.rotation.copy(originalMesh.rotation);
         }
       }

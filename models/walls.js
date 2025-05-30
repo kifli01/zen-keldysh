@@ -41,9 +41,11 @@ export const elements = [
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
       csgOperations: [
-        createCircleHole({
-          radius: 3,
+        ...twoStepHole({
           position: { x: 0, y: 0, z: 0 },
+          parentThickness: COURSE_DIMENSIONS.sideWidth,
+          firstHole: { radius: 2, depth: 4 },
+          secondHole: { radius: 1, depth: 6 },
           axis: "z",
         }),
       ],
