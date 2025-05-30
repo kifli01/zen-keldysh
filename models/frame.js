@@ -133,4 +133,168 @@ export const elements = [
       spacing: spacing,
     };
   }),
+
+  // Tipliek a keresztlécekhez - függőlegesen középen
+  // Első keresztléc tipliei (4 db)
+  ...(() => {
+    const crossBeamX =
+      -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2;
+    const crossBeamY = -COURSE_DIMENSIONS.frameHeight / 2 - 1.2;
+
+    return [
+      // Bal oldal - első tipli
+      window.part.dowel({
+        id: "dowel_front_left_1",
+        position: {
+          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // 2 cm-re a széltől
+          y: crossBeamY, // Keresztléc közepén
+          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 }, // Függőlegesen felfelé
+      }),
+      // Bal oldal - második tipli
+      window.part.dowel({
+        id: "dowel_front_left_2",
+        position: {
+          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // 2 cm-re a másik széltől
+          y: crossBeamY, // Keresztléc közepén
+          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 },
+      }),
+      // Jobb oldal - első tipli
+      window.part.dowel({
+        id: "dowel_front_right_1",
+        position: {
+          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
+          y: crossBeamY, // Keresztléc közepén
+          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 },
+      }),
+      // Jobb oldal - második tipli
+      window.part.dowel({
+        id: "dowel_front_right_2",
+        position: {
+          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
+          y: crossBeamY, // Keresztléc közepén
+          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 },
+      }),
+    ];
+  })(),
+
+  // Hátsó keresztléc tipliei (4 db)
+  ...(() => {
+    const crossBeamX =
+      COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2;
+    const crossBeamY = -COURSE_DIMENSIONS.frameHeight / 2 - 1.2;
+
+    return [
+      // Bal oldal - első tipli
+      window.part.dowel({
+        id: "dowel_back_left_1",
+        position: {
+          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
+          y: crossBeamY, // Keresztléc közepén
+          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 },
+      }),
+      // Bal oldal - második tipli
+      window.part.dowel({
+        id: "dowel_back_left_2",
+        position: {
+          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
+          y: crossBeamY, // Keresztléc közepén
+          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 },
+      }),
+      // Jobb oldal - első tipli
+      window.part.dowel({
+        id: "dowel_back_right_1",
+        position: {
+          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
+          y: crossBeamY, // Keresztléc közepén
+          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 },
+      }),
+      // Jobb oldal - második tipli
+      window.part.dowel({
+        id: "dowel_back_right_2",
+        position: {
+          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
+          y: crossBeamY, // Keresztléc közepén
+          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 },
+      }),
+    ];
+  })(),
+
+  // Belső keresztlécek tipliei
+  ...Array.from({ length: COURSE_DIMENSIONS.crossBeamCount }, (_, i) => {
+    const spacing =
+      COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
+    const crossBeamX = -COURSE_DIMENSIONS.length / 2 + spacing * (i + 1);
+    const crossBeamY = -COURSE_DIMENSIONS.frameHeight / 2 - 1.2;
+
+    return [
+      // Bal oldal - első tipli
+      window.part.dowel({
+        id: `dowel_cross_${i + 1}_left_1`,
+        position: {
+          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
+          y: crossBeamY, // Keresztléc közepén
+          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 },
+      }),
+      // Bal oldal - második tipli
+      window.part.dowel({
+        id: `dowel_cross_${i + 1}_left_2`,
+        position: {
+          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
+          y: crossBeamY, // Keresztléc közepén
+          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 },
+      }),
+      // Jobb oldal - első tipli
+      window.part.dowel({
+        id: `dowel_cross_${i + 1}_right_1`,
+        position: {
+          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
+          y: crossBeamY, // Keresztléc közepén
+          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 },
+      }),
+      // Jobb oldal - második tipli
+      window.part.dowel({
+        id: `dowel_cross_${i + 1}_right_2`,
+        position: {
+          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
+          y: crossBeamY, // Keresztléc közepén
+          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+        },
+        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+        rotation: { x: Math.PI / 2, y: 0, z: 0 },
+      }),
+    ];
+  }).flat(),
 ];

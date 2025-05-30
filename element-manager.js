@@ -152,6 +152,7 @@ class ElementManager {
       [ELEMENT_TYPES.LEG]: "Lábak",
       [ELEMENT_TYPES.WALL]: "Oldalfalak",
       [ELEMENT_TYPES.BALL]: "Labda",
+      [ELEMENT_TYPES.PART]: "Alkatrész",
     };
     return typeNames[type] || type;
   }

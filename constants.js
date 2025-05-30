@@ -20,6 +20,7 @@ const ELEMENT_TYPES = {
   LEG: "leg",
   WALL: "wall",
   BALL: "ball", // Új típus a labdához
+  PART: "part",
 };
 
 // Anyag definíciók
