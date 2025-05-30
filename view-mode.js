@@ -471,48 +471,58 @@ class ViewModeManager {
     }
   }
 
-  // ÚJ: Lyuk tengely meghatározása CSG rotáció alapján
+  // ÚJ: Lyuk tengely meghatározása CSG rotáció alapján - JAVÍTOTT v2.0.3
   determineHoleAxis(csgRotation) {
     if (!csgRotation) {
       return "y"; // Alapértelmezett: Y tengely (függőleges)
     }
 
-    // CSG rotációk a hole-generator.js-ből:
-    // X tengely: {x: 0, y: 0, z: Math.PI/2}
-    // Z tengely: {x: Math.PI/2, y: 0, z: 0}
-    // Y tengely: {x: 0, y: 0, z: 0}
+    // JAVÍTOTT: Rotáció detektálás az új direction rendszerhez
+    // hole-generator.js v3.1.0 rotáció mapping:
+    // Y tengely: x: 0 vagy Math.PI (up esetén)
+    // X tengely: y: ±Math.PI/2
+    // Z tengely: x: ±Math.PI/2
 
     const threshold = 0.1; // Kis tolerancia a floating point hibákhoz
 
-    if (Math.abs(csgRotation.z - Math.PI / 2) < threshold) {
-      return "x"; // X tengely irányú lyuk
-    } else if (Math.abs(csgRotation.x - Math.PI / 2) < threshold) {
-      return "z"; // Z tengely irányú lyuk
-    } else {
-      return "y"; // Y tengely irányú lyuk (alapértelmezett)
+    // Z tengely detektálás: X tengely körül ±90° rotáció
+    if (Math.abs(Math.abs(csgRotation.x) - Math.PI / 2) < threshold) {
+      return "z"; // Z tengely irányú lyuk (right/left)
+    }
+    // X tengely detektálás: Y tengely körül ±90° rotáció
+    else if (Math.abs(Math.abs(csgRotation.y) - Math.PI / 2) < threshold) {
+      return "x"; // X tengely irányú lyuk (forward/backward)
+    }
+    // Y tengely detektálás: nincs jelentős rotáció VAGY 180° X körül (up)
+    else {
+      return "y"; // Y tengely irányú lyuk (down/up)
     }
   }
 
-  // ÚJ: Mélység offsetek számítása tengely szerint
+  // ÚJ: Mélység offsetek számítása tengely szerint - JAVÍTOTT v2.0.3
   calculateDepthOffsets(depth, axis) {
     const halfDepth = depth / 2;
 
+    // JAVÍTOTT: Új direction rendszerhez igazítva
     switch (axis) {
       case "x":
+        // X tengely: forward/backward (hosszanti irány)
         return {
-          top: { x: halfDepth, y: 0, z: 0 },
-          bottom: { x: -halfDepth, y: 0, z: 0 },
+          top: { x: halfDepth, y: 0, z: 0 }, // Forward irány
+          bottom: { x: -halfDepth, y: 0, z: 0 }, // Backward irány
         };
       case "z":
+        // Z tengely: right/left (szélességi irány)
         return {
-          top: { x: 0, y: 0, z: halfDepth },
-          bottom: { x: 0, y: 0, z: -halfDepth },
+          top: { x: 0, y: 0, z: halfDepth }, // Right irány
+          bottom: { x: 0, y: 0, z: -halfDepth }, // Left irány
         };
       case "y":
       default:
+        // Y tengely: down/up (magassági irány)
         return {
-          top: { x: 0, y: halfDepth, z: 0 },
-          bottom: { x: 0, y: -halfDepth, z: 0 },
+          top: { x: 0, y: halfDepth, z: 0 }, // Down irány (felül)
+          bottom: { x: 0, y: -halfDepth, z: 0 }, // Up irány (alul)
         };
     }
   }
@@ -533,7 +543,7 @@ class ViewModeManager {
       );
       geometry.applyMatrix4(rotationMatrix);
 
-      // Debug info a tengely meghatározásához
+      // Debug info a tengely meghatározásához - JAVÍTOTT komment
       const axis = this.determineHoleAxis(csgRotation);
       console.log(
         `🔄 CSG wireframe: ${axis} tengely, rotáció: x:${(
