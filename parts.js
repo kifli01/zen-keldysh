@@ -1,5 +1,4 @@
 /**
- * test commit
  * Fa tipli létrehozása - 8×40mm fix mérettel
  * @param {Object} params - Paraméterek objektum
  * @param {string} params.id - Egyedi azonosító
