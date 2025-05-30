@@ -6,27 +6,27 @@
 
 const holeExtension = 0.05;
 
-// ÚJ: Direction-rotáció mapping
+// JAVÍTOTT: Direction-rotáció mapping - logikus tengely-irány megfeleltetés
 const DIRECTION_ROTATIONS = {
   y: {
     down: { x: 0, y: 0, z: 0 }, // Felülről lefelé (alapértelmezett)
-    up: { x: Math.PI, y: 0, z: 0 }, // Alulról felfelé (180° flip)
+    up: { x: Math.PI, y: 0, z: 0 }, // Alulról felfelé (X tengely körül 180°)
   },
   x: {
-    right: { x: 0, y: 0, z: Math.PI / 2 }, // Balról jobbra (alapértelmezett)
-    left: { x: 0, y: 0, z: -Math.PI / 2 }, // Jobbról balra
+    forward: { x: 0, y: Math.PI / 2, z: 0 }, // Hátulról előre (Y tengely körül +90°)
+    backward: { x: 0, y: -Math.PI / 2, z: 0 }, // Elölről hátra (Y tengely körül -90°)
   },
   z: {
-    forward: { x: Math.PI / 2, y: 0, z: 0 }, // Hátulról előre (alapértelmezett)
-    backward: { x: -Math.PI / 2, y: 0, z: 0 }, // Elölről hátra
+    right: { x: -Math.PI / 2, y: 0, z: 0 }, // Jobbról balra (X tengely körül -90°)
+    left: { x: Math.PI / 2, y: 0, z: 0 }, // Balról jobbra (X tengely körül +90°)
   },
 };
 
-// ÚJ: Érvényes direction értékek validálása
+// JAVÍTOTT: Érvényes direction értékek - logikus tengely-irány párosítás
 const VALID_DIRECTIONS = {
-  y: ["down", "up"],
-  x: ["right", "left"],
-  z: ["forward", "backward"],
+  y: ["down", "up"], // Magassági irányok
+  x: ["forward", "backward"], // Hosszanti irányok (pálya hossza mentén)
+  z: ["right", "left"], // Szélességi irányok (pálya szélessége mentén)
 };
 
 /**
@@ -37,8 +37,8 @@ const VALID_DIRECTIONS = {
  * @param {string} params.axis - Lyuk tengelye: 'x', 'y', 'z' (alapértelmezett: 'y')
  * @param {string} params.direction - Lyuk iránya tengely szerint (ÚJ paraméter)
  *   - Y tengely: 'down' (felülről), 'up' (alulról)
- *   - X tengely: 'right' (balról), 'left' (jobbról)
- *   - Z tengely: 'forward' (hátulról), 'backward' (elölről)
+ *   - X tengely: 'forward' (hátulról), 'backward' (elölről)
+ *   - Z tengely: 'right' (jobbról), 'left' (balról)
  * @param {number} params.depth - Mélység (opcionális, auto-számítás parent alapján)
  * @param {number} params.parentThickness - Parent elem vastagsága auto-mélységhez
  * @returns {Object} CSG művelet objektum
@@ -103,13 +103,13 @@ function createCircleHole(params) {
 }
 
 /**
- * ÚJ: Alapértelmezett irány lekérése tengelyhez
+ * JAVÍTOTT: Alapértelmezett irány lekérése tengelyhez - logikus alapértékek
  */
 function getDefaultDirection(axis) {
   const defaults = {
-    y: "down", // Felülről lefelé
-    x: "right", // Balról jobbra
-    z: "forward", // Hátulról előre
+    y: "down", // Magasság: felülről lefelé (természetes gravitáció)
+    x: "forward", // Hosszúság: hátulról előre (természetes haladás)
+    z: "right", // Szélesség: jobbról balra (természetes jobb kéz használat)
   };
   return defaults[axis] || "down";
 }

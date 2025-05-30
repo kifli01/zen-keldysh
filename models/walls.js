@@ -58,7 +58,7 @@ export const elements = [
             depth: 1, // 1 cm mélység (4+1=5cm = teljes átfúrás)
           },
           axis: "z", // Z tengely (fal vastagság irányban)
-          direction: "backward", // Jobbról balra (külső oldalról befelé)
+          direction: "right", // Jobbról balra (külső oldalról befelé)
         }),
       ],
     },
