@@ -1,26 +1,7 @@
 /**
- * Terület definíció helper - VÁLTOZATLAN
- */
-function defineArea(xStart, xEnd, zStart, zEnd) {
-  return { xStart, xEnd, zStart, zEnd };
-}
-
-/**
- * Lyukak szűrése távolság alapján - VÁLTOZATLAN
- */
-function filterHolesByDistance(operations, centerPosition, minDistance = 8) {
-  return operations.filter((operation) => {
-    const distance = Math.sqrt(
-      Math.pow(operation.position.x - centerPosition.x, 2) +
-        Math.pow(operation.position.z - centerPosition.z, 2)
-    );
-    return distance >= minDistance;
-  });
-}
-/**
  * Hole Generator
  * Lyuk generáló tengely és irány támogatással
- * v3.0.0 - Direction paraméter hozzáadva minden tengelyhez
+ * v3.1.0 - TwoStepHole javított direction logika
  */
 
 const holeExtension = 0.05;
@@ -40,9 +21,6 @@ const DIRECTION_ROTATIONS = {
     backward: { x: -Math.PI / 2, y: 0, z: 0 }, // Elölről hátra
   },
 };
-
-// ELTÁVOLÍTVA: Direction-pozíció offset mapping (már nem kell)
-// A direction csak rotációt befolyásol, pozíciót nem!
 
 // ÚJ: Érvényes direction értékek validálása
 const VALID_DIRECTIONS = {
@@ -80,7 +58,7 @@ function createCircleHole(params) {
 
   // Direction alapértelmezett értékek
   const defaultDirection = getDefaultDirection(normalizedAxis);
-  const finalDirection = direction ? direction.toLowerCase() : defaultDirection;
+  let finalDirection = direction ? direction.toLowerCase() : defaultDirection;
 
   // Direction validálás
   if (!validateDirection(normalizedAxis, finalDirection)) {
@@ -235,9 +213,9 @@ function createCircleHoleGrid(params) {
 }
 
 /**
- * Kétlépcsős lyuk létrehozása - FRISSÍTETT direction támogatással
+ * Kétlépcsős lyuk létrehozása - JAVÍTOTT direction logika v3.1.0
  * @param {Object} params - Lyuk paraméterek
- * @param {Object} params.position - Lyuk pozíciója
+ * @param {Object} params.position - Lyuk KÖZÉPPONTJÁNAK pozíciója (alap referencia)
  * @param {number} params.parentThickness - Parent elem vastagsága
  * @param {Object} params.firstHole - Első lyuk {radius, depth}
  * @param {Object} params.secondHole - Második lyuk {radius, depth}
@@ -271,30 +249,128 @@ function twoStepHole(params) {
     `🔧 Kétlépcsős lyuk: ${normalizedAxis} tengely, ${finalDirection} irány`
   );
 
-  // JAVÍTÁS: Direction NEM befolyásolja a pozíciót, csak a rotációt
-  // Mindkét lyuk ugyanazon pozíciónál van, csak különböző mélységben
+  // JAVÍTOTT v3.1.0: Direction alapú pozíció számítás
+  const positions = calculateTwoStepPositions(
+    position,
+    normalizedAxis,
+    finalDirection,
+    parentThickness,
+    firstHole,
+    secondHole
+  );
 
   const firstHoleParams = {
     radius: firstHole.radius,
-    position: position, // Eredeti pozíció
+    position: positions.firstPosition,
     axis: normalizedAxis,
     direction: finalDirection,
     depth: firstHole.depth + holeExtension,
   };
 
-  // A második lyuk ugyanazon pozíción, csak más mélységű
   const secondHoleParams = {
     radius: secondHole.radius,
-    position: position, // Ugyanaz a pozíció!
+    position: positions.secondPosition,
     axis: normalizedAxis,
     direction: finalDirection,
     depth: secondHole.depth + holeExtension,
   };
 
+  console.log(`📍 Első lyuk pozíció:`, positions.firstPosition);
+  console.log(`📍 Második lyuk pozíció:`, positions.secondPosition);
+
   return [
     createCircleHole(firstHoleParams),
     createCircleHole(secondHoleParams),
   ];
+}
+
+/**
+ * ÚJ v3.1.0: Kétlépcsős lyuk pozíciók számítása direction szerint
+ * @param {Object} basePosition - Alap pozíció (lyuk középpontja)
+ * @param {string} axis - Tengely ('x', 'y', 'z')
+ * @param {string} direction - Irány
+ * @param {number} parentThickness - Parent elem vastagsága
+ * @param {Object} firstHole - Első lyuk paraméterek
+ * @param {Object} secondHole - Második lyuk paraméterek
+ * @returns {Object} {firstPosition, secondPosition}
+ */
+function calculateTwoStepPositions(
+  basePosition,
+  axis,
+  direction,
+  parentThickness,
+  firstHole,
+  secondHole
+) {
+  // 1. Felület referencia pont meghatározása (honnan indítjuk a fúrást)
+  const surfaceOffset = getSurfaceOffset(axis, direction, parentThickness);
+
+  // 2. Fúrás irány meghatározása (+ vagy - irányba haladunk)
+  const depthDirection = getDepthDirection(axis, direction);
+
+  // 3. Tengely koordináta meghatározása ('x', 'y', vagy 'z')
+  const axisCoord = getAxisCoordinate(axis);
+
+  // 4. Első lyuk pozíciója: felülettől befelé
+  const firstPosition = {
+    ...basePosition,
+    [axisCoord]:
+      basePosition[axisCoord] +
+      surfaceOffset +
+      depthDirection * (firstHole.depth / 2),
+  };
+
+  // 5. Második lyuk pozíciója: első lyuk után folytatva
+  const secondPosition = {
+    ...basePosition,
+    [axisCoord]:
+      basePosition[axisCoord] +
+      surfaceOffset +
+      depthDirection * (firstHole.depth + secondHole.depth / 2),
+  };
+
+  return { firstPosition, secondPosition };
+}
+
+/**
+ * ÚJ: Felület offset számítása - honnan indítjuk a fúrást
+ */
+function getSurfaceOffset(axis, direction, parentThickness) {
+  const halfThickness = parentThickness / 2;
+
+  switch (axis) {
+    case "y":
+      return direction === "down" ? halfThickness : -halfThickness;
+    case "x":
+      return direction === "right" ? -halfThickness : halfThickness;
+    case "z":
+      return direction === "forward" ? -halfThickness : halfThickness;
+    default:
+      return 0;
+  }
+}
+
+/**
+ * ÚJ: Mélység irány meghatározása - melyik irányba haladunk
+ */
+function getDepthDirection(axis, direction) {
+  switch (axis) {
+    case "y":
+      return direction === "down" ? -1 : 1; // down: lefelé (-), up: felfelé (+)
+    case "x":
+      return direction === "right" ? 1 : -1; // right: jobbra (+), left: balra (-)
+    case "z":
+      return direction === "forward" ? 1 : -1; // forward: előre (+), backward: hátra (-)
+    default:
+      return 1;
+  }
+}
+
+/**
+ * ÚJ: Tengely koordináta string lekérése
+ */
+function getAxisCoordinate(axis) {
+  return axis; // 'x' -> 'x', 'y' -> 'y', 'z' -> 'z'
 }
 
 /**
@@ -338,28 +414,30 @@ function debugHoleConfiguration(hole) {
 //   axis: 'y'  // direction: 'down' alapértelmezett
 // });
 //
-// // Y tengely, alulról felfelé:
-// createCircleHole({
-//   radius: 5.4,
-//   position: { x: 0, y: 0, z: 0 },  // Lyuk középpontja (ugyanott)
-//   axis: 'y',
-//   direction: 'up'  // Csak rotáció változik!
-// });
-//
-// // X tengely, jobbról balra:
-// createCircleHole({
-//   radius: 2.5,
-//   position: { x: 0, y: 0, z: 0 },  // Lyuk középpontja
-//   axis: 'x',
-//   direction: 'left'  // Csak rotáció
-// });
-//
-// // Kétlépcsős lyuk - mindkét lyuk ugyanazon pozíción:
+// // Kétlépcsős lyuk - JAVÍTOTT direction logika:
 // twoStepHole({
-//   position: { x: 0, y: 0, z: 0 },  // Lyuk középpontja
-//   parentThickness: 12,
-//   firstHole: { radius: 8, depth: 3 },
-//   secondHole: { radius: 4, depth: 9 },
+//   position: { x: 0, y: 0, z: 0 },  // Lyuk KÖZÉPPONTJA (nem felszín!)
+//   parentThickness: 12,             // Parent elem vastagsága
+//   firstHole: { radius: 8, depth: 3 },   // Nagy, sekély (csavarfej)
+//   secondHole: { radius: 4, depth: 9 },  // Kis, mély (csavarmenet)
 //   axis: 'y',
-//   direction: 'down'  // Csak orientáció
+//   direction: 'down'  // Felülről lefelé fúrás
+//
+//   // Eredmény:
+//   // - Első lyuk: y = 0 + 6 - 1.5 = 4.5 (felül kezdődik)
+//   // - Második lyuk: y = 0 + 6 - 3 - 4.5 = -1.5 (első után folytatódik)
+// });
+//
+// // X tengely, balról jobbra:
+// twoStepHole({
+//   position: { x: 0, y: 0, z: 0 },
+//   parentThickness: 10,
+//   firstHole: { radius: 6, depth: 2 },
+//   secondHole: { radius: 3, depth: 6 },
+//   axis: 'x',
+//   direction: 'right'  // Bal oldalról jobbra
+//
+//   // Eredmény:
+//   // - Első lyuk: x = 0 - 5 + 1 = -4 (bal oldalról kezdődik)
+//   // - Második lyuk: x = 0 - 5 + 2 + 3 = 0 (első után folytatódik)
 // });

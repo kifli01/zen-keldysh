@@ -8,8 +8,8 @@ export const elements = [
     geometry: {
       type: GEOMETRY_TYPES.BOX,
       dimensions: {
-        width: COURSE_DIMENSIONS.sideWidth, // 6 cm
-        height: COURSE_DIMENSIONS.sideHeight, // 12 cm
+        width: COURSE_DIMENSIONS.sideWidth, // 5 cm
+        height: COURSE_DIMENSIONS.sideHeight, // 16 cm
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
     },
@@ -19,7 +19,7 @@ export const elements = [
         y:
           COURSE_DIMENSIONS.turfThickness +
           COURSE_DIMENSIONS.sideVerticalShift -
-          COURSE_DIMENSIONS.sideHeight / 2, // 5cm-rel a borítás felett
+          COURSE_DIMENSIONS.sideHeight / 2, // 6cm-rel a borítás felett
         z: -COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.sideWidth / 2,
       },
     },
@@ -36,18 +36,29 @@ export const elements = [
     geometry: {
       type: GEOMETRY_TYPES.BOX,
       dimensions: {
-        width: COURSE_DIMENSIONS.sideWidth, // 6 cm
-        height: COURSE_DIMENSIONS.sideHeight, // 12 cm
+        width: COURSE_DIMENSIONS.sideWidth, // 5 cm
+        height: COURSE_DIMENSIONS.sideHeight, // 16 cm
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
+      // ÚJ: Kétlépcsős lyuk jobbról balra
       csgOperations: [
         ...twoStepHole({
-          position: { x: 0, y: 0, z: 0 },
-          parentThickness: COURSE_DIMENSIONS.sideWidth,
-          firstHole: { radius: 2, depth: 4 },
-          secondHole: { radius: 1, depth: 6 },
-          axis: "z",
-          // direction: "left",
+          position: {
+            x: 0, // Középen hosszában
+            y: 0, // Középen magasságban
+            z: 0, // Fal középpontjában (vastagság irányban)
+          },
+          parentThickness: COURSE_DIMENSIONS.sideWidth, // 5 cm (fal vastagsága)
+          firstHole: {
+            radius: 2, // 2 cm sugár (4 cm átmérő)
+            depth: 4, // 4 cm mélység
+          },
+          secondHole: {
+            radius: 1, // 1 cm sugár (2 cm átmérő)
+            depth: 1, // 1 cm mélység (4+1=5cm = teljes átfúrás)
+          },
+          axis: "z", // Z tengely (fal vastagság irányban)
+          direction: "backward", // Jobbról balra (külső oldalról befelé)
         }),
       ],
     },
@@ -76,8 +87,8 @@ export const elements = [
       type: GEOMETRY_TYPES.BOX,
       dimensions: {
         width: COURSE_DIMENSIONS.width + 2 * COURSE_DIMENSIONS.sideWidth, // 92 cm
-        height: COURSE_DIMENSIONS.sideHeight, // 12 cm
-        length: COURSE_DIMENSIONS.sideWidth, // 6 cm
+        height: COURSE_DIMENSIONS.sideHeight, // 16 cm
+        length: COURSE_DIMENSIONS.sideWidth, // 5 cm
       },
     },
     transform: {
