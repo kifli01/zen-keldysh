@@ -19,6 +19,7 @@ export const elements = [
             z: 0,
           },
           axis: "y",
+          direction: "down",
           parentThickness: 1.2,
           firstHole: { radius: 8.7, depth: 0.3 },
           secondHole: { radius: 6.6, depth: 0.9 },
@@ -38,6 +39,7 @@ export const elements = [
           radius: 0.8,
           margin: 10,
           parentThickness: 1.2,
+          direction: "down",
         }),
 
         // Vízelvezető lyukak - középső szektor
@@ -56,6 +58,7 @@ export const elements = [
           radius: 0.8,
           margin: 10,
           parentThickness: 1.2,
+          direction: "down",
         }),
 
         // Vízelvezető lyukak - hátsó szektor (szűrve a fő lyuk környékét)
@@ -73,6 +76,7 @@ export const elements = [
           radius: 0.8,
           margin: 10,
           parentThickness: 1.2,
+          direction: "down",
           skip: [
             { x: 1, z: 1 },
             { x: 1, z: 2 },

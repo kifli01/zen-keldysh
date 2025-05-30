@@ -47,6 +47,7 @@ export const elements = [
           firstHole: { radius: 2, depth: 4 },
           secondHole: { radius: 1, depth: 6 },
           axis: "z",
+          // direction: "left",
         }),
       ],
     },
