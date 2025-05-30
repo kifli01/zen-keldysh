@@ -41,26 +41,26 @@ export const elements = [
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
       // ÚJ: Kétlépcsős lyuk jobbról balra
-      csgOperations: [
-        ...twoStepHole({
-          position: {
-            x: 0, // Középen hosszában
-            y: 0, // Középen magasságban
-            z: 0, // Fal középpontjában (vastagság irányban)
-          },
-          parentThickness: COURSE_DIMENSIONS.sideWidth, // 5 cm (fal vastagsága)
-          firstHole: {
-            radius: 2, // 2 cm sugár (4 cm átmérő)
-            depth: 4, // 4 cm mélység
-          },
-          secondHole: {
-            radius: 1, // 1 cm sugár (2 cm átmérő)
-            depth: 1, // 1 cm mélység (4+1=5cm = teljes átfúrás)
-          },
-          axis: "z", // Z tengely (fal vastagság irányban)
-          direction: "right", // Jobbról balra (külső oldalról befelé)
-        }),
-      ],
+      // csgOperations: [
+      //   ...twoStepHole({
+      //     position: {
+      //       x: 0, // Középen hosszában
+      //       y: 0, // Középen magasságban
+      //       z: 0, // Fal középpontjában (vastagság irányban)
+      //     },
+      //     parentThickness: COURSE_DIMENSIONS.sideWidth, // 5 cm (fal vastagsága)
+      //     firstHole: {
+      //       radius: 2, // 2 cm sugár (4 cm átmérő)
+      //       depth: 4, // 4 cm mélység
+      //     },
+      //     secondHole: {
+      //       radius: 1, // 1 cm sugár (2 cm átmérő)
+      //       depth: 1, // 1 cm mélység (4+1=5cm = teljes átfúrás)
+      //     },
+      //     axis: "z", // Z tengely (fal vastagság irányban)
+      //     direction: "right", // Jobbról balra (külső oldalról befelé)
+      //   }),
+      // ],
     },
     transform: {
       position: {
