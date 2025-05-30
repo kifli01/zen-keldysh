@@ -18,6 +18,7 @@ export const elements = [
             y: 0,
             z: 0,
           },
+          axis: "y",
           parentThickness: 1.2,
           firstHole: { radius: 8.7, depth: 0.3 },
           secondHole: { radius: 6.6, depth: 0.9 },

@@ -40,6 +40,13 @@ export const elements = [
         height: COURSE_DIMENSIONS.sideHeight, // 12 cm
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
+      csgOperations: [
+        createCircleHole({
+          radius: 3,
+          position: { x: 0, y: 0, z: 0 },
+          axis: "z",
+        }),
+      ],
     },
     transform: {
       position: {

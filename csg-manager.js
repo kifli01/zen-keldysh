@@ -1,7 +1,7 @@
 /**
  * CSG Manager
  * CSG műveletek központi kezelése és optimalizálása
- * v1.5.0
+ * v1.6.0 - Rotáció támogatás hozzáadva
  */
 
 class CSGManager {
@@ -129,10 +129,11 @@ class CSGManager {
             // Kombinált geometria (több lyuk egy műveletben)
             operationBrush = operation.combined;
           } else {
-            // Egyedi művelet
+            // JAVÍTOTT: Egyedi művelet - csak pozíció, rotáció már a geometriában
             const operationGeometry = this.createOperationGeometry(operation);
             const operationMesh = new THREE.Mesh(operationGeometry);
 
+            // Csak pozíció alkalmazása - rotáció már a geometriában van
             if (operation.position) {
               operationMesh.position.set(
                 operation.position.x,
@@ -143,7 +144,13 @@ class CSGManager {
 
             operationMesh.updateMatrixWorld();
             operationBrush = new window.CSG.Brush(operationGeometry);
-            operationBrush.position.copy(operationMesh.position);
+
+            // Pozíció alkalmazása a brush-ra
+            if (operation.position) {
+              operationBrush.position.copy(operationMesh.position);
+            }
+
+            // ELTÁVOLÍTVA: Brush-ra rotáció alkalmazás, mert már a geometriában van
             operationBrush.updateMatrixWorld();
           }
 
@@ -223,7 +230,16 @@ class CSGManager {
     const groups = new Map();
 
     operations.forEach((op) => {
-      const key = `${op.type}_${op.geometry}_${JSON.stringify(op.params)}`;
+      // ÚJ: Rotáció is része a csoportosítási kulcsnak
+      const rotationKey = op.rotation
+        ? `_${op.rotation.x.toFixed(2)}_${op.rotation.y.toFixed(
+            2
+          )}_${op.rotation.z.toFixed(2)}`
+        : "_0_0_0";
+
+      const key = `${op.type}_${op.geometry}_${JSON.stringify(
+        op.params
+      )}${rotationKey}`;
       if (!groups.has(key)) {
         groups.set(key, []);
       }
@@ -238,7 +254,11 @@ class CSGManager {
         optimizedOps.push(groupOps[0]);
       } else if (groupOps.length <= 10) {
         // Kis csoport - kombináljuk
-        console.log(`Kombinálás: ${groupOps.length} hasonló lyuk`);
+        console.log(
+          `Kombinálás: ${groupOps.length} hasonló lyuk (rotáció: ${
+            groupOps[0].rotation ? "van" : "nincs"
+          })`
+        );
         const combinedBrush = this.combineOperations(groupOps);
         if (combinedBrush) {
           optimizedOps.push({
@@ -292,6 +312,16 @@ class CSGManager {
           opGeometry.translate(op.position.x, op.position.y, op.position.z);
         }
 
+        // ÚJ: Rotáció alkalmazása - külön kezelni kell
+        if (op.rotation) {
+          // Rotáció alkalmazása a geometriára
+          const matrix = new THREE.Matrix4();
+          matrix.makeRotationFromEuler(
+            new THREE.Euler(op.rotation.x, op.rotation.y, op.rotation.z)
+          );
+          opGeometry.applyMatrix4(matrix);
+        }
+
         // Geometriák merge-elése
         combinedGeometry = this.mergeGeometries([combinedGeometry, opGeometry]);
       }
@@ -303,6 +333,19 @@ class CSGManager {
           firstOp.position.y,
           firstOp.position.z
         );
+      }
+
+      // ÚJ: Első rotáció alkalmazása a kombinált geometriára
+      if (firstOp.rotation) {
+        const matrix = new THREE.Matrix4();
+        matrix.makeRotationFromEuler(
+          new THREE.Euler(
+            firstOp.rotation.x,
+            firstOp.rotation.y,
+            firstOp.rotation.z
+          )
+        );
+        combinedGeometry.applyMatrix4(matrix);
       }
 
       // Brush létrehozása
@@ -395,40 +438,60 @@ class CSGManager {
     }
   }
 
-  // Műveleti geometria létrehozása
+  // MÓDOSÍTOTT: Műveleti geometria létrehozása - rotáció figyelembe vétele
   createOperationGeometry(operation) {
     const params = operation.params;
 
+    let geometry;
     switch (operation.geometry) {
       case "cylinder":
-        return new THREE.CylinderGeometry(
+        geometry = new THREE.CylinderGeometry(
           params.radius,
           params.radius,
           params.height,
           16 // Visszaállítva 8-ról 16-ra - simább lyukak
         );
+        break;
 
       case "box":
-        return new THREE.BoxGeometry(
+        geometry = new THREE.BoxGeometry(
           params.width,
           params.height,
           params.length
         );
+        break;
 
       case "sphere":
-        return new THREE.SphereGeometry(
+        geometry = new THREE.SphereGeometry(
           params.radius,
           16, // Visszaállítva 8-ról 16-ra
           12 // Visszaállítva 6-ról 12-re
         );
+        break;
 
       default:
         console.warn(`Ismeretlen geometria típus: ${operation.geometry}`);
         return new THREE.BoxGeometry(1, 1, 1);
     }
+
+    // JAVÍTOTT: Rotáció alkalmazása közvetlenül a geometriára
+    // Ez biztosítja hogy a geometria már elforgatva jön létre
+    if (operation.rotation) {
+      const matrix = new THREE.Matrix4();
+      matrix.makeRotationFromEuler(
+        new THREE.Euler(
+          operation.rotation.x,
+          operation.rotation.y,
+          operation.rotation.z
+        )
+      );
+      geometry.applyMatrix4(matrix);
+    }
+
+    return geometry;
   }
 
-  // Cache kulcs generálása
+  // MÓDOSÍTOTT: Cache kulcs generálása - rotáció figyelembe vétele
   generateCacheKey(baseGeometry, operations) {
     const geometryKey = `${baseGeometry.type}_${
       baseGeometry.parameters
@@ -436,7 +499,16 @@ class CSGManager {
         : "custom"
     }`;
     const operationsKey = operations
-      .map((op) => `${op.type}_${op.geometry}_${JSON.stringify(op.params)}`)
+      .map((op) => {
+        const rotationKey = op.rotation
+          ? `_rot_${op.rotation.x.toFixed(2)}_${op.rotation.y.toFixed(
+              2
+            )}_${op.rotation.z.toFixed(2)}`
+          : "";
+        return `${op.type}_${op.geometry}_${JSON.stringify(
+          op.params
+        )}${rotationKey}`;
+      })
       .join("_");
 
     return `${geometryKey}_${operationsKey}`;
@@ -460,6 +532,8 @@ class CSGManager {
               segments: 16,
             },
             position: hole.position,
+            // ÚJ: Rotáció támogatás legacy hole-okhoz is
+            rotation: hole.rotation || { x: 0, y: 0, z: 0 },
           };
         }
 
@@ -468,6 +542,15 @@ class CSGManager {
         return null;
       })
       .filter(Boolean);
+  }
+
+  // Batch létrehozás helper
+  createBatches(operations, batchSize) {
+    const batches = [];
+    for (let i = 0; i < operations.length; i += batchSize) {
+      batches.push(operations.slice(i, i + batchSize));
+    }
+    return batches;
   }
 
   // Cache tisztítása

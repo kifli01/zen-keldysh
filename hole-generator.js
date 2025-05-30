@@ -1,16 +1,17 @@
 /**
  * Hole Generator
- * Egyszerűsített lyuk generáló - csak circle lyukak
- * v2.0.0 - Optimalizált, csak CSG műveletek
+ * Egyszerűsített lyuk generáló - tetszőleges tengely irányú circle lyukak
+ * v2.1.0 - Axis támogatás hozzáadva
  */
 
 const holeExtension = 0.05;
 
 /**
- * Körlyuk CSG művelet létrehozása
+ * Körlyuk CSG művelet létrehozása tetszőleges tengely irányban
  * @param {Object} params - Lyuk paraméterek
  * @param {number} params.radius - Sugár (cm)
  * @param {Object} params.position - Pozíció {x, y, z}
+ * @param {string} params.axis - Lyuk iránya: 'x', 'y', 'z' (alapértelmezett: 'y')
  * @param {number} params.depth - Mélység (opcionális, auto-számítás parent alapján)
  * @param {number} params.parentThickness - Parent elem vastagsága auto-mélységhez
  * @returns {Object} CSG művelet objektum
@@ -19,6 +20,7 @@ function createCircleHole(params) {
   const {
     radius = 1,
     position = { x: 0, y: 0, z: 0 },
+    axis = "y", // ÚJ: tengely irány
     depth,
     parentThickness = 10,
   } = params;
@@ -26,6 +28,25 @@ function createCircleHole(params) {
   // Automatikus mélység számítás ha nincs megadva
   const finalDepth =
     depth !== undefined ? depth : parentThickness + holeExtension;
+
+  // ÚJ: Rotáció számítása az axis alapján
+  let rotation = { x: 0, y: 0, z: 0 };
+
+  switch (axis.toLowerCase()) {
+    case "x":
+      // X tengely irányú lyuk - 90° forgatás Z tengely körül
+      rotation = { x: 0, y: 0, z: Math.PI / 2 };
+      break;
+    case "z":
+      // Z tengely irányú lyuk - 90° forgatás X tengely körül
+      rotation = { x: Math.PI / 2, y: 0, z: 0 };
+      break;
+    case "y":
+    default:
+      // Y tengely irányú lyuk - nincs rotáció (alapértelmezett)
+      rotation = { x: 0, y: 0, z: 0 };
+      break;
+  }
 
   return {
     type: CSG_OPERATIONS.SUBTRACT,
@@ -36,6 +57,7 @@ function createCircleHole(params) {
       segments: 64,
     },
     position: position,
+    rotation: rotation, // ÚJ: rotáció hozzáadása
   };
 }
 
@@ -45,8 +67,10 @@ function createCircleHole(params) {
  * @param {Object} params.area - Terület {xStart, xEnd, zStart, zEnd}
  * @param {Object} params.grid - Rács {x, z} - lyukak száma irányonként
  * @param {number} params.radius - Lyuk sugár (cm)
+ * @param {string} params.axis - Lyuk iránya: 'x', 'y', 'z' (alapértelmezett: 'y')
  * @param {number} params.margin - Belső margó (cm)
  * @param {number} params.parentThickness - Parent elem vastagsága
+ * @param {Array} params.skip - Kihagyandó pozíciók [{x, z}, ...]
  * @returns {Array} CSG műveletek tömbje
  */
 function createCircleHoleGrid(params) {
@@ -54,6 +78,7 @@ function createCircleHoleGrid(params) {
     area,
     grid,
     radius = 0.8,
+    axis = "y", // Meghagyva alapértelmezettnek - rácsoknál jellemzően Y irány
     margin = 10,
     parentThickness = 10,
     skip,
@@ -91,6 +116,7 @@ function createCircleHoleGrid(params) {
           createCircleHole({
             radius: radius,
             position: { x, y: 0, z },
+            axis: axis,
             parentThickness: parentThickness,
           })
         );
@@ -100,34 +126,85 @@ function createCircleHoleGrid(params) {
   return operations;
 }
 
+/**
+ * Kétlépcsős lyuk létrehozása (pl. süllyesztett csavar lyuk)
+ * @param {Object} params - Lyuk paraméterek
+ * @param {Object} params.position - Lyuk pozíciója
+ * @param {number} params.parentThickness - Parent elem vastagsága
+ * @param {Object} params.firstHole - Első lyuk {radius, depth}
+ * @param {Object} params.secondHole - Második lyuk {radius, depth}
+ * @param {string} params.axis - Lyuk iránya: 'x', 'y', 'z' (KÖTELEZŐ)
+ * @returns {Array} CSG műveletek tömbje
+ */
 function twoStepHole(params) {
-  const firstY =
-    params.position.y +
-    (params.parentThickness - params.firstHole.depth) / 2 +
-    holeExtension;
+  const { position, parentThickness, firstHole, secondHole, axis } = params;
 
-  const secondDepth = params.secondHole.depth + 2 * holeExtension;
+  if (!axis) {
+    console.error("twoStepHole: axis paraméter kötelező!");
+    return [];
+  }
 
-  const secondY = firstY - secondDepth / 2 - 3 * holeExtension;
+  // JAVÍTOTT: Tengely irányú offset számítása
+  // Az első lyuk mindig a "bejárati" oldalon van, a második mélyebben
+  let firstOffset, secondOffset;
+
+  // Első lyuk offset: elem felszínéhez közel
+  const firstOffsetDistance =
+    (parentThickness - firstHole.depth) / 2 + holeExtension;
+
+  // Második lyuk offset: mélyebben, az első lyuk után
+  const secondOffsetDistance =
+    (firstOffsetDistance - secondHole.depth) / 2 + holeExtension;
+
+  switch (axis.toLowerCase()) {
+    case "x":
+      // X tengely irányú lyuk - pozitív X irányból fúrunk befelé
+      firstOffset = { x: firstOffsetDistance, y: 0, z: 0 };
+      secondOffset = { x: secondOffsetDistance, y: 0, z: 0 };
+      break;
+
+    case "z":
+      // Z tengely irányú lyuk - pozitív Z irányból fúrunk befelé
+      firstOffset = { x: 0, y: 0, z: firstOffsetDistance };
+      secondOffset = { x: 0, y: 0, z: secondOffsetDistance };
+      break;
+
+    case "y":
+      // Y tengely irányú lyuk - pozitív Y irányból fúrunk befelé (felülről lefelé)
+      firstOffset = { x: 0, y: firstOffsetDistance, z: 0 };
+      secondOffset = { x: 0, y: secondOffsetDistance, z: 0 };
+      break;
+
+    default:
+      console.error(`twoStepHole: Ismeretlen axis: ${axis}`);
+      return [];
+  }
+
+  // Végső pozíciók számítása
+  const firstPos = {
+    x: position.x + firstOffset.x,
+    y: position.y + firstOffset.y,
+    z: position.z + firstOffset.z,
+  };
+
+  const secondPos = {
+    x: position.x + secondOffset.x,
+    y: position.y + secondOffset.y,
+    z: position.z + secondOffset.z,
+  };
 
   return [
     createCircleHole({
-      radius: params.firstHole.radius,
-      position: {
-        x: params.position.x,
-        y: firstY,
-        z: params.position.z,
-      },
-      depth: params.firstHole.depth,
+      radius: firstHole.radius,
+      position: firstPos,
+      axis: axis,
+      depth: firstHole.depth + holeExtension,
     }),
     createCircleHole({
-      radius: params.secondHole.radius,
-      position: {
-        x: params.position.x,
-        y: secondY,
-        z: params.position.z,
-      },
-      depth: secondDepth,
+      radius: secondHole.radius,
+      position: secondPos,
+      axis: axis,
+      depth: secondHole.depth + holeExtension,
     }),
   ];
 }
@@ -163,28 +240,39 @@ function filterHolesByDistance(operations, centerPosition, minDistance = 8) {
 
 // Példa használat:
 //
-// // Fő golflyuk
-// const mainHole = createMainGolfHole({
-//   position: {
-//     x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.holePositionX,
-//     y: 0,
-//     z: 0
-//   },
-//   parentThickness: 1.2
+// // Függőleges lyuk (axis megadása szükséges):
+// createCircleHole({
+//   radius: 5.4,
+//   position: { x: 0, y: 0, z: 0 },
+//   axis: 'y'
 // });
 //
-// // Vízelvezető lyukak rács
-// const drainageHoles = createCircleHoleGrid({
-//   area: defineArea(-100, 100, -30, 30),
-//   grid: { x: 4, z: 4 },
-//   radius: 0.8,
-//   margin: 10,
-//   parentThickness: 1.2
+// // Oldalsó lyuk (X irány):
+// createCircleHole({
+//   radius: 2.5,
+//   position: { x: 0, y: 0, z: 0 },
+//   axis: 'x'
 // });
 //
-// // Szűrés főlyuk környékének kihagyásával
-// const filteredHoles = filterHolesByDistance(
-//   drainageHoles,
-//   { x: 85, z: 0 },
-//   8
-// );
+// // Elülső/hátsó lyuk (Z irány):
+// createCircleHole({
+//   radius: 1.5,
+//   position: { x: 0, y: 0, z: 0 },
+//   axis: 'z'
+// });
+//
+// // Rács Y irányú lyukakkal (alapértelmezett):
+// createCircleHoleGrid({
+//   area: defineArea(-50, 50, -30, 30),
+//   grid: { x: 3, z: 2 },
+//   radius: 1.0
+// });
+//
+// // Kétlépcsős lyuk (axis KÖTELEZŐ):
+// twoStepHole({
+//   position: { x: 0, y: 0, z: 0 },
+//   parentThickness: 12,
+//   firstHole: { radius: 8, depth: 3 },
+//   secondHole: { radius: 4, depth: 9 },
+//   axis: 'y'  // KÖTELEZŐ megadni!
+// });
