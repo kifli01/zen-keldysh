@@ -185,16 +185,6 @@ async function initialize() {
     );
     console.log("Tervrajz nézet beállítva alapértelmezettként");
 
-    // Koordináta rendszer inicializálása (fejlesztés alatt bekapcsolva)
-    if (css2dAvailable) {
-      console.log("Koordináta rendszer bekapcsolva (fejlesztés)");
-      // Koordináta gomb szöveg frissítése
-      const coordButton = document.getElementById("toggle-coordinates");
-      if (coordButton) {
-        coordButton.textContent = "Koordináták ✓";
-      }
-    }
-
     // Summary generálása
     const summary = elementManager.generateSummary();
     const summaryPanel = document.getElementById("summary-panel");

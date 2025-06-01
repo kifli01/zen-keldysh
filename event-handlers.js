@@ -45,8 +45,16 @@ function setupEventListeners({
       const isVisible = sceneManager.toggleCoordinateSystem();
 
       // Gomb szöveg frissítése
-      this.textContent = isVisible ? "Koordináták ✓" : "Koordináták";
+      this.textContent = "Koordináták";
     });
+
+  // Koordináta gomb kezdeti állapot KÉNYSZERÍTETT beállítása
+  const coordButton = document.getElementById("toggle-coordinates");
+  if (coordButton) {
+    // KÉNYSZERÍTETT kikapcsolt állapot
+    coordButton.textContent = "Koordináták";
+    console.log("Koordináta gomb KÉNYSZERÍTVE kikapcsolt állapotra állítva");
+  }
 
   // Alaphelyzet gomb
   document.getElementById("reset-view").addEventListener("click", function () {

@@ -14,9 +14,11 @@ class SceneManager {
 
     // Koordináta rendszer
     this.coordinateSystem = null;
-    this.coordinateSystemVisible = true; // Fejlesztés alatt bekapcsolva
+    this.coordinateSystemVisible = false; // BIZTOSAN kikapcsolva
     this.css2DRenderer = null;
     this.coordinateLabels = [];
+    
+    console.log("SceneManager konstruktor - koordináta rendszer állapot:", this.coordinateSystemVisible);
 
     // Kontroll változók
     this.controls = {
@@ -120,45 +122,75 @@ class SceneManager {
     this.coordinateSystem = new THREE.Group();
     this.coordinateLabels = [];
 
-    const arrowLength = 50;
+    const arrowLength = 200;
     const arrowColor = {
       x: 0xff0000, // Piros - X tengely
       y: 0x00ff00, // Zöld - Y tengely  
       z: 0x0000ff  // Kék - Z tengely
     };
 
-    // X tengely nyíl (ELŐL/HÁTUL)
-    const xArrow = new THREE.ArrowHelper(
+    // X tengely nyilak (pozitív és negatív irány)
+    const xArrowPos = new THREE.ArrowHelper(
       new THREE.Vector3(1, 0, 0),
       new THREE.Vector3(0, 0, 0),
       arrowLength,
       arrowColor.x,
-      arrowLength * 0.2,
-      arrowLength * 0.1
+      arrowLength * 0.05,
+      arrowLength * 0.025
     );
-    this.coordinateSystem.add(xArrow);
+    this.coordinateSystem.add(xArrowPos);
 
-    // Y tengely nyíl (FENT/LENT)
-    const yArrow = new THREE.ArrowHelper(
+    const xArrowNeg = new THREE.ArrowHelper(
+      new THREE.Vector3(-1, 0, 0),
+      new THREE.Vector3(0, 0, 0),
+      arrowLength,
+      arrowColor.x,
+      arrowLength * 0.05,
+      arrowLength * 0.025
+    );
+    this.coordinateSystem.add(xArrowNeg);
+
+    // Y tengely nyilak (pozitív és negatív irány)
+    const yArrowPos = new THREE.ArrowHelper(
       new THREE.Vector3(0, 1, 0),
       new THREE.Vector3(0, 0, 0),
       arrowLength,
       arrowColor.y,
-      arrowLength * 0.2,
-      arrowLength * 0.1
+      arrowLength * 0.05,
+      arrowLength * 0.025
     );
-    this.coordinateSystem.add(yArrow);
+    this.coordinateSystem.add(yArrowPos);
 
-    // Z tengely nyíl (BAL/JOBB)
-    const zArrow = new THREE.ArrowHelper(
+    const yArrowNeg = new THREE.ArrowHelper(
+      new THREE.Vector3(0, -1, 0),
+      new THREE.Vector3(0, 0, 0),
+      arrowLength,
+      arrowColor.y,
+      arrowLength * 0.05,
+      arrowLength * 0.025
+    );
+    this.coordinateSystem.add(yArrowNeg);
+
+    // Z tengely nyilak (pozitív és negatív irány)
+    const zArrowPos = new THREE.ArrowHelper(
       new THREE.Vector3(0, 0, 1),
       new THREE.Vector3(0, 0, 0),
       arrowLength,
       arrowColor.z,
-      arrowLength * 0.2,
-      arrowLength * 0.1
+      arrowLength * 0.05,
+      arrowLength * 0.025
     );
-    this.coordinateSystem.add(zArrow);
+    this.coordinateSystem.add(zArrowPos);
+
+    const zArrowNeg = new THREE.ArrowHelper(
+      new THREE.Vector3(0, 0, -1),
+      new THREE.Vector3(0, 0, 0),
+      arrowLength,
+      arrowColor.z,
+      arrowLength * 0.05,
+      arrowLength * 0.025
+    );
+    this.coordinateSystem.add(zArrowNeg);
 
     // Címkék létrehozása (ha CSS2DRenderer elérhető)
     if (this.css2DRenderer && window.CSS2DObject) {
@@ -168,8 +200,11 @@ class SceneManager {
     // Koordináta rendszer hozzáadása a scene-hez
     this.scene.add(this.coordinateSystem);
     
-    // Alapértelmezett láthatóság beállítása
+    // Alapértelmezett láthatóság beállítása (nyilak és címkék együtt)
     this.coordinateSystem.visible = this.coordinateSystemVisible;
+    this.coordinateLabels.forEach(label => {
+      label.visible = this.coordinateSystemVisible;
+    });
 
     console.log("Koordináta rendszer létrehozva");
   }
@@ -179,12 +214,12 @@ class SceneManager {
     const labelOffset = arrowLength + 10;
     
     const labels = [
-      { text: "ELŐL", position: [labelOffset, 0, 0], color: "#ff0000" },
-      { text: "HÁTUL", position: [-labelOffset, 0, 0], color: "#ff0000" },
-      { text: "FENT", position: [0, labelOffset, 0], color: "#00ff00" },
-      { text: "LENT", position: [0, -labelOffset, 0], color: "#00ff00" },
-      { text: "JOBB", position: [0, 0, labelOffset], color: "#0000ff" },
-      { text: "BAL", position: [0, 0, -labelOffset], color: "#0000ff" }
+      { text: "X+\nHÁTUL", position: [labelOffset, 0, 0], color: "#ff0000" },
+      { text: "X-\nELŐL", position: [-labelOffset, 0, 0], color: "#ff0000" },
+      { text: "Y+\nFENT", position: [0, labelOffset, 0], color: "#00ff00" },
+      { text: "Y-\nLENT", position: [0, -labelOffset, 0], color: "#00ff00" },
+      { text: "Z+\nJOBB", position: [0, 0, labelOffset], color: "#0000ff" },
+      { text: "Z-\nBAL", position: [0, 0, -labelOffset], color: "#0000ff" }
     ];
 
     labels.forEach((labelData) => {
@@ -193,22 +228,28 @@ class SceneManager {
       labelDiv.textContent = labelData.text;
       labelDiv.style.color = labelData.color;
       labelDiv.style.fontFamily = 'Arial, sans-serif';
-      labelDiv.style.fontSize = '12px';
+      labelDiv.style.fontSize = '10px';
       labelDiv.style.fontWeight = 'bold';
-      labelDiv.style.background = 'rgba(255, 255, 255, 0.8)';
-      labelDiv.style.padding = '2px 4px';
-      labelDiv.style.borderRadius = '3px';
-      labelDiv.style.border = `1px solid ${labelData.color}`;
+      labelDiv.style.background = 'rgba(255, 255, 255, 0.9)';
+      labelDiv.style.padding = '3px 5px';
+      labelDiv.style.borderRadius = '4px';
+      labelDiv.style.border = `2px solid ${labelData.color}`;
       labelDiv.style.pointerEvents = 'none';
+      labelDiv.style.textAlign = 'center';
+      labelDiv.style.whiteSpace = 'pre-line';
 
       const label = new window.CSS2DObject(labelDiv);
       label.position.set(...labelData.position);
       
+      // KÉNYSZERÍTETT REJTÉS
+      label.visible = false;
+      
+      // Címke is a koordináta rendszer gyerekének
       this.coordinateSystem.add(label);
       this.coordinateLabels.push(label);
     });
 
-    console.log("Koordináta címkék létrehozva");
+    console.log("Koordináta címkék létrehozva - mind rejtett állapotban");
   }
 
   // Koordináta rendszer ki/be kapcsolása
@@ -220,7 +261,15 @@ class SceneManager {
     }
 
     if (this.coordinateSystem) {
+      // Nyilak és címkék együtt kapcsolása
       this.coordinateSystem.visible = this.coordinateSystemVisible;
+      
+      // EXTRA: Címkék külön is, ha nem öröklik a parent láthatóságot
+      this.coordinateLabels.forEach(label => {
+        if (label && label.visible !== undefined) {
+          label.visible = this.coordinateSystemVisible;
+        }
+      });
     }
 
     console.log(`Koordináta rendszer: ${this.coordinateSystemVisible ? 'BE' : 'KI'}`);
