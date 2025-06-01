@@ -1,17 +1,22 @@
 /**
  * Minigolf Pálya Viewer - Főalkalmazás
- * v1.8.0 - Moduláris struktúra
+ * v1.8.1 - CSS2DRenderer import és koordináta rendszer hozzáadva
  */
 
 // ES6 importok
 import * as THREE from "three";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
+import { CSS2DRenderer, CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import * as ThreeMeshBVH from "three-mesh-bvh";
 import * as ThreeBVHCSG from "three-bvh-csg";
 
 // THREE.js globálisan elérhetővé tétele
 window.THREE = THREE;
 window.GLTFExporter = GLTFExporter;
+
+// CSS2DRenderer globálisan elérhetővé tétele
+window.THREE.CSS2DRenderer = CSS2DRenderer;
+window.THREE.CSS2DObject = CSS2DObject;
 
 // Globális változók
 let elementManager;
@@ -92,6 +97,17 @@ function checkShaderAvailability() {
   }
 }
 
+// CSS2DRenderer elérhetőség ellenőrzése
+function checkCSS2DAvailability() {
+  if (window.THREE.CSS2DRenderer && window.THREE.CSS2DObject) {
+    console.log("✅ CSS2DRenderer elérhető");
+    return true;
+  } else {
+    console.warn("⚠️ CSS2DRenderer nem elérhető, koordináta címkék nélkül");
+    return false;
+  }
+}
+
 // Főalkalmazás inicializálása
 async function initialize() {
   try {
@@ -100,6 +116,7 @@ async function initialize() {
     // Könyvtárak ellenőrzése
     const csgAvailable = initializeCSG();
     const shadersAvailable = checkShaderAvailability();
+    const css2dAvailable = checkCSS2DAvailability();
 
     // Manager objektumok létrehozása
     elementManager = new ElementManager();
@@ -168,6 +185,16 @@ async function initialize() {
     );
     console.log("Tervrajz nézet beállítva alapértelmezettként");
 
+    // Koordináta rendszer inicializálása (fejlesztés alatt bekapcsolva)
+    if (css2dAvailable) {
+      console.log("Koordináta rendszer bekapcsolva (fejlesztés)");
+      // Koordináta gomb szöveg frissítése
+      const coordButton = document.getElementById("toggle-coordinates");
+      if (coordButton) {
+        coordButton.textContent = "Koordináták ✓";
+      }
+    }
+
     // Summary generálása
     const summary = elementManager.generateSummary();
     const summaryPanel = document.getElementById("summary-panel");
@@ -213,6 +240,7 @@ window.debugInfo = () => {
     console.log("CSG Manager:", csgManager.getDebugInfo());
   }
   console.log("Shaders:", checkShaderAvailability());
+  console.log("CSS2D:", checkCSS2DAvailability());
   console.log("==================");
 };
 

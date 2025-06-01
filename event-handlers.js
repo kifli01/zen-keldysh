@@ -1,7 +1,7 @@
 /**
  * Event Handlers
  * UI interakciók kezelése
- * v1.0.0
+ * v1.0.1 - Koordináta rendszer toggle hozzáadva
  */
 
 // Event listener-ek beállítása
@@ -36,6 +36,16 @@ function setupEventListeners({
           ? "Tervrajz"
           : "Színes";
       this.textContent = newMode;
+    });
+
+  // Koordináta rendszer toggle gomb
+  document
+    .getElementById("toggle-coordinates")
+    .addEventListener("click", function () {
+      const isVisible = sceneManager.toggleCoordinateSystem();
+
+      // Gomb szöveg frissítése
+      this.textContent = isVisible ? "Koordináták ✓" : "Koordináták";
     });
 
   // Alaphelyzet gomb
@@ -90,7 +100,7 @@ function setupEventListeners({
     sceneManager.setRightView();
   });
 
-  console.log("✅ Event listener-ek beállítva");
+  console.log("✅ Event listener-ek beállítva v1.0.1");
 }
 
 // GLTF exportálási funkció

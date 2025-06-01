@@ -1,7 +1,7 @@
 /**
  * Scene Manager
  * THREE.js scene, kamera, fények és kontrolok kezelése
- * v1.2.0 - Ortografikus nézetek hozzáadva
+ * v1.2.1 - Koordináta rendszer hozzáadva
  */
 
 class SceneManager {
@@ -11,6 +11,12 @@ class SceneManager {
     this.camera = null;
     this.renderer = null;
     this.meshes = new Map();
+
+    // Koordináta rendszer
+    this.coordinateSystem = null;
+    this.coordinateSystemVisible = true; // Fejlesztés alatt bekapcsolva
+    this.css2DRenderer = null;
+    this.coordinateLabels = [];
 
     // Kontroll változók
     this.controls = {
@@ -48,11 +54,13 @@ class SceneManager {
     this.createScene();
     this.createCamera();
     this.createRenderer();
+    this.createCSS2DRenderer();
     this.createLights();
+    this.createCoordinateSystem();
     this.setupEventListeners();
     this.startAnimationLoop();
 
-    console.log("Scene Manager v1.2.0 initialized");
+    console.log("Scene Manager v1.2.1 initialized");
   }
 
   // Scene létrehozása
@@ -86,6 +94,137 @@ class SceneManager {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     this.container.appendChild(this.renderer.domElement);
+  }
+
+  // CSS2D Renderer létrehozása koordináta címkékhez
+  createCSS2DRenderer() {
+    // CSS2DRenderer csak akkor, ha elérhető
+    if (window.THREE.CSS2DRenderer) {
+      this.css2DRenderer = new THREE.CSS2DRenderer();
+      this.css2DRenderer.setSize(
+        this.container.clientWidth,
+        this.container.clientHeight
+      );
+      this.css2DRenderer.domElement.style.position = 'absolute';
+      this.css2DRenderer.domElement.style.top = '0px';
+      this.css2DRenderer.domElement.style.pointerEvents = 'none';
+      this.container.appendChild(this.css2DRenderer.domElement);
+      console.log("CSS2DRenderer inicializálva");
+    } else {
+      console.warn("CSS2DRenderer nem elérhető, címkék nélkül folytatás");
+    }
+  }
+
+  // Koordináta rendszer létrehozása
+  createCoordinateSystem() {
+    this.coordinateSystem = new THREE.Group();
+    this.coordinateLabels = [];
+
+    const arrowLength = 50;
+    const arrowColor = {
+      x: 0xff0000, // Piros - X tengely
+      y: 0x00ff00, // Zöld - Y tengely  
+      z: 0x0000ff  // Kék - Z tengely
+    };
+
+    // X tengely nyíl (ELŐL/HÁTUL)
+    const xArrow = new THREE.ArrowHelper(
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(0, 0, 0),
+      arrowLength,
+      arrowColor.x,
+      arrowLength * 0.2,
+      arrowLength * 0.1
+    );
+    this.coordinateSystem.add(xArrow);
+
+    // Y tengely nyíl (FENT/LENT)
+    const yArrow = new THREE.ArrowHelper(
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(0, 0, 0),
+      arrowLength,
+      arrowColor.y,
+      arrowLength * 0.2,
+      arrowLength * 0.1
+    );
+    this.coordinateSystem.add(yArrow);
+
+    // Z tengely nyíl (BAL/JOBB)
+    const zArrow = new THREE.ArrowHelper(
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(0, 0, 0),
+      arrowLength,
+      arrowColor.z,
+      arrowLength * 0.2,
+      arrowLength * 0.1
+    );
+    this.coordinateSystem.add(zArrow);
+
+    // Címkék létrehozása (ha CSS2DRenderer elérhető)
+    if (this.css2DRenderer && window.THREE.CSS2DObject) {
+      this.createCoordinateLabels(arrowLength);
+    }
+
+    // Koordináta rendszer hozzáadása a scene-hez
+    this.scene.add(this.coordinateSystem);
+    
+    // Alapértelmezett láthatóság beállítása
+    this.coordinateSystem.visible = this.coordinateSystemVisible;
+
+    console.log("Koordináta rendszer létrehozva");
+  }
+
+  // Koordináta címkék létrehozása
+  createCoordinateLabels(arrowLength) {
+    const labelOffset = arrowLength + 10;
+    
+    const labels = [
+      { text: "ELŐL", position: [labelOffset, 0, 0], color: "#ff0000" },
+      { text: "HÁTUL", position: [-labelOffset, 0, 0], color: "#ff0000" },
+      { text: "FENT", position: [0, labelOffset, 0], color: "#00ff00" },
+      { text: "LENT", position: [0, -labelOffset, 0], color: "#00ff00" },
+      { text: "JOBB", position: [0, 0, labelOffset], color: "#0000ff" },
+      { text: "BAL", position: [0, 0, -labelOffset], color: "#0000ff" }
+    ];
+
+    labels.forEach((labelData) => {
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'coordinate-label';
+      labelDiv.textContent = labelData.text;
+      labelDiv.style.color = labelData.color;
+      labelDiv.style.fontFamily = 'Arial, sans-serif';
+      labelDiv.style.fontSize = '12px';
+      labelDiv.style.fontWeight = 'bold';
+      labelDiv.style.background = 'rgba(255, 255, 255, 0.8)';
+      labelDiv.style.padding = '2px 4px';
+      labelDiv.style.borderRadius = '3px';
+      labelDiv.style.border = `1px solid ${labelData.color}`;
+      labelDiv.style.pointerEvents = 'none';
+
+      const label = new THREE.CSS2DObject(labelDiv);
+      label.position.set(...labelData.position);
+      
+      this.coordinateSystem.add(label);
+      this.coordinateLabels.push(label);
+    });
+
+    console.log("Koordináta címkék létrehozva");
+  }
+
+  // Koordináta rendszer ki/be kapcsolása
+  toggleCoordinateSystem(visible = null) {
+    if (visible !== null) {
+      this.coordinateSystemVisible = visible;
+    } else {
+      this.coordinateSystemVisible = !this.coordinateSystemVisible;
+    }
+
+    if (this.coordinateSystem) {
+      this.coordinateSystem.visible = this.coordinateSystemVisible;
+    }
+
+    console.log(`Koordináta rendszer: ${this.coordinateSystemVisible ? 'BE' : 'KI'}`);
+    return this.coordinateSystemVisible;
   }
 
   // Fények hozzáadása
@@ -364,6 +503,11 @@ class SceneManager {
     const animate = () => {
       this.animationId = requestAnimationFrame(animate);
       this.renderer.render(this.scene, this.camera);
+      
+      // CSS2D renderer frissítése
+      if (this.css2DRenderer) {
+        this.css2DRenderer.render(this.scene, this.camera);
+      }
     };
     animate();
   }
@@ -384,6 +528,11 @@ class SceneManager {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
+
+    // CSS2D renderer átméretezése
+    if (this.css2DRenderer) {
+      this.css2DRenderer.setSize(width, height);
+    }
   }
 
   // Elem keresése pozíció alapján (raycast)
@@ -432,7 +581,8 @@ class SceneManager {
       cameraPosition: this.camera.position,
       scenePosition: this.scene.position,
       sceneRotation: this.scene.rotation,
-      version: "1.2.0",
+      coordinateSystemVisible: this.coordinateSystemVisible,
+      version: "1.2.1",
     };
   }
 
@@ -445,6 +595,11 @@ class SceneManager {
       this.removeMesh(elementId);
     });
 
+    // CSS2D renderer cleanup
+    if (this.css2DRenderer && this.css2DRenderer.domElement) {
+      this.container.removeChild(this.css2DRenderer.domElement);
+    }
+
     // Renderer cleanup
     if (this.renderer) {
       this.container.removeChild(this.renderer.domElement);
@@ -453,6 +608,6 @@ class SceneManager {
 
     // Event listeners eltávolítása
     // (Ez bonyolultabb lenne, mert névtelen függvényeket használunk)
-    console.log("Scene Manager v1.2.0 destroyed");
+    console.log("Scene Manager v1.2.1 destroyed");
   }
 }
