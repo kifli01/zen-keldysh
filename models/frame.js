@@ -50,7 +50,7 @@ export const elements = [
     },
   },
 
-  // Váz - keresztlécek (első és hátsó) - VÁLTOZATLAN
+  // Váz - keresztlécek (első és hátsó) - TIPLI LYUKAKKAL
   {
     id: "frame_cross_front",
     name: "Első keresztléc",
@@ -63,6 +63,57 @@ export const elements = [
         height: COURSE_DIMENSIONS.frameHeight, // 4 cm
         length: COURSE_DIMENSIONS.crossBeamWidth, // 12 cm (dupla széles)
       },
+      // ÚJ: Tipli lyukak - első keresztléc
+      csgOperations: [
+        // Bal oldal - első tipli lyuk
+        createCircleHole({
+          radius: 0.4, // 8mm átmérő / 2
+          position: {
+            x: -4, // -12/2 + 2 = -4cm
+            y: 0,  // Keresztléc közepén
+            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1,
+          },
+          axis: 'z',
+          direction: 'left',
+          depth: 2
+        }),
+        // Bal oldal - második tipli lyuk  
+        createCircleHole({
+          radius: 0.4,
+          position: {
+            x: 4,   // 12/2 - 2 = 4cm
+            y: 0,
+            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1
+          },
+          axis: 'z', 
+          direction: 'left',
+          depth: 2
+        }),
+        // Jobb oldal - első tipli lyuk
+        createCircleHole({
+          radius: 0.4,
+          position: {
+            x: -4,
+            y: 0,
+            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+          },
+          axis: 'z',
+          direction: 'right', 
+          depth: 2
+        }),
+        // Jobb oldal - második tipli lyuk
+        createCircleHole({
+          radius: 0.4,
+          position: {
+            x: 4,
+            y: 0, 
+            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+          },
+          axis: 'z',
+          direction: 'right',
+          depth: 2
+        })
+      ],
     },
     transform: {
       position: {
@@ -88,6 +139,57 @@ export const elements = [
         height: COURSE_DIMENSIONS.frameHeight, // 4 cm
         length: COURSE_DIMENSIONS.crossBeamWidth, // 12 cm (dupla széles)
       },
+      // ÚJ: Tipli lyukak - hátsó keresztléc
+      csgOperations: [
+        // Bal oldal - első tipli lyuk
+        createCircleHole({
+          radius: 0.4, // 8mm átmérő / 2
+          position: {
+            x: -4, // -12/2 + 2 = -4cm
+            y: 0,  // Keresztléc közepén
+            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1,
+          },
+          axis: 'z',
+          direction: 'left',
+          depth: 2
+        }),
+        // Bal oldal - második tipli lyuk  
+        createCircleHole({
+          radius: 0.4,
+          position: {
+            x: 4,   // 12/2 - 2 = 4cm
+            y: 0,
+            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1
+          },
+          axis: 'z', 
+          direction: 'left',
+          depth: 2
+        }),
+        // Jobb oldal - első tipli lyuk
+        createCircleHole({
+          radius: 0.4,
+          position: {
+            x: -4,
+            y: 0,
+            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+          },
+          axis: 'z',
+          direction: 'right', 
+          depth: 2
+        }),
+        // Jobb oldal - második tipli lyuk
+        createCircleHole({
+          radius: 0.4,
+          position: {
+            x: 4,
+            y: 0, 
+            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+          },
+          axis: 'z',
+          direction: 'right',
+          depth: 2
+        })
+      ],
     },
     transform: {
       position: {
@@ -101,7 +203,7 @@ export const elements = [
     },
   },
 
-  // Váz - belső keresztlécek (2 db) - VÁLTOZATLAN
+  // Váz - belső keresztlécek (2 db) - TIPLI LYUKAKKAL
   ...Array.from({ length: COURSE_DIMENSIONS.crossBeamCount }, (_, i) => {
     const spacing =
       COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
@@ -119,6 +221,57 @@ export const elements = [
           height: COURSE_DIMENSIONS.frameHeight, // 4 cm
           length: COURSE_DIMENSIONS.crossBeamWidth, // 12 cm (dupla széles)
         },
+        // ÚJ: Tipli lyukak - belső keresztlécek
+        csgOperations: [
+        // Bal oldal - első tipli lyuk
+        createCircleHole({
+          radius: 0.4, // 8mm átmérő / 2
+          position: {
+            x: -4, // -12/2 + 2 = -4cm
+            y: 0,  // Keresztléc közepén
+            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1,
+          },
+          axis: 'z',
+          direction: 'left',
+          depth: 2
+        }),
+        // Bal oldal - második tipli lyuk  
+        createCircleHole({
+          radius: 0.4,
+          position: {
+            x: 4,   // 12/2 - 2 = 4cm
+            y: 0,
+            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1
+          },
+          axis: 'z', 
+          direction: 'left',
+          depth: 2
+        }),
+        // Jobb oldal - első tipli lyuk
+        createCircleHole({
+          radius: 0.4,
+          position: {
+            x: -4,
+            y: 0,
+            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+          },
+          axis: 'z',
+          direction: 'right', 
+          depth: 2
+        }),
+        // Jobb oldal - második tipli lyuk
+        createCircleHole({
+          radius: 0.4,
+          position: {
+            x: 4,
+            y: 0, 
+            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+          },
+          axis: 'z',
+          direction: 'right',
+          depth: 2
+        })
+      ],
       },
       transform: {
         position: {
@@ -134,7 +287,7 @@ export const elements = [
     };
   }),
 
-  // Tipliek a keresztlécekhez - függőlegesen középen
+  // Tipliek a keresztlécekhez - függőlegesen középen - VÁLTOZATLAN
   // Első keresztléc tipliei (4 db)
   ...(() => {
     const crossBeamX =
