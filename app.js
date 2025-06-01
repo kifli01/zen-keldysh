@@ -14,9 +14,9 @@ import * as ThreeBVHCSG from "three-bvh-csg";
 window.THREE = THREE;
 window.GLTFExporter = GLTFExporter;
 
-// CSS2DRenderer globálisan elérhetővé tétele
-window.THREE.CSS2DRenderer = CSS2DRenderer;
-window.THREE.CSS2DObject = CSS2DObject;
+// CSS2DRenderer külön globális változóként
+window.CSS2DRenderer = CSS2DRenderer;
+window.CSS2DObject = CSS2DObject;
 
 // Globális változók
 let elementManager;
@@ -99,7 +99,7 @@ function checkShaderAvailability() {
 
 // CSS2DRenderer elérhetőség ellenőrzése
 function checkCSS2DAvailability() {
-  if (window.THREE.CSS2DRenderer && window.THREE.CSS2DObject) {
+  if (window.CSS2DRenderer && window.CSS2DObject) {
     console.log("✅ CSS2DRenderer elérhető");
     return true;
   } else {

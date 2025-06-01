@@ -99,8 +99,8 @@ class SceneManager {
   // CSS2D Renderer létrehozása koordináta címkékhez
   createCSS2DRenderer() {
     // CSS2DRenderer csak akkor, ha elérhető
-    if (window.THREE.CSS2DRenderer) {
-      this.css2DRenderer = new THREE.CSS2DRenderer();
+    if (window.CSS2DRenderer) {
+      this.css2DRenderer = new window.CSS2DRenderer();
       this.css2DRenderer.setSize(
         this.container.clientWidth,
         this.container.clientHeight
@@ -161,7 +161,7 @@ class SceneManager {
     this.coordinateSystem.add(zArrow);
 
     // Címkék létrehozása (ha CSS2DRenderer elérhető)
-    if (this.css2DRenderer && window.THREE.CSS2DObject) {
+    if (this.css2DRenderer && window.CSS2DObject) {
       this.createCoordinateLabels(arrowLength);
     }
 
@@ -201,7 +201,7 @@ class SceneManager {
       labelDiv.style.border = `1px solid ${labelData.color}`;
       labelDiv.style.pointerEvents = 'none';
 
-      const label = new THREE.CSS2DObject(labelDiv);
+      const label = new window.CSS2DObject(labelDiv);
       label.position.set(...labelData.position);
       
       this.coordinateSystem.add(label);
