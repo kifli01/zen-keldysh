@@ -19,7 +19,7 @@ function dowel(params) {
     id: id,
     name: "Fa tipli 8×40mm",
     type: ELEMENT_TYPES.PART,
-    material: "PINE_SOLID",
+    material: "PINE_PLYWOOD",
     geometry: {
       type: GEOMETRY_TYPES.CYLINDER,
       dimensions: {

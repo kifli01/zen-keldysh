@@ -147,26 +147,22 @@ class MaterialManager {
   }
 
   // Realistic anyag kiválasztása elem típus szerint
-  getRealisticMaterial(elementType) {
+  getRealisticMaterial(elementMaterial) {
     if (!this.realisticMaterials) {
       console.warn("Realistic anyagok nincsenek betöltve");
       return this.createFallbackMaterial(0x808080);
     }
 
-    switch (elementType) {
-      case "plate":
+    switch (elementMaterial) {
+      case MATERIALS.PINE_PLYWOOD:
         return this.realisticMaterials.plate;
-      case "frame":
+      case MATERIALS.PINE_SOLID:
         return this.realisticMaterials.frame;
-      case "covering":
+      case MATERIALS.ARTIFICIAL_GRASS:
         return this.realisticMaterials.covering;
-      case "wall":
-        return this.realisticMaterials.wall;
-      case "leg":
-        return this.realisticMaterials.leg;
-      case "ball":
+      case MATERIALS.WHITE_PLASTIC:
         return this.realisticMaterials.ball;
-      case "part":
+      case MATERIALS.GALVANIZED_STEEL:
         return this.realisticMaterials.galvanized; // Galvanizált fém bigCorner-hez
       default:
         return this.realisticMaterials.frame; // Fallback
@@ -224,7 +220,7 @@ class MaterialManager {
       if (mesh.userData && mesh.userData.isGroup) {
         mesh.children.forEach((childMesh) => {
           if (childMesh.material) {
-            const material = this.getRealisticMaterial(element.type);
+            const material = this.getRealisticMaterial(element.material);
             childMesh.material = material;
             changedCount++;
           }
@@ -234,7 +230,7 @@ class MaterialManager {
 
       // Hagyományos elem
       if (mesh.material) {
-        const material = this.getRealisticMaterial(element.type);
+        const material = this.getRealisticMaterial(element.material);
         mesh.material = material;
         changedCount++;
       }
