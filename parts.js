@@ -56,7 +56,7 @@ function bigCorner(params) {
     id: id,
     name: "Nagy sarok elem",
     type: ELEMENT_TYPES.PART,
-    material: "PINE_SOLID",
+    material: "GALVANIZED_STEEL",
     geometry: {
       type: GEOMETRY_TYPES.GROUP,
       elements: [     // Gyerek elemek

@@ -1,7 +1,7 @@
 /**
  * Material Manager
  * Anyagok kezelése és váltása (blueprint/realistic)
- * v1.0.0 - ViewModeManager-ből kiszervezve
+ * v1.1.0 - Galvanizált fém anyag hozzáadva bigCorner-hez
  */
 
 class MaterialManager {
@@ -12,7 +12,7 @@ class MaterialManager {
     this.realisticMaterials = null;
     this.initialized = false;
 
-    console.log("MaterialManager v1.0.0 inicializálva");
+    console.log("MaterialManager v1.1.0 inicializálva");
   }
 
   // Inicializálás - anyagok előkészítése
@@ -80,7 +80,7 @@ class MaterialManager {
         group: new THREE.ShaderMaterial({
           uniforms: {
             ...commonUniforms,
-            color: { value: new THREE.Color(0xf2f0f0) }, // Világos szürke
+            color: { value: new THREE.Color(0x9e9e9e) }, // Világos szürke
           },
           vertexShader: vertexShader,
           fragmentShader: fragmentShader,
@@ -105,7 +105,7 @@ class MaterialManager {
         side: THREE.DoubleSide,
       }),
       group: new THREE.MeshBasicMaterial({
-        color: 0xf2f0f0, // Világos szürke
+        color: 0x9e9e9e, // Világos szürke
         side: THREE.DoubleSide,
       }),
     };
@@ -166,6 +166,8 @@ class MaterialManager {
         return this.realisticMaterials.leg;
       case "ball":
         return this.realisticMaterials.ball;
+      case "part":
+        return this.realisticMaterials.galvanized; // Galvanizált fém bigCorner-hez
       default:
         return this.realisticMaterials.frame; // Fallback
     }
@@ -310,7 +312,7 @@ class MaterialManager {
     this.originalMaterials.clear();
 
     this.initialized = false;
-    console.log("MaterialManager v1.0.0 cleanup kész");
+    console.log("MaterialManager v1.1.0 cleanup kész");
   }
 }
 

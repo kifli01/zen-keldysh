@@ -1,7 +1,7 @@
 /**
  * Texture Manager
  * Textúrák központi kezelése és létrehozása
- * v1.0.0 - ViewModeManager-ből kiszervezve
+ * v1.1.0 - Galvanizált fém textúra hozzáadva bigCorner-hez
  */
 
 class TextureManager {
@@ -11,7 +11,7 @@ class TextureManager {
     this.wireframeMaterial = null;
     this.initialized = false;
     
-    console.log("TextureManager v1.0.0 konstruktor");
+    console.log("TextureManager v1.1.0 konstruktor");
   }
 
   // Összes textúra inicializálása
@@ -26,6 +26,7 @@ class TextureManager {
     this.textures.set('paper', this.createPaperTexture());
     this.textures.set('wood', this.createWoodTexture());
     this.textures.set('grass', this.createGrassTexture());
+    this.textures.set('galvanized', this.createGalvanizedTexture());
 
     // Anyagok létrehozása textúrák alapján
     this.realisticMaterials = this.createRealisticMaterials();
@@ -103,10 +104,80 @@ class TextureManager {
     return texture;
   }
 
-  // Realistic anyagok létrehozása (ViewModeManager-ből átvéve)
+  // Galvanizált fém textúra létrehozása
+  createGalvanizedTexture() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 512;
+    const context = canvas.getContext("2d");
+
+    // Világosabb, sárgásabb alapszín - galvanizált felület
+    const gradient = context.createLinearGradient(0, 0, 512, 512);
+    gradient.addColorStop(0, "#F5E6A3");    // Világos sárga-arany
+    gradient.addColorStop(0.3, "#F0DC8E");  // Sárga-arany
+    gradient.addColorStop(0.6, "#EDD179");  // Világos sárga
+    gradient.addColorStop(1, "#E8C963");    // Arany sárga
+
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 512, 512);
+
+    // Fém csíkok/egyenetlenségek hozzáadása - világosabb
+    for (let i = 0; i < 30; i++) {
+      const x = Math.random() * 512;
+      const y = Math.random() * 512;
+      const width = 20 + Math.random() * 100;
+      const height = 2 + Math.random() * 8;
+
+      // Világosabb fém árnyalatok
+      const metalShades = ["#FAF0B4", "#F7EA9E", "#F3E388", "#EFDC72"];
+      context.fillStyle = metalShades[Math.floor(Math.random() * metalShades.length)];
+      context.globalAlpha = 0.3 + Math.random() * 0.4;
+      
+      context.fillRect(x, y, width, height);
+    }
+
+    // Apró fém foltok/pöttyök - világosabb
+    context.globalAlpha = 1;
+    for (let i = 0; i < 200; i++) {
+      const x = Math.random() * 512;
+      const y = Math.random() * 512;
+      const radius = 1 + Math.random() * 3;
+
+      // Világos fém pontok
+      const lightSpots = ["#FFFCC8", "#FCF4A8", "#F8EC88"];
+      context.fillStyle = lightSpots[Math.floor(Math.random() * lightSpots.length)];
+      context.globalAlpha = 0.6 + Math.random() * 0.4;
+
+      context.beginPath();
+      context.arc(x, y, radius, 0, Math.PI * 2);
+      context.fill();
+    }
+
+    // Minimális oxidációs foltok (kevesebb és halványabb)
+    context.globalAlpha = 1;
+    for (let i = 0; i < 8; i++) {
+      const x = Math.random() * 512;
+      const y = Math.random() * 512;
+      const radius = 3 + Math.random() * 8;
+
+      context.fillStyle = `rgba(180, 190, 140, ${0.05 + Math.random() * 0.1})`;
+      context.beginPath();
+      context.arc(x, y, radius, 0, Math.PI * 2);
+      context.fill();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(4, 4);
+    return texture;
+  }
+
+  // Realistic anyagok létrehozása
   createRealisticMaterials() {
     const woodTexture = this.textures.get('wood');
     const grassTexture = this.textures.get('grass');
+    const galvanizedTexture = this.textures.get('galvanized');
 
     return {
       plate: new THREE.MeshPhongMaterial({
@@ -141,6 +212,12 @@ class TextureManager {
       ball: new THREE.MeshPhongMaterial({
         color: 0xffffff,
         shininess: 30,
+        transparent: false,
+      }),
+      galvanized: new THREE.MeshPhongMaterial({
+        color: 0xf0dc8e, // Világos sárga-arany
+        map: galvanizedTexture,
+        shininess: 60,
         transparent: false,
       }),
     };
@@ -256,7 +333,7 @@ class TextureManager {
     }
 
     this.initialized = false;
-    console.log("TextureManager cleanup kész");
+    console.log("TextureManager v1.1.0 cleanup kész");
   }
 }
 
