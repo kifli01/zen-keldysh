@@ -644,6 +644,7 @@ export const elements = [
   window.part.bigCorner({
     id: "corner_1", 
     position: { x: -200, y: 80, z: 160 },
+    rotation:  { x: 0, y: Math.PI / 4, z: 0 },
     explodeOffset: { x: 0, y: 0, z: 0 }
   }),
 ];

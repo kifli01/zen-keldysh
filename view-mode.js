@@ -1,7 +1,7 @@
 /**
  * View Mode Manager
  * Váltás színes nézet és tervrajz stílus között
- * v2.1.1 - GROUP elem rotáció javítás a lyuk körvonalaknál
+ * v2.3.0 - GROUP elemek szürke textúrája tervrajz nézetben
  */
 
 class ViewModeManager {
@@ -28,7 +28,7 @@ class ViewModeManager {
     this.realisticMaterials = this.textureManager.getRealisticMaterials();
     this.wireframeMaterial = this.textureManager.getWireframeMaterial();
 
-    console.log("ViewModeManager v2.1.1 - GROUP rotáció javítás");
+    console.log("ViewModeManager v2.3.0 - GROUP szürke textúra");
   }
 
   // Exploder referencia beállítása
@@ -68,7 +68,7 @@ class ViewModeManager {
         paperTexture: { value: this.textures.paper },
       };
 
-      // Toon anyagok létrehozása - tiszta fehér
+      // Toon anyagok létrehozása
       this.toonMaterials = {
         default: new THREE.ShaderMaterial({
           uniforms: {
@@ -79,9 +79,19 @@ class ViewModeManager {
           fragmentShader: fragmentShader,
           side: THREE.DoubleSide,
         }),
+        // Szürke anyag GROUP elemekhez
+        group: new THREE.ShaderMaterial({
+          uniforms: {
+            ...commonUniforms,
+            color: { value: new THREE.Color(0xf2f0f0) }, // Világos szürke
+          },
+          vertexShader: vertexShader,
+          fragmentShader: fragmentShader,
+          side: THREE.DoubleSide,
+        }),
       };
 
-      console.log("✅ Toon shader anyagok létrehozva");
+      console.log("✅ Toon shader anyagok létrehozva (fehér + szürke GROUP)");
       return true;
     } catch (error) {
       console.error("❌ Toon shader anyagok létrehozási hiba:", error);
@@ -112,89 +122,9 @@ class ViewModeManager {
       const mesh = meshes.get(element.id);
       if (!mesh) return;
 
-      // GROUP esetén a gyerek elemeknek wireframe
+      // GROUP esetén nem készítünk wireframe-et
       if (mesh.userData && mesh.userData.isGroup) {
-        mesh.children.forEach((childMesh, index) => {
-          const wireframeGeometry = this.createWireframeGeometry(childMesh);
-          
-          if (wireframeGeometry) {
-            const wireframeMesh = new THREE.LineSegments(
-              wireframeGeometry,
-              this.wireframeMaterial
-            );
-
-            // JAVÍTÁS: Gyerek pozíció transzformáció a parent rotáció szerint
-            let childPosition = new THREE.Vector3(
-              childMesh.position.x,
-              childMesh.position.y,
-              childMesh.position.z
-            );
-
-            // Ha a parent GROUP-nak van rotációja, transzformáljuk a gyerek pozíciót
-            if (mesh.rotation.x !== 0 || mesh.rotation.y !== 0 || mesh.rotation.z !== 0) {
-              const parentRotationMatrix = new THREE.Matrix4();
-              parentRotationMatrix.makeRotationFromEuler(
-                new THREE.Euler(mesh.rotation.x, mesh.rotation.y, mesh.rotation.z)
-              );
-              childPosition.applyMatrix4(parentRotationMatrix);
-            }
-
-            wireframeMesh.position.set(
-              mesh.position.x + childPosition.x,
-              mesh.position.y + childPosition.y,
-              mesh.position.z + childPosition.z
-            );
-            
-            // JAVÍTÁS: Teljes kombinált rotáció alkalmazása (parent + gyerek)
-            wireframeMesh.rotation.set(
-              mesh.rotation.x + childMesh.rotation.x,
-              mesh.rotation.y + childMesh.rotation.y,
-              mesh.rotation.z + childMesh.rotation.z
-            );
-            
-            wireframeMesh.scale.copy(mesh.scale);
-
-            wireframeMesh.userData = {
-              isWireframe: true,
-              parentId: element.id,
-              childIndex: index,
-              elementType: element.type,
-              isGroupChild: true,
-            };
-
-            this.sceneManager.scene.add(wireframeMesh);
-            this.wireframeLayer.set(`${element.id}_child_${index}`, wireframeMesh);
-            
-            console.log(`🔧 Gyerek wireframe ${index}: teljes rotáció Z = ${((mesh.rotation.z + childMesh.rotation.z) * 180/Math.PI).toFixed(1)}°`);
-          }
-          
-          // GROUP gyerek elem lyuk körvonalai - JAVÍTOTT rotáció kezelés
-          if (element.geometry.elements && element.geometry.elements[index]) {
-            const childElement = element.geometry.elements[index];
-            
-            // JAVÍTÁS: Teljes kombinált rotáció (GROUP + gyerek elem transform rotációja)
-            const childTransformRotation = childElement.transform?.rotation || { x: 0, y: 0, z: 0 };
-            const combinedRotation = {
-              x: mesh.rotation.x + childMesh.rotation.x,
-              y: mesh.rotation.y + childMesh.rotation.y,
-              z: mesh.rotation.z + childMesh.rotation.z,
-            };
-            
-            // Abszolút pozíciójú mesh létrehozása a lyuk körvonalakhoz
-            const absoluteChildMesh = {
-              position: {
-                x: mesh.position.x + childMesh.position.x,
-                y: mesh.position.y + childMesh.position.y,
-                z: mesh.position.z + childMesh.position.z,
-              },
-              rotation: combinedRotation,
-              userData: childMesh.userData
-            };
-            
-            // JAVÍTÁS: Gyerek elem transform rotációjának továbbítása
-            this.addHoleOutlines(childElement, absoluteChildMesh, childTransformRotation);
-          }
-        });
+        console.log(`🚫 GROUP elem ${element.id} - wireframe kihagyva`);
         return;
       }
 
@@ -725,7 +655,10 @@ class ViewModeManager {
 
   // Blueprint anyag kiválasztása
   getBlueprintMaterial(elementType) {
-    return this.toonMaterials.default;
+    if (elementType === "part") {
+      return this.toonMaterials.group; // Szürke GROUP elemekhez
+    }
+    return this.toonMaterials.default; // Fehér minden máshoz
   }
 
   // Váltás színes nézetbe
@@ -878,6 +811,6 @@ class ViewModeManager {
     this.originalMaterials.clear();
     this.wireframeLayer.clear();
 
-    console.log("ViewModeManager v2.1.1 destroy - GROUP rotáció javítás alkalmazva");
+    console.log("ViewModeManager v2.3.0 destroy - GROUP szürke textúra");
   }
 }
