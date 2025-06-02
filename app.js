@@ -1,6 +1,6 @@
 /**
  * Minigolf Pálya Viewer - Főalkalmazás
- * v1.8.2 - TextureManager injektálás hozzáadva
+ * v1.9.0 - Refaktorált ViewModeManager rendszerrel
  */
 
 // ES6 importok
@@ -25,7 +25,11 @@ let geometryBuilder;
 let exploder;
 let viewModeManager;
 let csgManager;
-let textureManager; // ÚJ: TextureManager
+let textureManager;
+// ÚJ: Refaktorált manager objektumok elérhetősége
+let wireframeManager;
+let materialManager;
+let lightingManager;
 let allMeshes;
 
 // CSG inicializálás
@@ -112,19 +116,18 @@ function checkCSS2DAvailability() {
 // Főalkalmazás inicializálása
 async function initialize() {
   try {
-    console.log("Inicializálás kezdete v1.8.2...");
+    console.log("Inicializálás kezdete v1.9.0...");
 
     // Könyvtárak ellenőrzése
     const csgAvailable = initializeCSG();
     const shadersAvailable = checkShaderAvailability();
     const css2dAvailable = checkCSS2DAvailability();
 
-    // ÚJ: TextureManager létrehozása és inicializálása
+    // Alapvető manager objektumok létrehozása
     textureManager = new TextureManager();
     textureManager.initialize();
     console.log("✅ TextureManager inicializálva");
 
-    // Manager objektumok létrehozása
     elementManager = new ElementManager();
     sceneManager = new SceneManager(
       document.getElementById("viewer-container")
@@ -132,8 +135,13 @@ async function initialize() {
     geometryBuilder = new GeometryBuilder();
     exploder = new Exploder();
     
-    // MÓDOSÍTOTT: ViewModeManager TextureManager injektálással
+    // ÚJ: Refaktorált ViewModeManager három manager-rel
     viewModeManager = new ViewModeManager(sceneManager, geometryBuilder, textureManager);
+
+    // ÚJ: Specializált manager objektumok elérhetővé tétele
+    wireframeManager = viewModeManager.getWireframeManager();
+    materialManager = viewModeManager.getMaterialManager();
+    lightingManager = viewModeManager.getLightingManager();
 
     // Keresztreferenciák beállítása
     exploder.setViewModeManager(viewModeManager);
@@ -215,7 +223,7 @@ async function initialize() {
       console.log("Event listener-ek beállítva");
     }
 
-    console.log("Inicializálás sikeres v1.8.2!");
+    console.log("Inicializálás sikeres v1.9.0!");
   } catch (error) {
     console.error("Hiba az inicializálás során:", error);
   }
@@ -223,35 +231,62 @@ async function initialize() {
 
 // Globális hozzáférés debug-hoz
 window.debugInfo = () => {
-  console.log("=== DEBUG INFO v1.8.2 ===");
+  console.log("=== DEBUG INFO v1.9.0 ===");
   console.log(
     "Element Manager:",
     elementManager?.getAllElements().length + " elem"
   );
   console.log("Scene Manager:", sceneManager?.getSceneInfo());
   console.log("Exploder:", exploder?.getState());
-  console.log("View Mode Manager:", viewModeManager?.getCurrentMode());
+  console.log("View Mode Manager:", viewModeManager?.getViewModeInfo());
   console.log("Mesh-ek:", allMeshes?.size);
   console.log("Súly:", elementManager?.getTotalWeight().toFixed(2) + " g");
+  
   // CSG debug info
   if (csgManager) {
     console.log("CSG Manager:", csgManager.getDebugInfo());
   }
-  // ÚJ: TextureManager debug info
+  
+  // ÚJ: Refaktorált manager debug info
+  if (wireframeManager) {
+    console.log("Wireframe Manager:", wireframeManager.getWireframeInfo());
+  }
+  if (materialManager) {
+    console.log("Material Manager:", materialManager.getMaterialInfo());
+  }
+  if (lightingManager) {
+    console.log("Lighting Manager:", lightingManager.getLightingInfo());
+  }
   if (textureManager) {
     console.log("Texture Manager:", textureManager.getStatus());
   }
+  
   console.log("Shaders:", checkShaderAvailability());
   console.log("CSS2D:", checkCSS2DAvailability());
   console.log("==================");
 };
 
+// ÚJ: Részletes ViewMode debug
+window.viewModeDebug = () => {
+  if (viewModeManager) {
+    viewModeManager.logStatus();
+  } else {
+    console.warn("ViewModeManager nem elérhető");
+  }
+};
+
+// Globális manager elérhetőség
 window.elementManager = () => elementManager;
 window.sceneManager = () => sceneManager;
 window.csgManager = () => csgManager;
 window.viewModeManager = () => viewModeManager;
 window.exploder = () => exploder;
-window.textureManager = () => textureManager; // ÚJ: TextureManager debug hozzáférés
+window.textureManager = () => textureManager;
+
+// ÚJ: Refaktorált manager elérhetőség
+window.wireframeManager = () => wireframeManager;
+window.materialManager = () => materialManager;
+window.lightingManager = () => lightingManager;
 
 // Egyedi elem láthatóság kapcsoló funkció
 window.toggleElementVisibility = function (elementId, isVisible) {
@@ -262,19 +297,9 @@ window.toggleElementVisibility = function (elementId, isVisible) {
   if (mesh) {
     mesh.visible = isVisible;
 
-    // Ha blueprint módban vagyunk, az wireframe layer is kell frissíteni
+    // ÚJ: Refaktorált wireframe kezelés
     if (viewModeManager.getCurrentMode() === "blueprint") {
-      const wireframeMesh = viewModeManager.wireframeLayer?.get(elementId);
-      if (wireframeMesh) {
-        wireframeMesh.visible = isVisible;
-      }
-
-      // Lyuk körvonalak is frissítése
-      viewModeManager.wireframeLayer?.forEach((wireframe, key) => {
-        if (key.startsWith(`${elementId}_hole_`)) {
-          wireframe.visible = isVisible;
-        }
-      });
+      wireframeManager.setElementWireframeVisibility(elementId, isVisible);
     }
 
     // Render frissítés
@@ -295,6 +320,10 @@ export {
   exploder,
   viewModeManager,
   csgManager,
-  textureManager, // ÚJ: TextureManager export
+  textureManager,
+  // ÚJ: Refaktorált manager exportok
+  wireframeManager,
+  materialManager,
+  lightingManager,
   allMeshes,
 };
