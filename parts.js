@@ -111,30 +111,28 @@ function bigCorner(params) {
               height: thickness,
             },
             csgOperations: [
-              // createCircleHole({
-              //   radius: holeRadius,
-              //   position: {
-              //     x: - length / 2 + holeShiftFromSide,
-              //     y: 0,
-              //     z: 0,
-              //   },
-              //   axis: 'y',
-              //   direction: 'down',
-              //   depth: thickness,
-              //   rotation: { x: 0, y: 0, z: Math.PI / 2 },
-              // }),
-              // createCircleHole({
-              //   radius: holeRadius,
-              //   position: {
-              //     x: length / 2 - thickness / 2 - holeShiftFromSide,
-              //     y: 0,
-              //     z: 0,
-              //   },
-              //   axis: 'y',
-              //   direction: 'down',
-              //   depth: thickness,
-              //   rotation: { x: 0, y: 0, z: Math.PI / 2 },
-              // }),
+              createCircleHole({
+                radius: holeRadius,
+                position: {
+                  x: - length / 2 + holeShiftFromSide,
+                  y: 0,
+                  z: 0,
+                },
+                axis: 'y',
+                direction: 'down',
+                depth: thickness,
+              }),
+              createCircleHole({
+                radius: holeRadius,
+                position: {
+                  x: length / 2 - thickness / 2 - holeShiftFromSide,
+                  y: 0,
+                  z: 0,
+                },
+                axis: 'y',
+                direction: 'down',
+                depth: thickness,
+              }),
             ]
           },
           transform: {

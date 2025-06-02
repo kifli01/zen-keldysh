@@ -1,7 +1,7 @@
 /**
  * View Mode Manager
  * Váltás színes nézet és tervrajz stílus között
- * v2.1.0 - TextureManager injektálás, textúra és anyag kód kiszervezve
+ * v2.1.1 - GROUP elem rotáció javítás a lyuk körvonalaknál
  */
 
 class ViewModeManager {
@@ -28,7 +28,7 @@ class ViewModeManager {
     this.realisticMaterials = this.textureManager.getRealisticMaterials();
     this.wireframeMaterial = this.textureManager.getWireframeMaterial();
 
-    console.log("ViewModeManager v2.1.0 - TextureManager injektálva");
+    console.log("ViewModeManager v2.1.1 - GROUP rotáció javítás");
   }
 
   // Exploder referencia beállítása
@@ -123,13 +123,35 @@ class ViewModeManager {
               this.wireframeMaterial
             );
 
-            // Gyerek pozíció + parent pozíció
-            wireframeMesh.position.copy(mesh.position);
-            wireframeMesh.position.add(childMesh.position);
-            wireframeMesh.rotation.copy(mesh.rotation);
-            wireframeMesh.rotation.x += childMesh.rotation.x;
-            wireframeMesh.rotation.y += childMesh.rotation.y;
-            wireframeMesh.rotation.z += childMesh.rotation.z;
+            // JAVÍTÁS: Gyerek pozíció transzformáció a parent rotáció szerint
+            let childPosition = new THREE.Vector3(
+              childMesh.position.x,
+              childMesh.position.y,
+              childMesh.position.z
+            );
+
+            // Ha a parent GROUP-nak van rotációja, transzformáljuk a gyerek pozíciót
+            if (mesh.rotation.x !== 0 || mesh.rotation.y !== 0 || mesh.rotation.z !== 0) {
+              const parentRotationMatrix = new THREE.Matrix4();
+              parentRotationMatrix.makeRotationFromEuler(
+                new THREE.Euler(mesh.rotation.x, mesh.rotation.y, mesh.rotation.z)
+              );
+              childPosition.applyMatrix4(parentRotationMatrix);
+            }
+
+            wireframeMesh.position.set(
+              mesh.position.x + childPosition.x,
+              mesh.position.y + childPosition.y,
+              mesh.position.z + childPosition.z
+            );
+            
+            // JAVÍTÁS: Teljes kombinált rotáció alkalmazása (parent + gyerek)
+            wireframeMesh.rotation.set(
+              mesh.rotation.x + childMesh.rotation.x,
+              mesh.rotation.y + childMesh.rotation.y,
+              mesh.rotation.z + childMesh.rotation.z
+            );
+            
             wireframeMesh.scale.copy(mesh.scale);
 
             wireframeMesh.userData = {
@@ -142,11 +164,21 @@ class ViewModeManager {
 
             this.sceneManager.scene.add(wireframeMesh);
             this.wireframeLayer.set(`${element.id}_child_${index}`, wireframeMesh);
+            
+            console.log(`🔧 Gyerek wireframe ${index}: teljes rotáció Z = ${((mesh.rotation.z + childMesh.rotation.z) * 180/Math.PI).toFixed(1)}°`);
           }
           
-          // GROUP gyerek elem lyuk körvonalai
+          // GROUP gyerek elem lyuk körvonalai - JAVÍTOTT rotáció kezelés
           if (element.geometry.elements && element.geometry.elements[index]) {
             const childElement = element.geometry.elements[index];
+            
+            // JAVÍTÁS: Teljes kombinált rotáció (GROUP + gyerek elem transform rotációja)
+            const childTransformRotation = childElement.transform?.rotation || { x: 0, y: 0, z: 0 };
+            const combinedRotation = {
+              x: mesh.rotation.x + childMesh.rotation.x,
+              y: mesh.rotation.y + childMesh.rotation.y,
+              z: mesh.rotation.z + childMesh.rotation.z,
+            };
             
             // Abszolút pozíciójú mesh létrehozása a lyuk körvonalakhoz
             const absoluteChildMesh = {
@@ -155,15 +187,12 @@ class ViewModeManager {
                 y: mesh.position.y + childMesh.position.y,
                 z: mesh.position.z + childMesh.position.z,
               },
-              rotation: {
-                x: mesh.rotation.x + childMesh.rotation.x,
-                y: mesh.rotation.y + childMesh.rotation.y,
-                z: mesh.rotation.z + childMesh.rotation.z,
-              },
+              rotation: combinedRotation,
               userData: childMesh.userData
             };
             
-            this.addHoleOutlines(childElement, absoluteChildMesh);
+            // JAVÍTÁS: Gyerek elem transform rotációjának továbbítása
+            this.addHoleOutlines(childElement, absoluteChildMesh, childTransformRotation);
           }
         });
         return;
@@ -206,7 +235,7 @@ class ViewModeManager {
       if (mesh.userData.hasCSGOperations) {
         geometry = this.createSimplifiedBoundingGeometry(mesh);
       } else {
-        geometry = mesh.geometry;
+        geometry = mesh.geometry.clone(); // JAVÍTÁS: Klónozzuk hogy módosítható legyen
       }
 
       const edgesGeometry = new THREE.EdgesGeometry(geometry, 15);
@@ -246,8 +275,8 @@ class ViewModeManager {
     }
   }
 
-  // Lyukak körvonalainak hozzáadása - CSAK CSG műveletek
-  addHoleOutlines(element, mesh) {
+  // JAVÍTOTT: Lyukak körvonalainak hozzáadása - gyerek elem rotáció támogatással
+  addHoleOutlines(element, mesh, childRotation = null) {
     const csgOperations = element.geometry.csgOperations;
     let holeCount = 0;
 
@@ -255,14 +284,15 @@ class ViewModeManager {
     if (csgOperations && csgOperations.length > 0) {
       csgOperations.forEach((operation, index) => {
         if (operation.type === "subtract") {
-          const holeOutlines = this.createHoleOutlineGeometry(operation, mesh);
+          const holeOutlines = this.createHoleOutlineGeometry(operation, mesh, childRotation);
           if (holeOutlines && holeOutlines.length > 0) {
             holeOutlines.forEach((holeOutline, outlineIndex) => {
               this.addHoleOutlineToScene(
                 holeOutline,
                 mesh,
                 element.id,
-                `csg_${index}_${holeOutline.type}`
+                `csg_${index}_${holeOutline.type}`,
+                childRotation
               );
               holeCount++;
             });
@@ -272,20 +302,33 @@ class ViewModeManager {
     }
 
     if (holeCount > 0) {
-      console.log(`🔵 ${holeCount} lyuk körvonal hozzáadva: ${element.id}`);
+      console.log(`🔵 ${holeCount} lyuk körvonal hozzáadva: ${element.id} (gyerek rotáció: ${childRotation ? 'igen' : 'nem'})`);
     }
   }
 
-  // CSG művelet alapján lyuk körvonal készítése - JAVÍTOTT rotáció és pozíció kezelés v3
-  createHoleOutlineGeometry(csgOperation, parentMesh) {
+  // JAVÍTOTT: CSG művelet alapján lyuk körvonal készítése - gyerek elem rotáció támogatással
+  createHoleOutlineGeometry(csgOperation, parentMesh, childRotation = null) {
     try {
       const position = csgOperation.position || { x: 0, y: 0, z: 0 };
       const depth = csgOperation.params.height || 10;
 
       let outlines = [];
 
-      // ÚJ: Lyuk tengely meghatározása CSG rotáció alapján
-      const holeAxis = this.determineHoleAxis(csgOperation.rotation);
+      // JAVÍTÁS: Kombinált rotáció figyelembevétele
+      let effectiveRotation = csgOperation.rotation || { x: 0, y: 0, z: 0 };
+      
+      // Ha van gyerek elem rotáció, kombináljuk a CSG rotációval
+      if (childRotation) {
+        effectiveRotation = {
+          x: effectiveRotation.x + childRotation.x,
+          y: effectiveRotation.y + childRotation.y,
+          z: effectiveRotation.z + childRotation.z,
+        };
+        console.log(`🔄 Gyerek rotáció kombinálva: CSG(${((csgOperation.rotation?.x || 0) * 180/Math.PI).toFixed(1)}°) + Gyerek(${(childRotation.x * 180/Math.PI).toFixed(1)}°, ${(childRotation.y * 180/Math.PI).toFixed(1)}°, ${(childRotation.z * 180/Math.PI).toFixed(1)}°)`);
+      }
+
+      // Lyuk tengely meghatározása kombinált rotáció alapján
+      const holeAxis = this.determineHoleAxis(effectiveRotation);
       const depthOffsets = this.calculateDepthOffsets(depth, holeAxis);
 
       switch (csgOperation.geometry) {
@@ -299,7 +342,7 @@ class ViewModeManager {
 
           this.applyCSGRotationToGeometry(
             topEdgesGeometry,
-            csgOperation.rotation
+            effectiveRotation // JAVÍTÁS: Kombinált rotáció használata
           );
 
           outlines.push({
@@ -323,7 +366,7 @@ class ViewModeManager {
 
           this.applyCSGRotationToGeometry(
             bottomEdgesGeometry,
-            csgOperation.rotation
+            effectiveRotation // JAVÍTÁS: Kombinált rotáció használata
           );
 
           outlines.push({
@@ -346,7 +389,7 @@ class ViewModeManager {
           const topPlaneGeometry = new THREE.PlaneGeometry(width, length);
           const topPlaneEdges = new THREE.EdgesGeometry(topPlaneGeometry);
 
-          this.applyCSGRotationToGeometry(topPlaneEdges, csgOperation.rotation);
+          this.applyCSGRotationToGeometry(topPlaneEdges, effectiveRotation);
 
           outlines.push({
             geometry: topPlaneEdges,
@@ -364,7 +407,7 @@ class ViewModeManager {
 
           this.applyCSGRotationToGeometry(
             bottomPlaneEdges,
-            csgOperation.rotation
+            effectiveRotation
           );
 
           outlines.push({
@@ -392,7 +435,7 @@ class ViewModeManager {
     }
   }
 
-  // ÚJ: Lyuk tengely meghatározása CSG rotáció alapján - JAVÍTOTT v2.0.3
+  // Lyuk tengely meghatározása CSG rotáció alapján - JAVÍTOTT v2.0.3
   determineHoleAxis(csgRotation) {
     if (!csgRotation) {
       return "y"; // Alapértelmezett: Y tengely (függőleges)
@@ -420,7 +463,7 @@ class ViewModeManager {
     }
   }
 
-  // ÚJ: Mélység offsetek számítása tengely szerint - JAVÍTOTT v2.0.3
+  // Mélység offsetek számítása tengely szerint - JAVÍTOTT v2.0.3
   calculateDepthOffsets(depth, axis) {
     const halfDepth = depth / 2;
 
@@ -448,7 +491,7 @@ class ViewModeManager {
     }
   }
 
-  // ÚJ: CSG rotáció alkalmazása wireframe geometrián - DEBUG infóval
+  // CSG rotáció alkalmazása wireframe geometrián - DEBUG infóval
   applyCSGRotationToGeometry(geometry, csgRotation) {
     // Alapértelmezett orientáció: XY sík -> XZ síkra forgatás (vízszintes)
     geometry.rotateX(Math.PI / 2);
@@ -467,7 +510,7 @@ class ViewModeManager {
       // Debug info a tengely meghatározásához - JAVÍTOTT komment
       const axis = this.determineHoleAxis(csgRotation);
       console.log(
-        `🔄 CSG wireframe: ${axis} tengely, rotáció: x:${(
+        `🔄 CSG wireframe: ${axis} tengely, kombinált rotáció: x:${(
           (csgRotation.x * 180) /
           Math.PI
         ).toFixed(1)}° y:${((csgRotation.y * 180) / Math.PI).toFixed(1)}° z:${(
@@ -478,40 +521,82 @@ class ViewModeManager {
     }
   }
 
-  // Lyuk körvonal hozzáadása a scene-hez - EGYSZERŰSÍTETT rotáció kezelés
-  addHoleOutlineToScene(holeOutline, parentMesh, elementId, holeId) {
+  // JAVÍTOTT: Lyuk körvonal hozzáadása a scene-hez - gyerek elem rotáció támogatással
+  addHoleOutlineToScene(holeOutline, parentMesh, elementId, holeId, childRotation = null) {
     try {
       const holeWireframe = new THREE.LineSegments(
         holeOutline.geometry,
         this.wireframeMaterial
       );
 
-      const originalHolePosition = {
+      let finalHolePosition = {
         x: holeOutline.position.x,
         y: holeOutline.position.y,
         z: holeOutline.position.z,
       };
 
-      // Pozíció beállítása (parent + hole offset)
+      // JAVÍTÁS: Ha van gyerek rotáció, a lyuk pozíciót is transzformálni kell
+      if (childRotation && (childRotation.x !== 0 || childRotation.y !== 0 || childRotation.z !== 0)) {
+        // Rotációs mátrix alkalmazása a lyuk pozícióra
+        const rotationMatrix = new THREE.Matrix4();
+        rotationMatrix.makeRotationFromEuler(
+          new THREE.Euler(childRotation.x, childRotation.y, childRotation.z)
+        );
+        
+        const positionVector = new THREE.Vector3(
+          finalHolePosition.x,
+          finalHolePosition.y,
+          finalHolePosition.z
+        );
+        
+        positionVector.applyMatrix4(rotationMatrix);
+        
+        finalHolePosition = {
+          x: positionVector.x,
+          y: positionVector.y,
+          z: positionVector.z,
+        };
+        
+        console.log(`🔄 Lyuk pozíció transzformáció: eredeti(${holeOutline.position.x.toFixed(2)}, ${holeOutline.position.y.toFixed(2)}, ${holeOutline.position.z.toFixed(2)}) → transzformált(${finalHolePosition.x.toFixed(2)}, ${finalHolePosition.y.toFixed(2)}, ${finalHolePosition.z.toFixed(2)})`);
+      }
+
+      // Pozíció beállítása (parent + transzformált hole offset)
       holeWireframe.position.set(
-        parentMesh.position.x + holeOutline.position.x,
-        parentMesh.position.y + holeOutline.position.y,
-        parentMesh.position.z + holeOutline.position.z
+        parentMesh.position.x + finalHolePosition.x,
+        parentMesh.position.y + finalHolePosition.y,
+        parentMesh.position.z + finalHolePosition.z
       );
 
-      // JAVÍTÁS v2: Csak parent mesh rotációját alkalmazzuk
-      // A CSG rotáció már a geometriában van az applyCSGRotationToGeometry-ban
+      // JAVÍTÁS: Kombinált rotáció alkalmazása a wireframe mesh-re is
+      let finalRotation = {
+        x: parentMesh.rotation.x,
+        y: parentMesh.rotation.y,
+        z: parentMesh.rotation.z
+      };
+
+      // Ha van gyerek elem rotáció, azt is hozzáadjuk
+      if (childRotation) {
+        finalRotation.x += childRotation.x;
+        finalRotation.y += childRotation.y;
+        finalRotation.z += childRotation.z;
+        
+        console.log(`🔄 Wireframe mesh rotáció: parent(${(parentMesh.rotation.z * 180/Math.PI).toFixed(1)}°) + gyerek(${(childRotation.z * 180/Math.PI).toFixed(1)}°) = ${(finalRotation.z * 180/Math.PI).toFixed(1)}°`);
+      }
+
       holeWireframe.rotation.set(
-        parentMesh.rotation.x,
-        parentMesh.rotation.y,
-        parentMesh.rotation.z
+        finalRotation.x,
+        finalRotation.y,
+        finalRotation.z
       );
 
       holeWireframe.userData = {
         isHoleOutline: true,
         parentId: elementId,
         holeId: holeId,
-        originalHolePosition: originalHolePosition,
+        originalHolePosition: holeOutline.position,
+        transformedHolePosition: finalHolePosition,
+        hasChildRotation: !!childRotation,
+        finalRotation: finalRotation,
       };
 
       this.sceneManager.scene.add(holeWireframe);
@@ -793,6 +878,6 @@ class ViewModeManager {
     this.originalMaterials.clear();
     this.wireframeLayer.clear();
 
-    console.log("ViewModeManager v2.1.0 destroy - TextureManager anyagokat nem dispose-olja");
+    console.log("ViewModeManager v2.1.1 destroy - GROUP rotáció javítás alkalmazva");
   }
 }
