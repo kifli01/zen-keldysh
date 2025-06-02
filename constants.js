@@ -9,7 +9,8 @@ const GEOMETRY_TYPES = {
   BOX: "box",
   CYLINDER: "cylinder",
   EXTRUDE: "extrude",
-  SPHERE: "sphere", // Új típus a gömb alakú labdához
+  SPHERE: "sphere", 
+  GROUP: "group",
 };
 
 // Elem típusok

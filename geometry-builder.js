@@ -114,10 +114,64 @@ class GeometryBuilder {
       case GEOMETRY_TYPES.EXTRUDE:
         return this.createExtrudeGeometry(element);
 
+      case GEOMETRY_TYPES.GROUP:
+        return this.createGroupGeometry(element);
+
       default:
         console.warn(`Ismeretlen geometria típus: ${geom.type}`);
         return new THREE.BoxGeometry(dim.length, dim.height, dim.width);
     }
+  }
+
+  // ÚJ: GROUP geometria létrehozása
+  createGroupGeometry(element) {
+    const group = new THREE.Group();
+    
+    if (element.geometry.elements) {
+      element.geometry.elements.forEach((childElement) => {
+        // JAVÍTÁS: createGeometry() használata createStandardGeometry() helyett
+        // Ez biztosítja hogy a CSG műveletek is végrehajtódnak
+        const fullChildElement = {
+          geometry: childElement.geometry,
+          material: element.material // Szülő anyaga
+        };
+        
+        const childGeometry = this.createGeometry(fullChildElement);
+        const childMaterial = this.createMaterial(element.material);
+        const childMesh = new THREE.Mesh(childGeometry, childMaterial);
+        
+        // ÚJ: CSG metadata beállítása a gyerek mesh-hez is
+        childMesh.userData = {
+          elementId: `${element.id}_child_${element.geometry.elements.indexOf(childElement)}`,
+          elementName: childElement.name || `Gyerek elem`,
+          elementType: element.type,
+          parentId: element.id,
+          isChildElement: true,
+          hasCSGOperations: !!(childElement.geometry.holes || childElement.geometry.csgOperations),
+          csgOperationCount: (childElement.geometry.holes?.length || 0) + (childElement.geometry.csgOperations?.length || 0),
+        };
+        
+        if (childElement.transform) {
+          childMesh.position.set(
+            childElement.transform.position.x,
+            childElement.transform.position.y, 
+            childElement.transform.position.z
+          );
+          
+          if (childElement.transform.rotation) {
+            childMesh.rotation.set(
+              childElement.transform.rotation.x,
+              childElement.transform.rotation.y,
+              childElement.transform.rotation.z
+            );
+          }
+        }
+        
+        group.add(childMesh);
+      });
+    }
+    
+    return group;
   }
 
   // MÓDOSÍTOTT: Extrude geometria létrehozása - CSG nélküli fallback
@@ -200,6 +254,48 @@ class GeometryBuilder {
   // Komplett THREE.js mesh létrehozása
   createMesh(element) {
     const geometry = this.createGeometry(element);
+    
+    // GROUP esetén a geometry már egy THREE.Group
+    if (element.geometry.type === GEOMETRY_TYPES.GROUP) {
+      const group = geometry;
+      
+      // Transform alkalmazása a GROUP-ra
+      const transform = element.transform;
+      group.position.set(
+        transform.position.x,
+        transform.position.y,
+        transform.position.z
+      );
+
+      if (transform.rotation) {
+        group.rotation.set(
+          transform.rotation.x,
+          transform.rotation.y,
+          transform.rotation.z
+        );
+      }
+
+      if (transform.scale) {
+        group.scale.set(transform.scale.x, transform.scale.y, transform.scale.z);
+      }
+
+      // Display beállítások alkalmazása a GROUP-ra
+      const display = element.display;
+      group.visible = display.visible;
+
+      // GROUP metadata
+      group.userData = {
+        elementId: element.id,
+        elementName: element.name,
+        elementType: element.type,
+        isGroup: true,
+        childCount: group.children.length,
+      };
+
+      return group;
+    }
+
+    // Hagyományos mesh létrehozás
     const material = this.createMaterial(element.material);
     const mesh = new THREE.Mesh(geometry, material);
 
@@ -379,3 +475,6 @@ class GeometryBuilder {
     }
   }
 }
+
+// Globális hozzáférhetőség
+window.GeometryBuilder = GeometryBuilder;

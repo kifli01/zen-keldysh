@@ -237,7 +237,15 @@ class ViewModeManager {
   // Eredeti anyagok mentése
   saveOriginalMaterials(meshes) {
     meshes.forEach((mesh, elementId) => {
-      this.originalMaterials.set(elementId, mesh.material.clone());
+      // GROUP esetén nem mentünk material-t (nincs is)
+      if (mesh.userData && mesh.userData.isGroup) {
+        return;
+      }
+      
+      // Csak ha van material
+      if (mesh.material) {
+        this.originalMaterials.set(elementId, mesh.material.clone());
+      }
     });
   }
 
@@ -249,6 +257,64 @@ class ViewModeManager {
       const mesh = meshes.get(element.id);
       if (!mesh) return;
 
+      // GROUP esetén a gyerek elemeknek wireframe
+      if (mesh.userData && mesh.userData.isGroup) {
+        mesh.children.forEach((childMesh, index) => {
+          const wireframeGeometry = this.createWireframeGeometry(childMesh);
+          
+          if (wireframeGeometry) {
+            const wireframeMesh = new THREE.LineSegments(
+              wireframeGeometry,
+              this.wireframeMaterial
+            );
+
+            // Gyerek pozíció + parent pozíció
+            wireframeMesh.position.copy(mesh.position);
+            wireframeMesh.position.add(childMesh.position);
+            wireframeMesh.rotation.copy(mesh.rotation);
+            wireframeMesh.rotation.x += childMesh.rotation.x;
+            wireframeMesh.rotation.y += childMesh.rotation.y;
+            wireframeMesh.rotation.z += childMesh.rotation.z;
+            wireframeMesh.scale.copy(mesh.scale);
+
+            wireframeMesh.userData = {
+              isWireframe: true,
+              parentId: element.id,
+              childIndex: index,
+              elementType: element.type,
+              isGroupChild: true,
+            };
+
+            this.sceneManager.scene.add(wireframeMesh);
+            this.wireframeLayer.set(`${element.id}_child_${index}`, wireframeMesh);
+          }
+          
+          // GROUP gyerek elem lyuk körvonalai
+          if (element.geometry.elements && element.geometry.elements[index]) {
+            const childElement = element.geometry.elements[index];
+            
+            // Abszolút pozíciójú mesh létrehozása a lyuk körvonalakhoz
+            const absoluteChildMesh = {
+              position: {
+                x: mesh.position.x + childMesh.position.x,
+                y: mesh.position.y + childMesh.position.y,
+                z: mesh.position.z + childMesh.position.z,
+              },
+              rotation: {
+                x: mesh.rotation.x + childMesh.rotation.x,
+                y: mesh.rotation.y + childMesh.rotation.y,
+                z: mesh.rotation.z + childMesh.rotation.z,
+              },
+              userData: childMesh.userData
+            };
+            
+            this.addHoleOutlines(childElement, absoluteChildMesh);
+          }
+        });
+        return;
+      }
+
+      // Hagyományos elem wireframe
       const wireframeGeometry = this.createWireframeGeometry(mesh);
 
       if (wireframeGeometry) {
@@ -673,6 +739,23 @@ class ViewModeManager {
       const mesh = meshes.get(element.id);
       if (!mesh) return;
 
+      // GROUP esetén a gyerek elemeket is át kell állítani
+      if (mesh.userData && mesh.userData.isGroup) {
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
+        
+        // GROUP gyerekek material váltása
+        mesh.children.forEach((childMesh) => {
+          if (childMesh.material) {
+            const material = this.getBlueprintMaterial(element.type);
+            childMesh.material = material;
+            childMesh.castShadow = false;
+            childMesh.receiveShadow = false;
+          }
+        });
+        return;
+      }
+
       const material = this.getBlueprintMaterial(element.type);
 
       mesh.material = material;
@@ -719,6 +802,46 @@ class ViewModeManager {
     elements.forEach((element) => {
       const mesh = meshes.get(element.id);
       if (!mesh) return;
+
+      // GROUP esetén a gyerek elemeket is át kell állítani
+      if (mesh.userData && mesh.userData.isGroup) {
+        mesh.castShadow = element.display.castShadow;
+        mesh.receiveShadow = element.display.receiveShadow;
+        
+        // GROUP gyerekek realistic material váltása
+        mesh.children.forEach((childMesh) => {
+          if (childMesh.material) {
+            let realisticMaterial;
+            switch (element.type) {
+              case "plate":
+                realisticMaterial = this.realisticMaterials.plate;
+                break;
+              case "frame":
+                realisticMaterial = this.realisticMaterials.frame;
+                break;
+              case "covering":
+                realisticMaterial = this.realisticMaterials.covering;
+                break;
+              case "wall":
+                realisticMaterial = this.realisticMaterials.wall;
+                break;
+              case "leg":
+                realisticMaterial = this.realisticMaterials.leg;
+                break;
+              case "ball":
+                realisticMaterial = this.realisticMaterials.ball;
+                break;
+              default:
+                realisticMaterial = this.realisticMaterials.frame;
+            }
+            
+            childMesh.material = realisticMaterial;
+            childMesh.castShadow = element.display.castShadow;
+            childMesh.receiveShadow = element.display.receiveShadow;
+          }
+        });
+        return;
+      }
 
       let realisticMaterial;
       switch (element.type) {

@@ -38,7 +38,85 @@ function dowel(params) {
   };
 }
 
+function bigCorner(params) {
+  const {
+    id,
+    position,
+    explodeOffset,
+    rotation = { x: 0, y: 0, z: 0 },
+  } = params;
+
+  const length = 10;
+  const width = 2;
+  const thickness = 0.2;
+
+  return {
+    id: id,
+    name: "Nagy sarok elem",
+    type: ELEMENT_TYPES.PART,
+    material: "PINE_SOLID",
+    geometry: {
+      type: GEOMETRY_TYPES.GROUP,
+      elements: [     // Gyerek elemek
+        {
+          id: `${id}_horizontal`,
+          name: "horizontal",
+          geometry: {
+            type: GEOMETRY_TYPES.BOX,
+            dimensions: {
+              length: length, 
+              width: width, 
+              height: thickness,
+            },
+            csgOperations: [
+              createCircleHole({
+                radius: 0.3,
+                position: {
+                  x: 0,
+                  y: 0,
+                  z: 0,
+                },
+                axis: 'y',
+                direction: 'down',
+                depth: thickness,
+              }),
+            ]
+          },
+          transform: {
+            position: { x: 0, y: 0, z: 0 },
+            rotation: { x: 0, y: 0, z: 0 },
+          },
+        },
+        {
+          id: `${id}_vertical`,
+          name: "vertical",
+          geometry: {
+            type: GEOMETRY_TYPES.BOX,
+            dimensions: {
+              length: length - thickness, 
+              width: width, 
+              height: thickness,
+            },
+          },
+          transform: {
+            position: { x: length / 2 - thickness / 2, y: length / 2, z: 0 },
+            rotation: { x: 0, y: 0, z: Math.PI / 2 },
+          },
+        }
+      ],
+    },
+    transform: {
+      position: position,
+      rotation: rotation,
+    },
+    explode: {
+      offset: explodeOffset,
+    },
+  };
+}
+
 // Globális elérhetőség
 window.part = {
   dowel: dowel,
+  bigCorner: bigCorner,
 };

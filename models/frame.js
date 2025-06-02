@@ -641,4 +641,9 @@ export const elements = [
       }),
     ];
   }).flat(),
+  window.part.bigCorner({
+    id: "corner_1", 
+    position: { x: -200, y: 80, z: 160 },
+    explodeOffset: { x: 0, y: 0, z: 0 }
+  }),
 ];

@@ -66,6 +66,10 @@ class ElementManager {
           geom.dimensions.height *
           geom.dimensions.length;
         break;
+      case GEOMETRY_TYPES.GROUP:
+        // GROUP esetén alapértelmezett térfogat (bigCorner méretei alapján)
+        volume = 10.0 * 2.0 * 0.2; // length * width * height
+        break;
     }
 
     // Lyukak levonása
@@ -173,17 +177,38 @@ class ElementManager {
       const pos = element.transform.position;
       const dim = element.geometry.dimensions;
 
-      // Elem határai
-      const halfWidth = dim.width / 2;
-      const halfHeight = dim.height / 2;
-      const halfLength = dim.length / 2;
+      // GROUP típus esetén alapértelmezett méretek
+      if (element.geometry.type === GEOMETRY_TYPES.GROUP) {
+        // Alapértelmezett méretek a bigCorner-hez
+        const defaultDim = {
+          width: 2.0,
+          height: 0.2,
+          length: 10.0
+        };
+        
+        const halfWidth = defaultDim.width / 2;
+        const halfHeight = defaultDim.height / 2;
+        const halfLength = defaultDim.length / 2;
 
-      minX = Math.min(minX, pos.x - halfLength);
-      maxX = Math.max(maxX, pos.x + halfLength);
-      minY = Math.min(minY, pos.y - halfHeight);
-      maxY = Math.max(maxY, pos.y + halfHeight);
-      minZ = Math.min(minZ, pos.z - halfWidth);
-      maxZ = Math.max(maxZ, pos.z + halfWidth);
+        minX = Math.min(minX, pos.x - halfLength);
+        maxX = Math.max(maxX, pos.x + halfLength);
+        minY = Math.min(minY, pos.y - halfHeight);
+        maxY = Math.max(maxY, pos.y + halfHeight);
+        minZ = Math.min(minZ, pos.z - halfWidth);
+        maxZ = Math.max(maxZ, pos.z + halfWidth);
+      } else {
+        // Hagyományos elemek
+        const halfWidth = dim.width / 2;
+        const halfHeight = dim.height / 2;
+        const halfLength = dim.length / 2;
+
+        minX = Math.min(minX, pos.x - halfLength);
+        maxX = Math.max(maxX, pos.x + halfLength);
+        minY = Math.min(minY, pos.y - halfHeight);
+        maxY = Math.max(maxY, pos.y + halfHeight);
+        minZ = Math.min(minZ, pos.z - halfWidth);
+        maxZ = Math.max(maxZ, pos.z + halfWidth);
+      }
     });
 
     return {
@@ -240,7 +265,9 @@ class ElementManager {
             id: el.id, // Element ID hozzáadása
             name: el.name,
             count: 1,
-            dimensions: el.geometry.dimensions,
+            dimensions: el.geometry.type === GEOMETRY_TYPES.GROUP ? 
+              { length: 10.0, width: 2.0, height: 0.2 } : 
+              el.geometry.dimensions,
             volume: el.calculated.volume,
             weight: el.calculated.weight,
             spacing: el.spacing || null,
