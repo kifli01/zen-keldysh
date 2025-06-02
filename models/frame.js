@@ -654,7 +654,7 @@ export const elements = [
       z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth + 5, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI + Math.PI / 2 }, // Vertikálisan felállítva
-    explodeOffset: { x: 0, y: 0, z: 0 }
+    explodeOffset: { x: 5, y: 0, z: 0 }
   }),
 
   window.part.bigCorner({
@@ -665,7 +665,7 @@ export const elements = [
       z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI }, // Vertikálisan felállítva
-    explodeOffset: { x: 0, y: 0, z: 0 }
+    explodeOffset: { x: 5, y: 0, z: 0 }
   }),
 
   window.part.bigCorner({
@@ -676,7 +676,7 @@ export const elements = [
       z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: 0 }, // Vertikálisan felállítva
-    explodeOffset: { x: 0, y: 0, z: 0 }
+    explodeOffset: { x: -5, y: 0, z: 0 }
   }),
 
   window.part.bigCorner({
@@ -687,7 +687,7 @@ export const elements = [
       z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth - 5, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI / 2 }, // Vertikálisan felállítva
-    explodeOffset: { x: 0, y: 0, z: 0 }
+    explodeOffset: { x: -5, y: 0, z: 0 }
   }),
 
   // KÖZÉPSŐ SZEKCIÓ - 4 sarokvasa
@@ -700,7 +700,7 @@ export const elements = [
       z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth + 5, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI + Math.PI / 2 }, // Vertikálisan felállítva
-    explodeOffset: { x: 0, y: 0, z: 0 }
+    explodeOffset: { x: 5, y: 0, z: 0 }
   }),
 
   window.part.bigCorner({
@@ -712,7 +712,7 @@ export const elements = [
       z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI }, // Vertikálisan felállítva
-    explodeOffset: { x: 0, y: 0, z: 0 }
+    explodeOffset: { x: 5, y: 0, z: 0 }
   }),
 
   window.part.bigCorner({
@@ -724,7 +724,7 @@ export const elements = [
       z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: 0 }, // Vertikálisan felállítva
-    explodeOffset: { x: 0, y: 0, z: 0 }
+    explodeOffset: { x: -5, y: 0, z: 0 }
   }),
 
   window.part.bigCorner({
@@ -736,9 +736,54 @@ export const elements = [
       z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth - 5, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI / 2 }, // Vertikálisan felállítva
-    explodeOffset: { x: 0, y: 0, z: 0 }
+    explodeOffset: { x: -5, y: 0, z: 0 }
+  }),
+
+  // HÁTSÓ SZEKCIÓ - 4 sarokvasa
+  window.part.bigCorner({
+    id: "corner_sect3_bl", // bal-alsó sarok
+    position: { 
+      x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.length / 
+      (COURSE_DIMENSIONS.crossBeamCount + 1) + COURSE_DIMENSIONS.crossBeamWidth / 2,
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth + 5, 
+    },
+    rotation: { x: Math.PI / 2, y: 0, z: Math.PI + Math.PI / 2 }, // Vertikálisan felállítva
+    explodeOffset: { x: 5, y: 0, z: 0 }
+  }),
+
+  window.part.bigCorner({
+    id: "corner_sect3_br", // jobb-alsó sarok
+    position: { 
+      x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.length / 
+      (COURSE_DIMENSIONS.crossBeamCount + 1) + COURSE_DIMENSIONS.crossBeamWidth / 2 + 5,
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth, 
+    },
+    rotation: { x: Math.PI / 2, y: 0, z: Math.PI }, // Vertikálisan felállítva
+    explodeOffset: { x: 5, y: 0, z: 0 }
+  }),
+
+  window.part.bigCorner({
+    id: "corner_sect3_tl", // bal-felső sarok
+    position: { 
+      x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth - 5,
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth, 
+    },
+    rotation: { x: Math.PI / 2, y: 0, z: 0 }, // Vertikálisan felállítva
+    explodeOffset: { x: -5, y: 0, z: 0 }
+  }),
+
+  window.part.bigCorner({
+    id: "corner_sect3_tr", // jobb-felső sarok
+    position: { 
+      x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth,
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth - 5, 
+    },
+    rotation: { x: Math.PI / 2, y: 0, z: Math.PI / 2 }, // Vertikálisan felállítva
+    explodeOffset: { x: -5, y: 0, z: 0 }
   }),
   
-
-
 ];
