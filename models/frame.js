@@ -641,10 +641,55 @@ export const elements = [
       }),
     ];
   }).flat(),
+  
+// SAROKVASAK - három belső szekció (12 darab összesen)
+  // Szárak a lécek keskeny részére (4cm magas oldalra) feküdnek fel
+  
+  // ELSŐ SZEKCIÓ - 4 sarokvasa
   window.part.bigCorner({
-    id: "corner_1", 
-    position: { x: -200, y: 80, z: 160 },
-    rotation:  { x: 0, y: Math.PI / 4, z: 0 },
+    id: "corner_sect1_bl", // bal-alsó sarok
+    position: { 
+      x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth,
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth + 5, 
+    },
+    rotation: { x: Math.PI / 2, y: 0, z: Math.PI + Math.PI / 2 }, // Vertikálisan felállítva
     explodeOffset: { x: 0, y: 0, z: 0 }
   }),
+
+  window.part.bigCorner({
+    id: "corner_sect1_br", // jobb-alsó sarok
+    position: { 
+      x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth + 5,
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth, 
+    },
+    rotation: { x: Math.PI / 2, y: 0, z: Math.PI }, // Vertikálisan felállítva
+    explodeOffset: { x: 0, y: 0, z: 0 }
+  }),
+
+  window.part.bigCorner({
+    id: "corner_sect1_tl", // bal-felső sarok
+    position: { 
+      x: -COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1) + (COURSE_DIMENSIONS.crossBeamWidth * 3) - 5 - 0.5,
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth, 
+    },
+    rotation: { x: Math.PI / 2, y: 0, z: 0 }, // Vertikálisan felállítva
+    explodeOffset: { x: 0, y: 0, z: 0 }
+  }),
+
+  window.part.bigCorner({
+    id: "corner_sect1_tr", // jobb-felső sarok
+    position: { 
+      x: -COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1) + (COURSE_DIMENSIONS.crossBeamWidth * 3) - 0.5,
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth - 5, 
+    },
+    rotation: { x: Math.PI / 2, y: 0, z: Math.PI / 2 }, // Vertikálisan felállítva
+    explodeOffset: { x: 0, y: 0, z: 0 }
+  }),
+  
+
+
 ];
