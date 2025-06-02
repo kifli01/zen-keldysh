@@ -642,7 +642,7 @@ export const elements = [
     ];
   }).flat(),
   
-// SAROKVASAK - három belső szekció (12 darab összesen)
+  // SAROKVASAK - három belső szekció (12 darab összesen)
   // Szárak a lécek keskeny részére (4cm magas oldalra) feküdnek fel
   
   // ELSŐ SZEKCIÓ - 4 sarokvasa
