@@ -1,13 +1,14 @@
 /**
  * View Mode Manager
  * Váltás színes nézet és tervrajz stílus között
- * v2.0.0 - Legacy holes támogatás eltávolítva, dupla rotáció javítva
+ * v2.1.0 - TextureManager injektálás, textúra és anyag kód kiszervezve
  */
 
 class ViewModeManager {
-  constructor(sceneManager, geometryBuilder) {
+  constructor(sceneManager, geometryBuilder, textureManager) {
     this.sceneManager = sceneManager;
     this.geometryBuilder = geometryBuilder;
+    this.textureManager = textureManager;
     this.currentMode = "blueprint"; // 'realistic' vagy 'blueprint'
 
     // Eredeti anyagok mentése
@@ -22,54 +23,12 @@ class ViewModeManager {
     // Shader támogatás
     this.toonMaterials = null;
 
-    // Textúrák létrehozása
-    this.textures = this.createTextures();
+    // Textúrák és anyagok betöltése TextureManager-ből
+    this.textures = this.textureManager.getAllTextures();
+    this.realisticMaterials = this.textureManager.getRealisticMaterials();
+    this.wireframeMaterial = this.textureManager.getWireframeMaterial();
 
-    // Realistic anyagok - valószerű textúrákkal
-    this.realisticMaterials = {
-      plate: new THREE.MeshPhongMaterial({
-        color: 0xb99379,
-        shininess: 10,
-        transparent: false,
-      }),
-      frame: new THREE.MeshPhongMaterial({
-        color: 0xecc5a9,
-        map: this.textures.wood,
-        shininess: 10,
-        transparent: false,
-      }),
-      covering: new THREE.MeshPhongMaterial({
-        color: 0xa5bc49,
-        map: this.textures.grass,
-        shininess: 2,
-        transparent: false,
-      }),
-      wall: new THREE.MeshPhongMaterial({
-        color: 0xecc5a9,
-        map: this.textures.wood,
-        shininess: 10,
-        transparent: false,
-      }),
-      leg: new THREE.MeshPhongMaterial({
-        color: 0xecc5a9,
-        map: this.textures.wood,
-        shininess: 10,
-        transparent: false,
-      }),
-      ball: new THREE.MeshPhongMaterial({
-        color: 0xffffff,
-        shininess: 30,
-        transparent: false,
-      }),
-    };
-
-    // Wireframe anyag
-    this.wireframeMaterial = new THREE.LineBasicMaterial({
-      color: 0x333333,
-      linewidth: 2,
-      transparent: true,
-      opacity: 0.8,
-    });
+    console.log("ViewModeManager v2.1.0 - TextureManager injektálva");
   }
 
   // Exploder referencia beállítása
@@ -128,110 +87,6 @@ class ViewModeManager {
       console.error("❌ Toon shader anyagok létrehozási hiba:", error);
       return false;
     }
-  }
-
-  // Textúrák létrehozása
-  createTextures() {
-    const textures = {};
-
-    textures.paper = this.createPaperTexture();
-    textures.wood = this.createWoodTexture();
-    textures.grass = this.createGrassTexture();
-
-    return textures;
-  }
-
-  // Papír textúra létrehozása
-  createPaperTexture() {
-    const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 512;
-    const context = canvas.getContext("2d");
-
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, 512, 512);
-
-    const imageData = context.getImageData(0, 0, 512, 512);
-    const data = imageData.data;
-
-    for (let i = 0; i < data.length; i += 4) {
-      const noise = (Math.random() - 0.5) * 1;
-      data[i] = Math.max(0, Math.min(255, 255 + noise));
-      data[i + 1] = Math.max(0, Math.min(255, 255 + noise));
-      data[i + 2] = Math.max(0, Math.min(255, 255 + noise));
-      data[i + 3] = 255;
-    }
-
-    context.putImageData(imageData, 0, 0);
-
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(16, 16);
-    return texture;
-  }
-
-  // Fa textúra létrehozása
-  createWoodTexture() {
-    const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 512;
-    const context = canvas.getContext("2d");
-
-    context.fillStyle = "#AF815F";
-    context.fillRect(0, 0, 512, 512);
-
-    for (let i = 0; i < 20; i++) {
-      context.strokeStyle = `rgba(139, 69, 19, ${0.1 + Math.random() * 0.3})`;
-      context.lineWidth = 2 + Math.random() * 4;
-      context.beginPath();
-      context.moveTo(0, Math.random() * 512);
-      context.bezierCurveTo(
-        128,
-        Math.random() * 512,
-        384,
-        Math.random() * 512,
-        512,
-        Math.random() * 512
-      );
-      context.stroke();
-    }
-
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(2, 2);
-    return texture;
-  }
-
-  // Műfű textúra létrehozása
-  createGrassTexture() {
-    const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 512;
-    const context = canvas.getContext("2d");
-
-    context.fillStyle = "#A5BC49";
-    context.fillRect(0, 0, 512, 512);
-
-    for (let i = 0; i < 1000; i++) {
-      const x = Math.random() * 512;
-      const y = Math.random() * 512;
-      const length = 5 + Math.random() * 15;
-
-      context.strokeStyle = `rgba(34, 139, 34, ${0.3 + Math.random() * 0.7})`;
-      context.lineWidth = 1;
-      context.beginPath();
-      context.moveTo(x, y);
-      context.lineTo(x + (Math.random() - 0.5) * 4, y - length);
-      context.stroke();
-    }
-
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(8, 8);
-    return texture;
   }
 
   // Eredeti anyagok mentése
@@ -929,23 +784,15 @@ class ViewModeManager {
   destroy() {
     this.removeWireframeLayer();
 
-    Object.values(this.realisticMaterials).forEach((material) => {
-      material.dispose();
-    });
-
     if (this.toonMaterials) {
       Object.values(this.toonMaterials).forEach((material) => {
         material.dispose();
       });
     }
 
-    this.wireframeMaterial.dispose();
-
-    Object.values(this.textures).forEach((texture) => {
-      texture.dispose();
-    });
-
     this.originalMaterials.clear();
     this.wireframeLayer.clear();
+
+    console.log("ViewModeManager v2.1.0 destroy - TextureManager anyagokat nem dispose-olja");
   }
 }

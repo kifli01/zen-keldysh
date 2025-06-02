@@ -49,6 +49,8 @@ function bigCorner(params) {
   const length = 10;
   const width = 2;
   const thickness = 0.2;
+  const holeRadius = 0.3;
+  const holeShiftFromSide = 2;
 
   return {
     id: id,
@@ -70,9 +72,20 @@ function bigCorner(params) {
             },
             csgOperations: [
               createCircleHole({
-                radius: 0.3,
+                radius: holeRadius,
                 position: {
-                  x: 0,
+                  x: - length / 2 + holeShiftFromSide,
+                  y: 0,
+                  z: 0,
+                },
+                axis: 'y',
+                direction: 'down',
+                depth: thickness,
+              }),
+              createCircleHole({
+                radius: holeRadius,
+                position: {
+                  x: length / 2 - thickness / 2 - holeShiftFromSide,
                   y: 0,
                   z: 0,
                 },
@@ -97,6 +110,32 @@ function bigCorner(params) {
               width: width, 
               height: thickness,
             },
+            csgOperations: [
+              // createCircleHole({
+              //   radius: holeRadius,
+              //   position: {
+              //     x: - length / 2 + holeShiftFromSide,
+              //     y: 0,
+              //     z: 0,
+              //   },
+              //   axis: 'y',
+              //   direction: 'down',
+              //   depth: thickness,
+              //   rotation: { x: 0, y: 0, z: Math.PI / 2 },
+              // }),
+              // createCircleHole({
+              //   radius: holeRadius,
+              //   position: {
+              //     x: length / 2 - thickness / 2 - holeShiftFromSide,
+              //     y: 0,
+              //     z: 0,
+              //   },
+              //   axis: 'y',
+              //   direction: 'down',
+              //   depth: thickness,
+              //   rotation: { x: 0, y: 0, z: Math.PI / 2 },
+              // }),
+            ]
           },
           transform: {
             position: { x: length / 2 - thickness / 2, y: length / 2, z: 0 },

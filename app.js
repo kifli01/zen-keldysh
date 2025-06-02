@@ -1,6 +1,6 @@
 /**
  * Minigolf Pálya Viewer - Főalkalmazás
- * v1.8.1 - CSS2DRenderer import és koordináta rendszer hozzáadva
+ * v1.8.2 - TextureManager injektálás hozzáadva
  */
 
 // ES6 importok
@@ -25,6 +25,7 @@ let geometryBuilder;
 let exploder;
 let viewModeManager;
 let csgManager;
+let textureManager; // ÚJ: TextureManager
 let allMeshes;
 
 // CSG inicializálás
@@ -111,12 +112,17 @@ function checkCSS2DAvailability() {
 // Főalkalmazás inicializálása
 async function initialize() {
   try {
-    console.log("Inicializálás kezdete v1.8.1...");
+    console.log("Inicializálás kezdete v1.8.2...");
 
     // Könyvtárak ellenőrzése
     const csgAvailable = initializeCSG();
     const shadersAvailable = checkShaderAvailability();
     const css2dAvailable = checkCSS2DAvailability();
+
+    // ÚJ: TextureManager létrehozása és inicializálása
+    textureManager = new TextureManager();
+    textureManager.initialize();
+    console.log("✅ TextureManager inicializálva");
 
     // Manager objektumok létrehozása
     elementManager = new ElementManager();
@@ -125,7 +131,9 @@ async function initialize() {
     );
     geometryBuilder = new GeometryBuilder();
     exploder = new Exploder();
-    viewModeManager = new ViewModeManager(sceneManager, geometryBuilder);
+    
+    // MÓDOSÍTOTT: ViewModeManager TextureManager injektálással
+    viewModeManager = new ViewModeManager(sceneManager, geometryBuilder, textureManager);
 
     // Keresztreferenciák beállítása
     exploder.setViewModeManager(viewModeManager);
@@ -207,7 +215,7 @@ async function initialize() {
       console.log("Event listener-ek beállítva");
     }
 
-    console.log("Inicializálás sikeres v1.8.1!");
+    console.log("Inicializálás sikeres v1.8.2!");
   } catch (error) {
     console.error("Hiba az inicializálás során:", error);
   }
@@ -215,7 +223,7 @@ async function initialize() {
 
 // Globális hozzáférés debug-hoz
 window.debugInfo = () => {
-  console.log("=== DEBUG INFO v1.8.1 ===");
+  console.log("=== DEBUG INFO v1.8.2 ===");
   console.log(
     "Element Manager:",
     elementManager?.getAllElements().length + " elem"
@@ -229,6 +237,10 @@ window.debugInfo = () => {
   if (csgManager) {
     console.log("CSG Manager:", csgManager.getDebugInfo());
   }
+  // ÚJ: TextureManager debug info
+  if (textureManager) {
+    console.log("Texture Manager:", textureManager.getStatus());
+  }
   console.log("Shaders:", checkShaderAvailability());
   console.log("CSS2D:", checkCSS2DAvailability());
   console.log("==================");
@@ -239,6 +251,7 @@ window.sceneManager = () => sceneManager;
 window.csgManager = () => csgManager;
 window.viewModeManager = () => viewModeManager;
 window.exploder = () => exploder;
+window.textureManager = () => textureManager; // ÚJ: TextureManager debug hozzáférés
 
 // Egyedi elem láthatóság kapcsoló funkció
 window.toggleElementVisibility = function (elementId, isVisible) {
@@ -282,5 +295,6 @@ export {
   exploder,
   viewModeManager,
   csgManager,
+  textureManager, // ÚJ: TextureManager export
   allMeshes,
 };
