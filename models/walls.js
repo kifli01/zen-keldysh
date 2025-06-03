@@ -225,18 +225,4 @@ export const elements = [
     rotation: { x: 0, y: -Math.PI / 2, z: Math.PI / 2 },
     explodeOffset: { x: 0, y: 0, z: 50 }
   }),
-
-  window.part.screwHexBig({
-    id: "screw_1",
-    position: { x: 0, y: 20, z: 0 },
-    explodeOffset: { x: 0, y: 0, z: 0 },
-    rotation: { x: 0, y: 0, z: 0 }
-  }),
-
-  window.part.screwCskSmall({
-    id: "screw_2",
-    position: { x: -80, y: 40, z: 70 },
-    explodeOffset: { x: 0, y: 0, z: 0 },
-    rotation: { x: 0, y: 0, z: 0 }
-  })
 ];

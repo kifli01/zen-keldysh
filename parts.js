@@ -381,6 +381,14 @@ function screwHexBig(params) {
   })
 }
 
+// Példa
+// window.part.screwHexBig({
+//     id: "screw_1",
+//     position: { x: 0, y: 0, z: 0 },
+//     explodeOffset: { x: 0, y: 0, z: 0 },
+//     rotation: { x: 0, y: 0, z: 0 }
+//   }),
+
 function screwCskSmall(params) {
   const {
     id,
@@ -403,6 +411,14 @@ function screwCskSmall(params) {
     shaft
   })
 }
+
+// Példa
+// window.part.screwCskSmall({
+//     id: "screw_2",
+//     position: { x: 0, y: 0, z: 0 },
+//     explodeOffset: { x: 0, y: 0, z: 0 },
+//     rotation: { x: 0, y: 0, z: 0 }
+//   })
 
 // Globális elérhetőség
 window.part = {
