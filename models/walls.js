@@ -225,4 +225,11 @@ export const elements = [
     rotation: { x: 0, y: -Math.PI / 2, z: Math.PI / 2 },
     explodeOffset: { x: 0, y: 0, z: 50 }
   }),
+
+  window.part.hexBolt({
+    id: "bolt_1",
+    position: { x: -200, y: 80, z: 150 },
+    explodeOffset: { x: 0, y: 10, z: 0 },
+    rotation: { x: Math.PI / 2, y: 0, z: 0 }
+  })
 ];

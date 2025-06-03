@@ -244,10 +244,124 @@ function smallCorner(params) {
   };
 }
 
+function hexBolt(params) {
+  const {
+    id,
+    position,
+    explodeOffset,
+    rotation = { x: 0, y: 0, z: 0 },
+  } = params;
+
+  const headDiameter = 1.3; // M8 hatlapfej átmérő: 13mm = 1.3 cm
+  const headHeight = 0.5;   // Hatlapfej magasság: 5mm = 0.5 cm
+  const shaftDiameter = 0.8; // M8 menet átmérő: 8mm = 0.8 cm
+  const shaftLength = 14.0;  // Szár hossz: 140mm = 14.0 cm
+
+  // Kereszt horony paraméterei
+  const slotLength = 0.1;     // Horony szélesség: 1mm = 0.1 cm
+  const slotDepth = 0.2;    // Horony mélység: 1.5mm = 0.15 cm
+  const slotWidth = 0.7;
+
+  return {
+    id: id,
+    name: "Hatlapfejű csavar M8×140mm (valódi hatszög)",
+    type: ELEMENT_TYPES.PART,
+    material: "GALVANIZED_STEEL",
+    geometry: {
+      type: GEOMETRY_TYPES.GROUP,
+      elements: [
+        // Hatlapfej (valódi hatszög)
+        // {
+        //   id: `${id}_head`,
+        //   name: "head",
+        //   geometry: {
+        //     type: GEOMETRY_TYPES.CYLINDER,
+        //     dimensions: {
+        //       diameter: headDiameter,
+        //       radius: headDiameter / 2,
+        //       height: headHeight,
+        //       segments: 6, // 6 szegmens = hatszög
+        //     },
+        //   },
+        //   transform: {
+        //     position: { x: 0, y: headHeight / 2, z: 0 },
+        //     rotation: { x: 0, y: 0, z: 0 },
+        //   },
+        // },
+        {
+          id: `${id}_head`,
+          name: "countersunk_head",
+          geometry: {
+            type: GEOMETRY_TYPES.CYLINDER,
+            dimensions: {
+              topRadius: headDiameter / 2,                    // Felül keskeny (0)
+              bottomRadius: shaftDiameter / 2,  // Alul széles
+              height: headHeight,
+              segments: 16,
+            },
+            csgOperations: [
+              // Vízszintes horony (X irányban)
+              {
+                type: CSG_OPERATIONS.SUBTRACT,
+                geometry: "box",
+                params: {
+                  width: slotLength,  // Teljes fejen átmegy
+                  height: slotDepth,          // 1.5mm mély
+                  length: slotWidth,          // 1mm széles
+                },
+                position: { x: 0, y: headHeight / 2 - slotDepth / 2, z: 0 },
+              },
+              // Függőleges horony (Z irányban)
+              {
+                type: CSG_OPERATIONS.SUBTRACT,
+                geometry: "box", 
+                params: {
+                  width: slotWidth,           // 1mm széles
+                  height: slotDepth,          // 1.5mm mély
+                  length: slotLength, // Teljes fejen átmegy
+                },
+                position: { x: 0, y: headHeight / 2 - slotDepth / 2, z: 0 },
+              },
+            ],
+          },
+          transform: {
+            position: { x: 0, y: headHeight / 2, z: 0 },
+            rotation: { x: 0, y: 0, z: 0 },
+          },
+        },
+        // Menetes szár
+        {
+          id: `${id}_shaft`,
+          name: "shaft", 
+          geometry: {
+            type: GEOMETRY_TYPES.CYLINDER,
+            dimensions: {
+              diameter: shaftDiameter,
+              radius: shaftDiameter / 2,
+              height: shaftLength,
+            },
+          },
+          transform: {
+            position: { x: 0, y: -shaftLength / 2, z: 0 },
+            rotation: { x: 0, y: 0, z: 0 },
+          },
+        }
+      ],
+    },
+    transform: {
+      position: position,
+      rotation: rotation,
+    },
+    explode: {
+      offset: explodeOffset,
+    },
+  };
+}
 
 // Globális elérhetőség
 window.part = {
   dowel,
   bigCorner,
   smallCorner,
+  hexBolt,
 };

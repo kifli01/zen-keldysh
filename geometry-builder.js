@@ -105,7 +105,16 @@ class GeometryBuilder {
 
       case GEOMETRY_TYPES.CYLINDER:
         const radius = dim.radius || dim.diameter / 2;
-        return new THREE.CylinderGeometry(radius, radius, dim.height, 16);
+        const segments = dim.segments || 16; // segments paraméter támogatása
+        
+        // ÚJ: Kúp alakú geometria támogatása (topRadius/bottomRadius)
+        if (dim.topRadius !== undefined && dim.bottomRadius !== undefined) {
+          // Kúp: különböző felső és alsó sugár
+          return new THREE.CylinderGeometry(dim.topRadius, dim.bottomRadius, dim.height, segments);
+        } else {
+          // Hagyományos henger: azonos sugár felül és alul
+          return new THREE.CylinderGeometry(radius, radius, dim.height, segments);
+        }
 
       case GEOMETRY_TYPES.SPHERE:
         const sphereRadius = dim.radius || dim.diameter / 2;
