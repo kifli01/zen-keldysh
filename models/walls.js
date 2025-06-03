@@ -226,10 +226,17 @@ export const elements = [
     explodeOffset: { x: 0, y: 0, z: 50 }
   }),
 
-  window.part.hexBolt({
-    id: "bolt_1",
-    position: { x: -200, y: 80, z: 150 },
-    explodeOffset: { x: 0, y: 10, z: 0 },
-    rotation: { x: Math.PI / 2, y: 0, z: 0 }
+  window.part.screwHexBig({
+    id: "screw_1",
+    position: { x: 0, y: 20, z: 0 },
+    explodeOffset: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 }
+  }),
+
+  window.part.screwCskSmall({
+    id: "screw_2",
+    position: { x: -80, y: 40, z: 70 },
+    explodeOffset: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 }
   })
 ];
