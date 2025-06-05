@@ -787,5 +787,27 @@ export const elements = [
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI / 2 }, // Vertikálisan felállítva
     explodeOffset: { x: -5, y: 0, z: 0 }
   }),
+
+    ...Array.from({ length: 5 }, (v, i) => window.part.tessauerSmall({
+    id: `tessauer_left_frame_${i}`,
+    position: { 
+      x: HOLE_POSITION.smallCorner.x[i], 
+      y: - HOLE_POSITION.smallCorner.y, 
+      z: HOLE_POSITION.smallCorner.z - 2 - 0.3 / 2,
+    },
+    explodeOffset: { x: 0, y: -5, z: 25 },
+    rotation: { x: 0, y: 0, z: 0 },
+  })),
+
+  ...Array.from({ length: 5 }, (v, i) => window.part.tessauerSmall({
+    id: `tessauer_right_frame_${i}`,
+    position: { 
+      x: HOLE_POSITION.smallCorner.x[i], 
+      y: - HOLE_POSITION.smallCorner.y, 
+      z: - HOLE_POSITION.smallCorner.z + 2 + 0.3 / 2
+    },
+    explodeOffset: { x: 0, y: -5, z: -25 },
+    rotation: { x: 0, y: 0, z: 0 },
+  }))
   
 ];
