@@ -160,8 +160,8 @@ function smallCorner(params) {
     rotation = { x: 0, y: 0, z: 0 },
   } = params;
 
-  const length = 3; // 2.5
-  const width = 3; // 1.5
+  const length = 3; 
+  const width = 3; 
   const thickness = 0.2;
   const holeRadius = 0.3;
   const holeShiftFromSide = 2;
