@@ -788,7 +788,7 @@ export const elements = [
     explodeOffset: { x: -5, y: 0, z: 0 }
   }),
 
-    ...Array.from({ length: 5 }, (v, i) => window.part.tessauerSmall({
+  ...Array.from({ length: 5 }, (v, i) => window.part.tessauerSmall({
     id: `tessauer_left_frame_${i}`,
     position: { 
       x: HOLE_POSITION.smallCorner.x[i], 
@@ -808,6 +808,28 @@ export const elements = [
     },
     explodeOffset: { x: 0, y: -5, z: -25 },
     rotation: { x: 0, y: 0, z: 0 },
-  }))
+  })),
+
+  ...Array.from({ length: 5 }, (v, i) => window.part.screwCskSmall({
+    id: `countersunk_left_frame_${i}`,
+    position: { 
+      x: HOLE_POSITION.smallCorner.x[i], 
+      y: - HOLE_POSITION.smallCorner.y - 1.2 / 2 + 0.23 / 2, 
+      z: HOLE_POSITION.smallCorner.z - 2 - 0.3 / 2,
+    },
+    explodeOffset: { x: 0, y: -10, z: 25 },
+    rotation: { x: 0, y: 0, z: Math.PI },
+  })),
+
+  ...Array.from({ length: 5 }, (v, i) => window.part.screwCskSmall({
+    id: `countersunk_right_frame_${i}`,
+    position: { 
+      x: HOLE_POSITION.smallCorner.x[i], 
+      y: - HOLE_POSITION.smallCorner.y - 1.2 / 2 + 0.23 / 2, 
+      z: - HOLE_POSITION.smallCorner.z + 2 + 0.3 / 2
+    },
+    explodeOffset: { x: 0, y: -10, z: -25 },
+    rotation: { x: 0, y: 0, z: Math.PI },
+  })),
   
 ];

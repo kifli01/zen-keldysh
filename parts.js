@@ -398,8 +398,8 @@ function screwCskSmall(params) {
   } = params;
 
   const type = "COUNTERSUNK";
-  const head = { type: "csk", diameter: 1.13, height: 0.33 }
-  const shaft = { diameter: 0.6, height: 6 }
+  const head = { type: "csk", diameter: 0.8, height: 0.23 }
+  const shaft = { diameter: 0.4, height: 1.2 }
 
   return screw({
     id: `${id}_${type}`,
