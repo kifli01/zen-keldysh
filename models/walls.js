@@ -222,4 +222,28 @@ export const elements = [
     rotation: { x: 0, y: -Math.PI / 2, z: Math.PI / 2 },
     explodeOffset: { x: 0, y: 0, z: 50 }
   }),
+
+  ...Array.from({ length: 5 }, (v, i) => window.part.tessauerSmall({
+    id: `tessauer_left_wall_${i}`,
+    position: { 
+      x: HOLE_POSITION.smallCorner.x[i], 
+      y: - HOLE_POSITION.smallCorner.y - 2 - 0.2 - 0.15 - 0.15, 
+      z: HOLE_POSITION.smallCorner.z + 1.3 / 2 - 0.1
+    },
+    explodeOffset: { x: 0, y: 0, z: 55 },
+    rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  })),
+
+  ...Array.from({ length: 5 }, (v, i) => window.part.tessauerSmall({
+    id: `tessauer_right_wall_${i}`,
+    position: { 
+      x: HOLE_POSITION.smallCorner.x[i], 
+      y: - HOLE_POSITION.smallCorner.y - 2 - 0.2 - 0.15 - 0.15, 
+      z: - HOLE_POSITION.smallCorner.z - 1.3 / 2 + 0.1
+    },
+    explodeOffset: { x: 0, y: 0, z: -55 },
+    rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  }))
+
+  
 ];

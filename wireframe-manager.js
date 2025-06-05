@@ -33,7 +33,7 @@ class WireframeManager {
       if (!mesh) return;
 
       // GROUP esetén nem készítünk wireframe-et
-      if (mesh.userData && mesh.userData.isGroup) {
+      if (mesh.userData && mesh.userData.isGroup || element.noWireframe) {
         console.log(`🚫 GROUP elem ${element.id} - wireframe kihagyva`);
         return;
       }

@@ -135,3 +135,20 @@ const CSG_DEBUG = {
   validateGeometry: false, // Geometria validálás
   wireframeResults: false, // Eredmények wireframe módban
 };
+
+
+// Lyuk pozíciók
+
+const HOLE_POSITION = {
+  smallCorner: {
+  x: [
+    -COURSE_DIMENSIONS.length / 2 + 3 / 2,
+    -COURSE_DIMENSIONS.length / 4,
+    0,
+    COURSE_DIMENSIONS.length / 4,
+    COURSE_DIMENSIONS.length / 2 - 3 / 2,
+  ],
+  y: COURSE_DIMENSIONS.frameHeight,
+  z: COURSE_DIMENSIONS.width / 2
+}
+}

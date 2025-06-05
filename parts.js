@@ -420,6 +420,80 @@ function screwCskSmall(params) {
 //     rotation: { x: 0, y: 0, z: 0 }
 //   })
 
+function tessauer(params) {
+  const {
+    id,
+    name,
+    position = { x: 0, y: 0, z: 0 },
+    explodeOffset = { x: 0, y: 0, z: 0 },
+    rotation = { x: 0, y: 0, z: 0 },
+    outDiameter,
+    inDiameter,
+    height,
+  } = params;
+
+  return {
+    id: id,
+    name: name,
+    type: ELEMENT_TYPES.PART,
+    material: "GALVANIZED_STEEL",
+    noWireframe: true,
+    geometry: {
+      type: GEOMETRY_TYPES.CYLINDER,
+      dimensions: {
+        diameter: outDiameter, 
+        radius: outDiameter / 2,
+        height: height,
+      },
+      csgOperations: [
+        createCircleHole({
+          radius: inDiameter / 2,
+          position: {
+            x: 0,
+            y: 0,
+            z: 0,
+          },
+          axis: 'y',
+          direction: 'down',
+          depth: height,
+        }),
+      ]
+    },
+    transform: {
+      position: position,
+      rotation: rotation,
+    },
+    explode: {
+      offset: explodeOffset,
+    },
+  };
+}
+
+function tessauerSmall(params) {
+  const {
+    id,
+    position = { x: 0, y: 0, z: 0 },
+    explodeOffset = { x: 0, y: 0, z: 0 },
+    rotation = { x: 0, y: 0, z: 0 },
+  } = params;
+
+  const type = "TESSAUER";
+  const outDiameter = 0.6;
+  const inDiameter = 0.4;
+  const height = 1.3;
+
+  return tessauer({
+    id: `${id}_${type}`,
+    name: `${type} Tessauer`,
+    position,
+    explodeOffset,
+    rotation,
+    outDiameter,
+    inDiameter,
+    height,
+  });
+}
+
 // Globális elérhetőség
 window.part = {
   dowel,
@@ -427,4 +501,5 @@ window.part = {
   smallCorner,
   screwHexBig,
   screwCskSmall,
+  tessauerSmall,
 };
