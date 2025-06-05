@@ -40,27 +40,6 @@ export const elements = [
         height: COURSE_DIMENSIONS.sideHeight, // 16 cm
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
-      // ÚJ: Kétlépcsős lyuk jobbról balra
-      // csgOperations: [
-      //   ...twoStepHole({
-      //     position: {
-      //       x: 0, // Középen hosszában
-      //       y: 0, // Középen magasságban
-      //       z: 0, // Fal középpontjában (vastagság irányban)
-      //     },
-      //     parentThickness: COURSE_DIMENSIONS.sideWidth, // 5 cm (fal vastagsága)
-      //     firstHole: {
-      //       radius: 2, // 2 cm sugár (4 cm átmérő)
-      //       depth: 4, // 4 cm mélység
-      //     },
-      //     secondHole: {
-      //       radius: 1, // 1 cm sugár (2 cm átmérő)
-      //       depth: 1, // 1 cm mélység (4+1=5cm = teljes átfúrás)
-      //     },
-      //     axis: "z", // Z tengely (fal vastagság irányban)
-      //     direction: "right", // Jobbról balra (külső oldalról befelé)
-      //   }),
-      // ],
     },
     transform: {
       position: {
@@ -123,7 +102,7 @@ export const elements = [
     transform: {
       position: {
         x: -COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.frontWidth / 2,
-        y: -COURSE_DIMENSIONS.frontHeight / 2,
+        y: -COURSE_DIMENSIONS.frontHeight / 2 + COURSE_DIMENSIONS.topPlateThickness / 2,
         z: 0,
       },
     },
@@ -139,7 +118,7 @@ export const elements = [
     id: "corner_first_left", // 1. sor, bal
     position: { 
       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2,
-      y: -COURSE_DIMENSIONS.frameHeight - 3 + 0.1,
+      y: -COURSE_DIMENSIONS.frameHeight - 2 + 0.1,
       z: -COURSE_DIMENSIONS.width / 2 + 0.1, 
     },
     rotation: { x: Math.PI / 2, y: Math.PI / 2, z: 0 },
@@ -149,7 +128,7 @@ export const elements = [
     id: "corner_first_right", // 1. sor, jobb
     position: { 
       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2,
-      y: -COURSE_DIMENSIONS.frameHeight - 3 + 0.1,
+      y: -COURSE_DIMENSIONS.frameHeight - 2 + 0.1,
       z: COURSE_DIMENSIONS.width / 2 - 0.1, 
     },
     rotation: { x: 0, y: -Math.PI / 2, z: Math.PI / 2 },
@@ -162,7 +141,7 @@ export const elements = [
     position: { 
       x: -COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1) + 
       (COURSE_DIMENSIONS.crossBeamWidth * 3) + (COURSE_DIMENSIONS.crossBeamWidth / 2),
-      y: -COURSE_DIMENSIONS.frameHeight - 3 + 0.1,
+      y: -COURSE_DIMENSIONS.frameHeight - 2 + 0.1,
       z: -COURSE_DIMENSIONS.width / 2 + 0.1, 
     },
     rotation: { x: Math.PI / 2, y: Math.PI / 2, z: 0 },
@@ -173,7 +152,7 @@ export const elements = [
     position: { 
       x: -COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1) + 
       (COURSE_DIMENSIONS.crossBeamWidth * 3) + (COURSE_DIMENSIONS.crossBeamWidth / 2),
-      y: -COURSE_DIMENSIONS.frameHeight - 3 + 0.1,
+      y: -COURSE_DIMENSIONS.frameHeight - 2 + 0.1,
       z: COURSE_DIMENSIONS.width / 2 - 0.1, 
     },
     rotation: { x: 0, y: -Math.PI / 2, z: Math.PI / 2 },
@@ -186,7 +165,7 @@ export const elements = [
     position: { 
       x: COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1) - 
       (COURSE_DIMENSIONS.crossBeamWidth * 3) - (COURSE_DIMENSIONS.crossBeamWidth / 2),
-      y: -COURSE_DIMENSIONS.frameHeight - 3 + 0.1,
+      y: -COURSE_DIMENSIONS.frameHeight - 2 + 0.1,
       z: -COURSE_DIMENSIONS.width / 2 + 0.1, 
     },
     rotation: { x: Math.PI / 2, y: Math.PI / 2, z: 0 },
@@ -197,7 +176,7 @@ export const elements = [
     position: { 
       x: COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1) - 
       (COURSE_DIMENSIONS.crossBeamWidth * 3) - (COURSE_DIMENSIONS.crossBeamWidth / 2),
-      y: -COURSE_DIMENSIONS.frameHeight - 3 + 0.1,
+      y: -COURSE_DIMENSIONS.frameHeight - 2 + 0.1,
       z: COURSE_DIMENSIONS.width / 2 - 0.1, 
     },
     rotation: { x: 0, y: -Math.PI / 2, z: Math.PI / 2 },
@@ -209,7 +188,7 @@ export const elements = [
     id: "corner_fourth_left", // 4. sor, bal
     position: { 
       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
-      y: -COURSE_DIMENSIONS.frameHeight - 3 + 0.1,
+      y: -COURSE_DIMENSIONS.frameHeight - 2 + 0.1,
       z: -COURSE_DIMENSIONS.width / 2 + 0.1, 
     },
     rotation: { x: Math.PI / 2, y: Math.PI / 2, z: 0 },
@@ -219,7 +198,7 @@ export const elements = [
     id: "corner_fourth_right", // 4. sor, jobb
     position: { 
       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
-      y: -COURSE_DIMENSIONS.frameHeight - 3 + 0.1,
+      y: -COURSE_DIMENSIONS.frameHeight - 2 + 0.1,
       z: COURSE_DIMENSIONS.width / 2 - 0.1, 
     },
     rotation: { x: 0, y: -Math.PI / 2, z: Math.PI / 2 },

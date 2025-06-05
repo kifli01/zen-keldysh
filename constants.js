@@ -79,7 +79,7 @@ const COURSE_DIMENSIONS = {
   length: 250, // cm
   width: 80, // cm
   topPlateThickness: 0.9, // 9 mm
-  turfThickness: 0.6, // 6 mm
+  turfThickness: 0.5, // 11.5mm
   holeRadius: 5.4, // átmérő: 10.8 cm
   holePositionX: 50, // A lyuk pozíciója a pálya végétől (cm)
   frontWidth: 2, // 2cm első takaró léc
@@ -88,7 +88,7 @@ const COURSE_DIMENSIONS = {
   frameHeight: 4, // 4 cm magas lécek
   sideWidth: 5, // 5 cm széles oldallécek
   sideHeight: 16, // 16 cm magas oldallécek
-  sideVerticalShift: 6, // 6 cm-re a borítástól felfelé
+  sideVerticalShift: 7, // 6 cm-re a borítástól felfelé
   legDiameter: 6, // 6 cm átmérőjű lábak
   legHeight: 12, // 12 cm magas lábak
   legInset: 3, // 4cm-rel bentebb
@@ -99,7 +99,9 @@ const COURSE_DIMENSIONS = {
 COURSE_DIMENSIONS.frontHeight =
   COURSE_DIMENSIONS.sideHeight -
   COURSE_DIMENSIONS.sideVerticalShift -
-  COURSE_DIMENSIONS.turfThickness;
+  COURSE_DIMENSIONS.turfThickness + 
+  COURSE_DIMENSIONS.topPlateThickness / 2
+  ;
 
 // ÚJ: CSG beállítások
 const CSG_CONFIG = {

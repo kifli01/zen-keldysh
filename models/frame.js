@@ -1,3 +1,5 @@
+const topPosition = -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2;
+
 export const elements = [
   // Váz - hosszanti lécek (2 db) - VÁLTOZATLAN
    // Váz - hosszanti lécek (2 db) - TIPLI LYUKAKKAL
@@ -112,7 +114,7 @@ export const elements = [
     transform: {
       position: {
         x: 0,
-        y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Frissített faalap vastagság
+        y: topPosition, // Frissített faalap vastagság
         z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth / 2,
       },
     },
@@ -232,7 +234,7 @@ export const elements = [
     transform: {
       position: {
         x: 0,
-        y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Frissített faalap vastagság
+        y: topPosition, // Frissített faalap vastagság
         z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth / 2,
       },
     },
@@ -309,7 +311,7 @@ export const elements = [
     transform: {
       position: {
         x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2,
-        y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Frissített faalap vastagság
+        y: topPosition, // Frissített faalap vastagság
         z: 0,
       },
     },
@@ -385,7 +387,7 @@ export const elements = [
     transform: {
       position: {
         x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
-        y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Frissített faalap vastagság
+        y: topPosition, // Frissített faalap vastagság
         z: 0,
       },
     },
@@ -467,7 +469,7 @@ export const elements = [
       transform: {
         position: {
           x: posX,
-          y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Frissített faalap vastagság
+          y: topPosition, // Frissített faalap vastagság
           z: 0,
         },
       },
@@ -483,7 +485,7 @@ export const elements = [
   ...(() => {
     const crossBeamX =
       -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2;
-    const crossBeamY = -COURSE_DIMENSIONS.frameHeight / 2 - 1.2;
+    const crossBeamY = -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness;
 
     return [
       // Bal oldal - első tipli
@@ -650,7 +652,7 @@ export const elements = [
     id: "corner_sect1_bl", // bal-alsó sarok
     position: { 
       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth + 5, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI + Math.PI / 2 }, // Vertikálisan felállítva
@@ -661,7 +663,7 @@ export const elements = [
     id: "corner_sect1_br", // jobb-alsó sarok
     position: { 
       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth + 5,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI }, // Vertikálisan felállítva
@@ -672,7 +674,7 @@ export const elements = [
     id: "corner_sect1_tl", // bal-felső sarok
     position: { 
       x: -COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1) + (COURSE_DIMENSIONS.crossBeamWidth * 3) - 5 - 0.5,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: 0 }, // Vertikálisan felállítva
@@ -683,7 +685,7 @@ export const elements = [
     id: "corner_sect1_tr", // jobb-felső sarok
     position: { 
       x: -COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1) + (COURSE_DIMENSIONS.crossBeamWidth * 3) - 0.5,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth - 5, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI / 2 }, // Vertikálisan felállítva
@@ -696,7 +698,7 @@ export const elements = [
     position: { 
       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 
       (COURSE_DIMENSIONS.crossBeamCount + 1) + COURSE_DIMENSIONS.crossBeamWidth / 2,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth + 5, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI + Math.PI / 2 }, // Vertikálisan felállítva
@@ -708,7 +710,7 @@ export const elements = [
     position: { 
       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 
       (COURSE_DIMENSIONS.crossBeamCount + 1) + COURSE_DIMENSIONS.crossBeamWidth / 2 + 5,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI }, // Vertikálisan felállítva
@@ -720,7 +722,7 @@ export const elements = [
     position: { 
       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.length / 
       (COURSE_DIMENSIONS.crossBeamCount + 1) - COURSE_DIMENSIONS.crossBeamWidth / 2 - 5,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: 0 }, // Vertikálisan felállítva
@@ -732,7 +734,7 @@ export const elements = [
     position: { 
       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.length / 
       (COURSE_DIMENSIONS.crossBeamCount + 1) - COURSE_DIMENSIONS.crossBeamWidth / 2,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth - 5, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI / 2 }, // Vertikálisan felállítva
@@ -745,7 +747,7 @@ export const elements = [
     position: { 
       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.length / 
       (COURSE_DIMENSIONS.crossBeamCount + 1) + COURSE_DIMENSIONS.crossBeamWidth / 2,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth + 5, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI + Math.PI / 2 }, // Vertikálisan felállítva
@@ -757,7 +759,7 @@ export const elements = [
     position: { 
       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.length / 
       (COURSE_DIMENSIONS.crossBeamCount + 1) + COURSE_DIMENSIONS.crossBeamWidth / 2 + 5,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI }, // Vertikálisan felállítva
@@ -768,7 +770,7 @@ export const elements = [
     id: "corner_sect3_tl", // bal-felső sarok
     position: { 
       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth - 5,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: 0 }, // Vertikálisan felállítva
@@ -779,7 +781,7 @@ export const elements = [
     id: "corner_sect3_tr", // jobb-felső sarok
     position: { 
       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth,
-      y: -COURSE_DIMENSIONS.frameHeight / 2 - 1.2, // Lécek szintjén
+      y: -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2, // Lécek szintjén
       z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth - 5, 
     },
     rotation: { x: Math.PI / 2, y: 0, z: Math.PI / 2 }, // Vertikálisan felállítva

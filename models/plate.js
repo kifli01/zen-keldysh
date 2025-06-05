@@ -8,7 +8,7 @@ export const elements = [
       type: GEOMETRY_TYPES.BOX,
       dimensions: {
         width: COURSE_DIMENSIONS.width, // 80 cm
-        height: 1.2, // 12mm = 1.2 cm
+        height: COURSE_DIMENSIONS.topPlateThickness, // 12mm = 1.2 cm
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
       csgOperations: [

@@ -96,7 +96,7 @@ export const elements = [
           x: pos.x,
           y:
             -COURSE_DIMENSIONS.frameHeight -
-            1.2 - // Frissített faalap vastagság
+            COURSE_DIMENSIONS.topPlateThickness / 2 - // Frissített faalap vastagság
             COURSE_DIMENSIONS.legHeight / 2,
           z: pos.z,
         },

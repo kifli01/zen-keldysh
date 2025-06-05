@@ -26,7 +26,7 @@ export const elements = [
       ],
     },
     transform: {
-      position: { x: 0, y: COURSE_DIMENSIONS.turfThickness / 2 + 0.7, z: 0 }, // Magasabbra helyezve: +0.7cm
+      position: { x: 0, y: COURSE_DIMENSIONS.topPlateThickness / 2 + COURSE_DIMENSIONS.turfThickness / 2, z: 0 }, // Magasabbra helyezve: +0.7cm
     },
     explode: {
       offset: { x: 0, y: 60, z: 0 },
