@@ -12,6 +12,19 @@ export const elements = [
         height: COURSE_DIMENSIONS.sideHeight, // 16 cm
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
+      csgOperations: [
+        ...Array.from({ length: 5 }, (v, i) => createCircleHole({
+          radius: 0.2,
+          position: { 
+            x: HOLE_POSITION.smallCorner.x[i], 
+            y: 0, 
+            z: COURSE_DIMENSIONS.sideWidth / 2 + 0.1
+          },
+          axis: 'z',
+          direction: 'left',
+          depth: 1.3,
+        })),
+      ],
     },
     transform: {
       position: {
@@ -40,6 +53,19 @@ export const elements = [
         height: COURSE_DIMENSIONS.sideHeight, // 16 cm
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
+      csgOperations: [
+        ...Array.from({ length: 5 }, (v, i) => createCircleHole({
+          radius: 0.2,
+          position: { 
+            x: HOLE_POSITION.smallCorner.x[i], 
+            y: 0, 
+            z: - COURSE_DIMENSIONS.sideWidth / 2 - 0.1
+          },
+          axis: 'z',
+          direction: 'right',
+          depth: 1.3,
+        })),
+      ],
     },
     transform: {
       position: {

@@ -17,6 +17,17 @@ export const elements = [
       },
       // ÚJ: Tipli lyukak - bal hosszanti léc
       csgOperations: [
+        ...Array.from({ length: 5 }, (v, i) => createCircleHole({
+          radius: 0.2,
+          position: { 
+            x: HOLE_POSITION.smallCorner.x[i], 
+            y: - COURSE_DIMENSIONS.frameHeight / 2 + 1.3 / 2 - 0.1, 
+            z: - COURSE_DIMENSIONS.frameWidth / 2 + 2 + 0.3 / 2 + 0.2,
+          },
+          axis: 'y',
+          direction: 'bottom',
+          depth: 1.3,
+        })),
         // Első keresztléc tipliei - 2 lyuk
         createCircleHole({
           radius: 0.4,
@@ -38,7 +49,8 @@ export const elements = [
           },
           axis: 'z',
           direction: 'right',
-          depth: 2
+          depth: 2,
+
         }),
         // 1. belső keresztléc tipliei - 2 lyuk
         createCircleHole({
@@ -137,6 +149,17 @@ export const elements = [
       },
       // ÚJ: Tipli lyukak - jobb hosszanti léc
       csgOperations: [
+        ...Array.from({ length: 5 }, (v, i) => createCircleHole({
+          radius: 0.2,
+          position: { 
+            x: HOLE_POSITION.smallCorner.x[i], 
+            y: - COURSE_DIMENSIONS.frameHeight / 2 + 1.3 / 2 - 0.1, 
+            z: COURSE_DIMENSIONS.frameWidth / 2 - 2 - 0.3 / 2 - 0.2,
+          },
+          axis: 'y',
+          direction: 'bottom',
+          depth: 1.3,
+        })),
         // Első keresztléc tipliei - 2 lyuk
         createCircleHole({
           radius: 0.4,
