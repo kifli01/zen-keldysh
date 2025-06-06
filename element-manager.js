@@ -1,16 +1,16 @@
 /**
  * Element Manager
  * Minigolf elemek kezelése, számítások, összesítések
- * v1.4.0 - Element ID-k hozzáadása a summary-hoz
+ * v1.5.0 - Shade támogatás hozzáadva
  */
 
 class ElementManager {
   constructor() {
     this.elements = new Map();
-    this.version = "1.4.0"; // Verzió a refaktorálás után
+    this.version = "1.5.0"; // Verzió frissítés shade támogatáshoz
   }
 
-  // Elem hozzáadása alapértékekkel
+  // Elem hozzáadása alapértékekkel - FRISSÍTETT: shade támogatással
   addElement(element) {
     // Alapértékek hozzáadása
     const processedElement = {
@@ -18,6 +18,7 @@ class ElementManager {
       transform: { ...DEFAULT_TRANSFORM, ...element.transform },
       display: { ...DEFAULT_DISPLAY },
       material: MATERIALS[element.material], // String kulcs helyett objektum
+      shade: element.shade || 5, // ÚJ: Shade megőrzése (alapértelmezett: 5)
     };
 
     this.elements.set(element.id, processedElement);
@@ -41,6 +42,18 @@ class ElementManager {
       Object.keys(MATERIALS).find(
         (key) => MATERIALS[key] === el.material && key === materialKey
       )
+    );
+  }
+
+  // ÚJ: Elemek szűrése shade szerint
+  getElementsByShade(shade) {
+    return Array.from(this.elements.values()).filter((el) => el.shade === shade);
+  }
+
+  // ÚJ: Elemek szűrése shade tartomány szerint
+  getElementsByShadeRange(minShade, maxShade) {
+    return Array.from(this.elements.values()).filter(
+      (el) => el.shade >= minShade && el.shade <= maxShade
     );
   }
 
@@ -147,6 +160,23 @@ class ElementManager {
     }));
   }
 
+  // ÚJ: Súly megoszlás shade szerint
+  getWeightByShade() {
+    const shadeWeights = new Map();
+
+    this.elements.forEach((element) => {
+      const shade = element.shade || 5;
+      const currentWeight = shadeWeights.get(shade) || 0;
+      shadeWeights.set(shade, currentWeight + element.calculated.weight);
+    });
+
+    return Array.from(shadeWeights.entries()).map(([shade, weight]) => ({
+      shade,
+      weight,
+      weightKg: weight / 1000,
+    }));
+  }
+
   // Segédfüggvény - típus megjelenítendő neve
   getTypeDisplayName(type) {
     const typeNames = {
@@ -231,7 +261,7 @@ class ElementManager {
     };
   }
 
-  // Summary objektum generálása (kompatibilis a summary.js-sel)
+  // Summary objektum generálása (kompatibilis a summary.js-sel) - FRISSÍTETT: shade info-val
   generateSummary() {
     const totalDimensions = this.getTotalDimensions();
     const totalWeight = this.getTotalWeight();
@@ -271,6 +301,7 @@ class ElementManager {
             volume: el.calculated.volume,
             weight: el.calculated.weight,
             spacing: el.spacing || null,
+            shade: el.shade || 5, // ÚJ: Shade info hozzáadása
           })),
           totalVolume: totalTypeVolume,
           totalWeight: totalTypeWeight,
@@ -291,6 +322,62 @@ class ElementManager {
         },
         byComponent: this.getWeightByType(),
         byMaterial: this.getWeightByMaterial(),
+        byShade: this.getWeightByShade(), // ÚJ: Shade szerinti súly megoszlás
+      },
+      // ÚJ: Shade statisztikák
+      shadeStats: {
+        elementCount: this.getAllElements().length,
+        shadeRange: this.getShadeRange(),
+        averageShade: this.getAverageShade(),
+        shadeDistribution: this.getShadeDistribution(),
+      },
+    };
+  }
+
+  // ÚJ: Shade tartomány meghatározása
+  getShadeRange() {
+    const elements = this.getAllElements();
+    if (elements.length === 0) return { min: 5, max: 5 };
+
+    const shades = elements.map(el => el.shade || 5);
+    return {
+      min: Math.min(...shades),
+      max: Math.max(...shades),
+    };
+  }
+
+  // ÚJ: Átlagos shade érték
+  getAverageShade() {
+    const elements = this.getAllElements();
+    if (elements.length === 0) return 5;
+
+    const totalShade = elements.reduce((sum, el) => sum + (el.shade || 5), 0);
+    return Math.round((totalShade / elements.length) * 10) / 10; // 1 tizedesjegy
+  }
+
+  // ÚJ: Shade eloszlás
+  getShadeDistribution() {
+    const distribution = {};
+    
+    this.getAllElements().forEach((element) => {
+      const shade = element.shade || 5;
+      distribution[shade] = (distribution[shade] || 0) + 1;
+    });
+
+    return distribution;
+  }
+
+  // ÚJ: Debug info shade-ekkel
+  getDebugInfo() {
+    return {
+      version: this.version,
+      elementCount: this.elements.size,
+      totalWeight: this.getTotalWeight(),
+      totalVolume: this.getTotalVolume(),
+      shadeStats: {
+        range: this.getShadeRange(),
+        average: this.getAverageShade(),
+        distribution: this.getShadeDistribution(),
       },
     };
   }

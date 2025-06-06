@@ -1,7 +1,7 @@
 /**
  * Geometry Builder
  * THREE.js geometriák és mesh-ek létrehozása elem definíciók alapján
- * v1.5.0 - CSG műveletek támogatása
+ * v1.6.0 - Shade támogatás hozzáadva
  */
 
 class GeometryBuilder {
@@ -10,24 +10,43 @@ class GeometryBuilder {
     this.csgManager = null; // CSG Manager referencia
   }
 
-  // ÚJ: CSG Manager beállítása
+  // CSG Manager beállítása
   setCSGManager(csgManager) {
     this.csgManager = csgManager;
     console.log("CSG Manager beállítva a GeometryBuilder-ben");
   }
 
-  // THREE.js material létrehozása anyag definíció alapján
-  createMaterial(materialDef) {
-    const cacheKey = `${materialDef.color}_${materialDef.shininess}`;
+  // FRISSÍTETT: THREE.js material létrehozása anyag definíció és shade alapján
+  createMaterial(materialDef, shade = 5) {
+    // Cache kulcs shade-del kibővítve
+    const cacheKey = `${JSON.stringify(materialDef)}_shade_${shade}`;
 
     if (this.materialCache.has(cacheKey)) {
       return this.materialCache.get(cacheKey);
     }
 
-    const material = new THREE.MeshPhongMaterial({
-      color: materialDef.color,
-      shininess: materialDef.shininess,
-    });
+    let material;
+
+    // Ha galvanizált acél és van TextureManager, akkor shade-alapú material
+    if (materialDef === MATERIALS.GALVANIZED_STEEL && window.textureManager) {
+      try {
+        const textureManager = window.textureManager();
+        material = textureManager.getGalvanizedMaterial(shade);
+        console.log(`🔧 Galvanizált material létrehozva shade ${shade}-del`);
+      } catch (error) {
+        console.warn("TextureManager nem elérhető, fallback material:", error);
+        material = new THREE.MeshPhongMaterial({
+          color: materialDef.color,
+          shininess: materialDef.shininess,
+        });
+      }
+    } else {
+      // Hagyományos material (más anyagok esetén a shade később lesz implementálva)
+      material = new THREE.MeshPhongMaterial({
+        color: materialDef.color,
+        shininess: materialDef.shininess,
+      });
+    }
 
     this.materialCache.set(cacheKey, material);
     return material;
@@ -37,7 +56,7 @@ class GeometryBuilder {
   createGeometry(element) {
     const geom = element.geometry;
 
-    // ÚJ: CSG műveletek ellenőrzése
+    // CSG műveletek ellenőrzése
     if (this.csgManager && (geom.holes || geom.csgOperations)) {
       return this.createCSGGeometry(element);
     }
@@ -46,7 +65,7 @@ class GeometryBuilder {
     return this.createStandardGeometry(element);
   }
 
-  // ÚJ: CSG geometria létrehozása
+  // CSG geometria létrehozása
   createCSGGeometry(element) {
     const geom = element.geometry;
 
@@ -94,7 +113,7 @@ class GeometryBuilder {
     return baseGeometry;
   }
 
-  // ÁTNEVEZETT: Hagyományos geometria létrehozása (régi createGeometry logika)
+  // Hagyományos geometria létrehozása
   createStandardGeometry(element) {
     const geom = element.geometry;
     const dim = geom.dimensions;
@@ -107,7 +126,7 @@ class GeometryBuilder {
         const radius = dim.radius || dim.diameter / 2;
         const segments = dim.segments || 16; // segments paraméter támogatása
         
-        // ÚJ: Kúp alakú geometria támogatása (topRadius/bottomRadius)
+        // Kúp alakú geometria támogatása (topRadius/bottomRadius)
         if (dim.topRadius !== undefined && dim.bottomRadius !== undefined) {
           // Kúp: különböző felső és alsó sugár
           return new THREE.CylinderGeometry(dim.topRadius, dim.bottomRadius, dim.height, segments);
@@ -132,30 +151,31 @@ class GeometryBuilder {
     }
   }
 
-  // ÚJ: GROUP geometria létrehozása
+  // FRISSÍTETT: GROUP geometria létrehozása - shade továbbítással
   createGroupGeometry(element) {
     const group = new THREE.Group();
     
     if (element.geometry.elements) {
       element.geometry.elements.forEach((childElement) => {
-        // JAVÍTÁS: createGeometry() használata createStandardGeometry() helyett
-        // Ez biztosítja hogy a CSG műveletek is végrehajtódnak
+        // Gyerek elem teljes definíció létrehozása
         const fullChildElement = {
           geometry: childElement.geometry,
-          material: element.material // Szülő anyaga
+          material: element.material, // Szülő anyaga
+          shade: element.shade || 5, // ÚJ: Szülő shade-je
         };
         
         const childGeometry = this.createGeometry(fullChildElement);
-        const childMaterial = this.createMaterial(element.material);
+        const childMaterial = this.createMaterial(element.material, element.shade || 5); // ÚJ: Shade továbbítása
         const childMesh = new THREE.Mesh(childGeometry, childMaterial);
         
-        // ÚJ: CSG metadata beállítása a gyerek mesh-hez is
+        // CSG metadata beállítása a gyerek mesh-hez is
         childMesh.userData = {
           elementId: `${element.id}_child_${element.geometry.elements.indexOf(childElement)}`,
           elementName: childElement.name || `Gyerek elem`,
           elementType: element.type,
           parentId: element.id,
           isChildElement: true,
+          shade: element.shade || 5, // ÚJ: Shade metadata
           hasCSGOperations: !!(childElement.geometry.holes || childElement.geometry.csgOperations),
           csgOperationCount: (childElement.geometry.holes?.length || 0) + (childElement.geometry.csgOperations?.length || 0),
         };
@@ -183,7 +203,7 @@ class GeometryBuilder {
     return group;
   }
 
-  // MÓDOSÍTOTT: Extrude geometria létrehozása - CSG nélküli fallback
+  // Extrude geometria létrehozása - CSG nélküli fallback
   createExtrudeGeometry(element) {
     const dim = element.geometry.dimensions;
     const holes = element.geometry.holes || [];
@@ -216,7 +236,7 @@ class GeometryBuilder {
     return this.createLegacyExtrudeGeometry(element);
   }
 
-  // ÚJ: Legacy ExtrudeGeometry (eredeti implementáció)
+  // Legacy ExtrudeGeometry (eredeti implementáció)
   createLegacyExtrudeGeometry(element) {
     const dim = element.geometry.dimensions;
     const holes = element.geometry.holes || [];
@@ -260,9 +280,10 @@ class GeometryBuilder {
     return geometry;
   }
 
-  // Komplett THREE.js mesh létrehozása
+  // FRISSÍTETT: Komplett THREE.js mesh létrehozása - shade támogatással
   createMesh(element) {
     const geometry = this.createGeometry(element);
+    const shade = element.shade || 5; // Shade kinyerése az elemből
     
     // GROUP esetén a geometry már egy THREE.Group
     if (element.geometry.type === GEOMETRY_TYPES.GROUP) {
@@ -292,20 +313,21 @@ class GeometryBuilder {
       const display = element.display;
       group.visible = display.visible;
 
-      // GROUP metadata
+      // GROUP metadata - ÚJ: shade hozzáadva
       group.userData = {
         elementId: element.id,
         elementName: element.name,
         elementType: element.type,
         isGroup: true,
         childCount: group.children.length,
+        shade: shade, // ÚJ: Shade metadata
       };
 
       return group;
     }
 
-    // Hagyományos mesh létrehozás
-    const material = this.createMaterial(element.material);
+    // Hagyományos mesh létrehozás - ÚJ: shade alapú material
+    const material = this.createMaterial(element.material, shade);
     const mesh = new THREE.Mesh(geometry, material);
 
     // Transform alkalmazása
@@ -337,12 +359,12 @@ class GeometryBuilder {
     mesh.castShadow = display.castShadow;
     mesh.receiveShadow = display.receiveShadow;
 
-    // Elem ID mentése a mesh-hez
+    // Elem ID mentése a mesh-hez - ÚJ: shade hozzáadva
     mesh.userData = {
       elementId: element.id,
       elementName: element.name,
       elementType: element.type,
-      // ÚJ: CSG metadata
+      shade: shade, // ÚJ: Shade metadata
       hasCSGOperations: !!(
         element.geometry.holes || element.geometry.csgOperations
       ),
@@ -363,11 +385,16 @@ class GeometryBuilder {
         const mesh = this.createMesh(element);
         meshes.set(element.id, mesh);
 
-        // ÚJ: CSG műveletek naplózása
+        // CSG műveletek naplózása
         if (mesh.userData.hasCSGOperations && CSG_DEBUG.logOperations) {
           console.log(
-            `CSG mesh létrehozva: ${element.id} (${mesh.userData.csgOperationCount} művelet)`
+            `CSG mesh létrehozva: ${element.id} (${mesh.userData.csgOperationCount} művelet, shade: ${mesh.userData.shade})`
           );
+        }
+
+        // ÚJ: Shade naplózása debug módban
+        if (element.shade && element.shade !== 5) {
+          console.log(`🎨 Egyedi shade mesh: ${element.id} - shade: ${element.shade}`);
         }
       } catch (error) {
         console.error(`Mesh létrehozás hiba (${element.id}):`, error);
@@ -384,6 +411,7 @@ class GeometryBuilder {
           elementId: element.id,
           elementName: element.name + " (HIBA)",
           elementType: element.type,
+          shade: element.shade || 5,
           hasError: true,
         };
 
@@ -395,11 +423,12 @@ class GeometryBuilder {
     return meshes;
   }
 
-  // Material cache ürítése
+  // FRISSÍTETT: Material cache ürítése - shade figyelembevételével
   clearCache() {
+    console.log(`🧹 Material cache tisztítása: ${this.materialCache.size} elem`);
     this.materialCache.clear();
 
-    // ÚJ: CSG cache is törlése
+    // CSG cache is törlése
     if (this.csgManager) {
       this.csgManager.clearCache();
     }
@@ -439,6 +468,7 @@ class GeometryBuilder {
           elementName: `${element.name} - Lyuk`,
           elementType: "hole",
           parentElement: element.id,
+          shade: element.shade || 5, // ÚJ: Shade a lyuknál is
         };
 
         holeMeshes.push(holeMesh);
@@ -448,7 +478,7 @@ class GeometryBuilder {
     return holeMeshes;
   }
 
-  // ÚJ: CSG státusz lekérdezése
+  // CSG státusz lekérdezése
   getCSGStatus() {
     return {
       csgManagerAvailable: !!this.csgManager,
@@ -457,17 +487,41 @@ class GeometryBuilder {
     };
   }
 
-  // Debug info kiírása
+  // ÚJ: Shade statisztikák a material cache-ből
+  getShadeStats() {
+    const shadeUsage = {};
+    let totalCachedMaterials = 0;
+
+    this.materialCache.forEach((material, key) => {
+      if (key.includes('shade_')) {
+        const shadeMatch = key.match(/shade_(\d+)/);
+        if (shadeMatch) {
+          const shade = parseInt(shadeMatch[1]);
+          shadeUsage[shade] = (shadeUsage[shade] || 0) + 1;
+          totalCachedMaterials++;
+        }
+      }
+    });
+
+    return {
+      totalCachedMaterials,
+      shadeUsage,
+      uniqueShades: Object.keys(shadeUsage).length,
+    };
+  }
+
+  // Debug info kiírása - ÚJ: shade info-val
   logElementInfo(element, mesh) {
     console.log(`Element: ${element.name} (${element.id})`);
     console.log(`- Type: ${element.type}`);
     console.log(`- Material: ${element.material.name}`);
+    console.log(`- Shade: ${element.shade || 5}`); // ÚJ: Shade info
     console.log(`- Geometry: ${element.geometry.type}`);
     console.log(`- Dimensions:`, element.geometry.dimensions);
     console.log(`- Position:`, mesh.position);
     console.log(`- Calculated:`, element.calculated);
 
-    // ÚJ: CSG info
+    // CSG info
     if (mesh.userData.hasCSGOperations) {
       console.log(`- CSG Operations: ${mesh.userData.csgOperationCount}`);
     }
@@ -475,13 +529,15 @@ class GeometryBuilder {
     console.log("---");
   }
 
-  // ÚJ: Cleanup
+  // Cleanup
   destroy() {
     this.clearCache();
 
     if (this.csgManager) {
       this.csgManager.destroy();
     }
+
+    console.log("GeometryBuilder v1.6.0 destroyed");
   }
 }
 

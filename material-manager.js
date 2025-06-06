@@ -1,7 +1,7 @@
 /**
  * Material Manager
  * Anyagok kezelése és váltása (blueprint/realistic)
- * v1.1.0 - Galvanizált fém anyag hozzáadva bigCorner-hez
+ * v1.2.0 - Shade támogatás realistic módban
  */
 
 class MaterialManager {
@@ -12,7 +12,7 @@ class MaterialManager {
     this.realisticMaterials = null;
     this.initialized = false;
 
-    console.log("MaterialManager v1.1.0 inicializálva");
+    console.log("MaterialManager v1.2.0 inicializálva - shade támogatással");
   }
 
   // Inicializálás - anyagok előkészítése
@@ -133,7 +133,7 @@ class MaterialManager {
     console.log(`💾 ${this.originalMaterials.size} eredeti anyag mentve`);
   }
 
-  // Blueprint anyag kiválasztása elem típus szerint
+  // Blueprint anyag kiválasztása elem típus szerint (VÁLTOZATLAN - nincs shade)
   getBlueprintMaterial(elementType) {
     if (!this.toonMaterials) {
       console.warn("Toon anyagok nincsenek inicializálva");
@@ -146,7 +146,7 @@ class MaterialManager {
     return this.toonMaterials.default; // Fehér minden máshoz
   }
 
-  // Realistic anyag kiválasztása elem típus szerint
+  // FRISSÍTETT: Realistic anyag kiválasztása elem típus és shade szerint
   getRealisticMaterial(elementMaterial, shade = 5) {
     if (!this.realisticMaterials) {
       console.warn("Realistic anyagok nincsenek betöltve");
@@ -163,6 +163,7 @@ class MaterialManager {
       case MATERIALS.WHITE_PLASTIC:
         return this.realisticMaterials.ball;
       case MATERIALS.GALVANIZED_STEEL:
+        // ÚJ: Shade alapú galvanizált anyag
         return this.textureManager.getGalvanizedMaterial(shade);
       default:
         return this.realisticMaterials.frame; // Fallback
@@ -177,7 +178,7 @@ class MaterialManager {
     });
   }
 
-  // Mesh anyagok váltása blueprint módra
+  // FRISSÍTETT: Mesh anyagok váltása blueprint módra (nincs shade)
   applyBlueprintMaterials(meshes, elements) {
     let changedCount = 0;
 
@@ -208,7 +209,7 @@ class MaterialManager {
     console.log(`🎨 Blueprint anyagok alkalmazva: ${changedCount} elem`);
   }
 
-  // Mesh anyagok váltása realistic módra
+  // FRISSÍTETT: Mesh anyagok váltása realistic módra (shade támogatással)
   applyRealisticMaterials(meshes, elements) {
     let changedCount = 0;
 
@@ -216,11 +217,14 @@ class MaterialManager {
       const mesh = meshes.get(element.id);
       if (!mesh) return;
 
+      // ÚJ: Shade kinyerése az element-ből
+      const shade = element.shade || 5; // Alapértelmezett 5
+
       // GROUP esetén a gyerek elemeket is át kell állítani
       if (mesh.userData && mesh.userData.isGroup) {
         mesh.children.forEach((childMesh) => {
           if (childMesh.material) {
-            const material = this.getRealisticMaterial(element.material);
+            const material = this.getRealisticMaterial(element.material, shade);
             childMesh.material = material;
             changedCount++;
           }
@@ -230,13 +234,13 @@ class MaterialManager {
 
       // Hagyományos elem
       if (mesh.material) {
-        const material = this.getRealisticMaterial(element.material);
+        const material = this.getRealisticMaterial(element.material, shade);
         mesh.material = material;
         changedCount++;
       }
     });
 
-    console.log(`🎨 Realistic anyagok alkalmazva: ${changedCount} elem`);
+    console.log(`🎨 Realistic anyagok alkalmazva: ${changedCount} elem (shade figyelembevételével)`);
   }
 
   // Eredeti anyagok visszaállítása
@@ -254,8 +258,8 @@ class MaterialManager {
     console.log(`🔄 Eredeti anyagok visszaállítva: ${restoredCount} elem`);
   }
 
-  // Egy elem anyagának megváltoztatása
-  setElementMaterial(mesh, material) {
+  // FRISSÍTETT: Egy elem anyagának megváltoztatása - shade támogatással
+  setElementMaterial(mesh, material, shade = 5) {
     if (!mesh) return false;
 
     if (mesh.userData && mesh.userData.isGroup) {
@@ -275,7 +279,35 @@ class MaterialManager {
     return false;
   }
 
-  // Anyag információk lekérése debug célra
+  // ÚJ: Shade alapú anyag frissítés egy elemhez
+  updateElementShade(mesh, element, newShade) {
+    const material = this.getRealisticMaterial(element.material, newShade);
+    return this.setElementMaterial(mesh, material, newShade);
+  }
+
+  // ÚJ: Shade statisztikák lekérése
+  getShadeStats(elements) {
+    const shadeUsage = {};
+    let galvanizedElements = 0;
+
+    elements.forEach((element) => {
+      if (element.material === MATERIALS.GALVANIZED_STEEL) {
+        galvanizedElements++;
+        const shade = element.shade || 5;
+        shadeUsage[shade] = (shadeUsage[shade] || 0) + 1;
+      }
+    });
+
+    return {
+      galvanizedElements,
+      shadeUsage,
+      uniqueShades: Object.keys(shadeUsage).length,
+      averageShade: galvanizedElements > 0 ? 
+        Object.entries(shadeUsage).reduce((sum, [shade, count]) => sum + (parseInt(shade) * count), 0) / galvanizedElements : 5
+    };
+  }
+
+  // FRISSÍTETT: Anyag információk lekérése debug célra
   getMaterialInfo() {
     return {
       initialized: this.initialized,
@@ -284,6 +316,8 @@ class MaterialManager {
       originalMaterialsCount: this.originalMaterials.size,
       toonMaterialTypes: this.toonMaterials ? Object.keys(this.toonMaterials) : [],
       realisticMaterialTypes: this.realisticMaterials ? Object.keys(this.realisticMaterials) : [],
+      supportsShade: true, // ÚJ: Shade támogatás jelzése
+      shadeRange: [1, 10], // ÚJ: Támogatott shade tartomány
     };
   }
 
@@ -308,7 +342,7 @@ class MaterialManager {
     this.originalMaterials.clear();
 
     this.initialized = false;
-    console.log("MaterialManager v1.1.0 cleanup kész");
+    console.log("MaterialManager v1.2.0 cleanup kész");
   }
 }
 
