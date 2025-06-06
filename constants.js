@@ -29,19 +29,19 @@ const MATERIALS = {
   PINE_PLYWOOD: {
     name: "Lucfenyő rétegelt lemez",
     density: 0.5, // g/cm³
-    color: 0xa47b51,
+    color: 0xffffff,
     shininess: 10,
   },
   PINE_SOLID: {
     name: "Lucfenyő tömörfa",
     density: 0.45, // g/cm³
-    color: 0xbf9f7e,
+    color: 0xffffff,
     shininess: 10,
   },
   ARTIFICIAL_GRASS: {
     name: "LazyLawn Meadow Twist műfű",
     density: 0.2, // g/cm³
-    color: 0x96b965, // Realisztikus műfű szín - OliveDrab árnyalat
+    color: 0xffffff, // Realisztikus műfű szín - OliveDrab árnyalat
     shininess: 2, // Mattos felület, kevésbé fényes
   },
   WHITE_PLASTIC: {

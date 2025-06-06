@@ -4,6 +4,7 @@ export const elements = [
     name: "Faalap",
     type: ELEMENT_TYPES.PLATE,
     material: "PINE_PLYWOOD",
+    shade: 3,
     geometry: {
       type: GEOMETRY_TYPES.BOX,
       dimensions: {

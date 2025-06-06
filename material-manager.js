@@ -1,7 +1,7 @@
 /**
  * Material Manager
  * Anyagok kezelése és váltása (blueprint/realistic)
- * v1.2.0 - Shade támogatás realistic módban
+ * v1.3.0 - Univerzális shade támogatás minden anyag típushoz
  */
 
 class MaterialManager {
@@ -12,7 +12,7 @@ class MaterialManager {
     this.realisticMaterials = null;
     this.initialized = false;
 
-    console.log("MaterialManager v1.2.0 inicializálva - shade támogatással");
+    console.log("MaterialManager v1.3.0 inicializálva - univerzális shade támogatás");
   }
 
   // Inicializálás - anyagok előkészítése
@@ -146,27 +146,34 @@ class MaterialManager {
     return this.toonMaterials.default; // Fehér minden máshoz
   }
 
-  // FRISSÍTETT: Realistic anyag kiválasztása elem típus és shade szerint
+  // FRISSÍTETT: Realistic anyag kiválasztása MINDEN anyag típushoz shade támogatással
   getRealisticMaterial(elementMaterial, shade = 5) {
     if (!this.realisticMaterials) {
       console.warn("Realistic anyagok nincsenek betöltve");
       return this.createFallbackMaterial(0x808080);
     }
 
-    switch (elementMaterial) {
-      case MATERIALS.PINE_PLYWOOD:
-        return this.realisticMaterials.plate;
-      case MATERIALS.PINE_SOLID:
-        return this.realisticMaterials.frame;
-      case MATERIALS.ARTIFICIAL_GRASS:
-        return this.realisticMaterials.covering;
-      case MATERIALS.WHITE_PLASTIC:
-        return this.realisticMaterials.ball;
-      case MATERIALS.GALVANIZED_STEEL:
-        // ÚJ: Shade alapú galvanizált anyag
-        return this.textureManager.getGalvanizedMaterial(shade);
-      default:
-        return this.realisticMaterials.frame; // Fallback
+    // ÚJ: Univerzális shade alapú anyag lekérés a TextureManager-ből
+    try {
+      return this.textureManager.getMaterialWithShade(elementMaterial, shade);
+    } catch (error) {
+      console.warn(`Anyag lekérési hiba (${elementMaterial}, shade: ${shade}):`, error);
+      
+      // Fallback: eredeti anyagok shade nélkül
+      switch (elementMaterial) {
+        case MATERIALS.PINE_PLYWOOD:
+          return this.realisticMaterials.plate;
+        case MATERIALS.PINE_SOLID:
+          return this.realisticMaterials.frame;
+        case MATERIALS.ARTIFICIAL_GRASS:
+          return this.realisticMaterials.covering;
+        case MATERIALS.WHITE_PLASTIC:
+          return this.realisticMaterials.ball;
+        case MATERIALS.GALVANIZED_STEEL:
+          return this.realisticMaterials.galvanized;
+        default:
+          return this.realisticMaterials.frame; // Fallback
+      }
     }
   }
 
@@ -178,7 +185,7 @@ class MaterialManager {
     });
   }
 
-  // FRISSÍTETT: Mesh anyagok váltása blueprint módra (nincs shade)
+  // Mesh anyagok váltása blueprint módra (VÁLTOZATLAN - nincs shade)
   applyBlueprintMaterials(meshes, elements) {
     let changedCount = 0;
 
@@ -209,16 +216,24 @@ class MaterialManager {
     console.log(`🎨 Blueprint anyagok alkalmazva: ${changedCount} elem`);
   }
 
-  // FRISSÍTETT: Mesh anyagok váltása realistic módra (shade támogatással)
+  // FRISSÍTETT: Mesh anyagok váltása realistic módra (UNIVERZÁLIS shade támogatással)
   applyRealisticMaterials(meshes, elements) {
     let changedCount = 0;
+    const shadeStats = {};
 
     elements.forEach((element) => {
       const mesh = meshes.get(element.id);
       if (!mesh) return;
 
-      // ÚJ: Shade kinyerése az element-ből
+      // Shade kinyerése az element-ből
       const shade = element.shade || 5; // Alapértelmezett 5
+      
+      // Shade statisztika gyűjtése
+      const materialName = this.getMaterialDisplayName(element.material);
+      if (!shadeStats[materialName]) {
+        shadeStats[materialName] = {};
+      }
+      shadeStats[materialName][shade] = (shadeStats[materialName][shade] || 0) + 1;
 
       // GROUP esetén a gyerek elemeket is át kell állítani
       if (mesh.userData && mesh.userData.isGroup) {
@@ -240,7 +255,8 @@ class MaterialManager {
       }
     });
 
-    console.log(`🎨 Realistic anyagok alkalmazva: ${changedCount} elem (shade figyelembevételével)`);
+    console.log(`🎨 Realistic anyagok alkalmazva: ${changedCount} elem (univerzális shade támogatással)`);
+    console.log(`📊 Shade statisztikák:`, shadeStats);
   }
 
   // Eredeti anyagok visszaállítása
@@ -258,7 +274,7 @@ class MaterialManager {
     console.log(`🔄 Eredeti anyagok visszaállítva: ${restoredCount} elem`);
   }
 
-  // FRISSÍTETT: Egy elem anyagának megváltoztatása - shade támogatással
+  // Egy elem anyagának megváltoztatása - shade támogatással
   setElementMaterial(mesh, material, shade = 5) {
     if (!mesh) return false;
 
@@ -279,31 +295,83 @@ class MaterialManager {
     return false;
   }
 
-  // ÚJ: Shade alapú anyag frissítés egy elemhez
+  // ÚJ: Shade alapú anyag frissítés egy elemhez (UNIVERZÁLIS)
   updateElementShade(mesh, element, newShade) {
     const material = this.getRealisticMaterial(element.material, newShade);
-    return this.setElementMaterial(mesh, material, newShade);
+    const success = this.setElementMaterial(mesh, material, newShade);
+    
+    if (success) {
+      console.log(`🎨 Elem shade frissítve: ${element.id} -> shade ${newShade} (${this.getMaterialDisplayName(element.material)})`);
+    }
+    
+    return success;
   }
 
-  // ÚJ: Shade statisztikák lekérése
+  // ÚJ: Batch shade frissítés anyag típus szerint
+  updateMaterialTypeShade(meshes, elements, materialType, newShade) {
+    let updatedCount = 0;
+    
+    elements.forEach((element) => {
+      if (element.material === materialType) {
+        const mesh = meshes.get(element.id);
+        if (mesh && this.updateElementShade(mesh, element, newShade)) {
+          updatedCount++;
+        }
+      }
+    });
+    
+    console.log(`🔄 ${updatedCount} elem shade frissítve (${this.getMaterialDisplayName(materialType)} -> shade ${newShade})`);
+    return updatedCount;
+  }
+
+  // ÚJ: Anyag megjelenítendő neve
+  getMaterialDisplayName(material) {
+    const materialNames = {
+      [MATERIALS.PINE_PLYWOOD]: "Rétegelt lemez",
+      [MATERIALS.PINE_SOLID]: "Tömörfa",
+      [MATERIALS.ARTIFICIAL_GRASS]: "Műfű",
+      [MATERIALS.WHITE_PLASTIC]: "Műanyag",
+      [MATERIALS.GALVANIZED_STEEL]: "Galvanizált acél",
+    };
+    return materialNames[material] || "Ismeretlen";
+  }
+
+  // FRISSÍTETT: Shade statisztikák lekérése (MINDEN anyag típushoz)
   getShadeStats(elements) {
-    const shadeUsage = {};
-    let galvanizedElements = 0;
+    const materialStats = {};
+    let totalElements = 0;
 
     elements.forEach((element) => {
-      if (element.material === MATERIALS.GALVANIZED_STEEL) {
-        galvanizedElements++;
-        const shade = element.shade || 5;
-        shadeUsage[shade] = (shadeUsage[shade] || 0) + 1;
+      const materialName = this.getMaterialDisplayName(element.material);
+      const shade = element.shade || 5;
+      
+      if (!materialStats[materialName]) {
+        materialStats[materialName] = {
+          elementCount: 0,
+          shadeUsage: {},
+          averageShade: 0,
+        };
       }
+      
+      materialStats[materialName].elementCount++;
+      materialStats[materialName].shadeUsage[shade] = (materialStats[materialName].shadeUsage[shade] || 0) + 1;
+      totalElements++;
+    });
+
+    // Átlagos shade számítása anyag típusonként
+    Object.values(materialStats).forEach((stats) => {
+      const totalShade = Object.entries(stats.shadeUsage).reduce(
+        (sum, [shade, count]) => sum + (parseInt(shade) * count), 0
+      );
+      stats.averageShade = Math.round((totalShade / stats.elementCount) * 10) / 10;
     });
 
     return {
-      galvanizedElements,
-      shadeUsage,
-      uniqueShades: Object.keys(shadeUsage).length,
-      averageShade: galvanizedElements > 0 ? 
-        Object.entries(shadeUsage).reduce((sum, [shade, count]) => sum + (parseInt(shade) * count), 0) / galvanizedElements : 5
+      totalElements,
+      materialStats,
+      uniqueMaterials: Object.keys(materialStats).length,
+      globalAverageShade: totalElements > 0 ? 
+        Object.values(materialStats).reduce((sum, stats) => sum + (stats.averageShade * stats.elementCount), 0) / totalElements : 5
     };
   }
 
@@ -316,9 +384,30 @@ class MaterialManager {
       originalMaterialsCount: this.originalMaterials.size,
       toonMaterialTypes: this.toonMaterials ? Object.keys(this.toonMaterials) : [],
       realisticMaterialTypes: this.realisticMaterials ? Object.keys(this.realisticMaterials) : [],
-      supportsShade: true, // ÚJ: Shade támogatás jelzése
-      shadeRange: [1, 10], // ÚJ: Támogatott shade tartomány
+      supportsShade: true,
+      shadeRange: [1, 10],
+      supportedMaterials: ["Galvanizált acél", "Tömörfa", "Rétegelt lemez", "Műfű", "Műanyag"],
+      universalShadeSupport: true, // ÚJ: Univerzális shade támogatás jelzése
     };
+  }
+
+  // ÚJ: Debug - shade eloszlás kiírása
+  logShadeDistribution(elements) {
+    const stats = this.getShadeStats(elements);
+    
+    console.log("=== SHADE ELOSZLÁS ===");
+    console.log(`Összes elem: ${stats.totalElements}`);
+    console.log(`Globális átlag shade: ${stats.globalAverageShade}`);
+    console.log("");
+    
+    Object.entries(stats.materialStats).forEach(([materialName, stats]) => {
+      console.log(`${materialName}:`);
+      console.log(`  - Elemek: ${stats.elementCount}`);
+      console.log(`  - Átlag shade: ${stats.averageShade}`);
+      console.log(`  - Eloszlás:`, stats.shadeUsage);
+    });
+    
+    console.log("====================");
   }
 
   // Cleanup
@@ -342,7 +431,7 @@ class MaterialManager {
     this.originalMaterials.clear();
 
     this.initialized = false;
-    console.log("MaterialManager v1.2.0 cleanup kész");
+    console.log("MaterialManager v1.3.0 cleanup kész");
   }
 }
 

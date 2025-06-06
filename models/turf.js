@@ -5,6 +5,7 @@ export const elements = [
     name: "Műfű borítás",
     type: ELEMENT_TYPES.COVERING,
     material: "ARTIFICIAL_GRASS",
+    shade: 10,
     geometry: {
       type: GEOMETRY_TYPES.BOX, // VÁLTOZÁS: BOX geometria CSG műveletekkel
       dimensions: {
