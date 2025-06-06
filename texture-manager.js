@@ -1,7 +1,7 @@
 /**
  * Texture Manager
  * Textúrák központi kezelése és létrehozása
- * v1.1.0 - Galvanizált fém textúra hozzáadva bigCorner-hez
+ * v1.2.0 - Kép alapú galvanizált textúra 1-10 árnyalat skálával
  */
 
 class TextureManager {
@@ -11,7 +11,7 @@ class TextureManager {
     this.wireframeMaterial = null;
     this.initialized = false;
     
-    console.log("TextureManager v1.1.0 konstruktor");
+    console.log("TextureManager v1.2.0 konstruktor - kép alapú galvanizált");
   }
 
   // Összes textúra inicializálása
@@ -26,7 +26,6 @@ class TextureManager {
     this.textures.set('paper', this.createPaperTexture());
     this.textures.set('wood', this.createWoodTexture());
     this.textures.set('grass', this.createGrassTexture());
-    this.textures.set('galvanized', this.createGalvanizedTexture());
 
     // Anyagok létrehozása textúrák alapján
     this.realisticMaterials = this.createRealisticMaterials();
@@ -74,110 +73,69 @@ class TextureManager {
     return textureObj;
   }
 
-  // Papír textúra létrehozása (ViewModeManager-ből átvéve)
-  createPaperTexture() {
-    const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 512;
-    const context = canvas.getContext("2d");
-
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, 512, 512);
-
-    const imageData = context.getImageData(0, 0, 512, 512);
-    const data = imageData.data;
-
-    for (let i = 0; i < data.length; i += 4) {
-      const noise = (Math.random() - 0.5) * 1;
-      data[i] = Math.max(0, Math.min(255, 255 + noise));
-      data[i + 1] = Math.max(0, Math.min(255, 255 + noise));
-      data[i + 2] = Math.max(0, Math.min(255, 255 + noise));
-      data[i + 3] = 255;
-    }
-
-    context.putImageData(imageData, 0, 0);
-
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(16, 16);
+  // FRISSÍTETT: Galvanizált textúra betöltése képből - 1-10 árnyalat skála
+  createGalvanizedTexture(shade = 5) {
+    // Shade lehet 1-10 között (1=legsötétebb, 10=legvilágosabb)
+    const normalizedShade = Math.max(1, Math.min(10, shade));
+    
+    const imagePath = `textures/steel.jpg`; // Steel kép
+    
+    const texture = new THREE.TextureLoader().load(
+      imagePath,
+      // onLoad
+      (loadedTexture) => {
+        console.log(`✅ Galvanizált textúra betöltve: árnyalat ${normalizedShade}`);
+      },
+      // onProgress
+      undefined,
+      // onError
+      (error) => {
+        console.warn(`⚠️ Steel kép nem található: ${imagePath}, fallback színre`);
+      }
+    );
+    
+    // Széthúzott textúra beállítások (nincs ismétlés)
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.repeat.set(1, 1);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    
     return texture;
   }
 
-  // Galvanizált fém textúra létrehozása
-  createGalvanizedTexture() {
-    const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 512;
-    const context = canvas.getContext("2d");
+  // ÚJ: Árnyalat alapú galvanizált anyag létrehozása
+  createGalvanizedMaterialWithShade(shade = 5) {
+    const texture = this.createGalvanizedTexture(shade);
+    
+    // 1-10 skála színekre konvertálása
+    const brightness = 0.3 + (shade - 1) * (0.7 / 9); // 0.3-1.0 között
+    const shininess = 20 + (shade - 1) * (60 / 9);    // 20-80 között
+    
+    // Alapszín: fehér, brightness-szel szorozva
+    const baseColor = new THREE.Color(0xffffff);
+    baseColor.multiplyScalar(brightness);
+    
+    return new THREE.MeshPhongMaterial({
+      color: baseColor.getHex(),
+      map: texture,
+      shininess: shininess,
+      transparent: false,
+    });
+  }
 
-    // Világosabb, sárgásabb alapszín - galvanizált felület
-    const gradient = context.createLinearGradient(0, 0, 512, 512);
-    gradient.addColorStop(0, "#F5E6A3");    // Világos sárga-arany
-    gradient.addColorStop(0.3, "#F0DC8E");  // Sárga-arany
-    gradient.addColorStop(0.6, "#EDD179");  // Világos sárga
-    gradient.addColorStop(1, "#E8C963");    // Arany sárga
-
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, 512, 512);
-
-    // Fém csíkok/egyenetlenségek hozzáadása - világosabb
-    for (let i = 0; i < 30; i++) {
-      const x = Math.random() * 512;
-      const y = Math.random() * 512;
-      const width = 20 + Math.random() * 100;
-      const height = 2 + Math.random() * 8;
-
-      // Világosabb fém árnyalatok
-      const metalShades = ["#FAF0B4", "#F7EA9E", "#F3E388", "#EFDC72"];
-      context.fillStyle = metalShades[Math.floor(Math.random() * metalShades.length)];
-      context.globalAlpha = 0.3 + Math.random() * 0.4;
-      
-      context.fillRect(x, y, width, height);
+  // ÚJ: Különböző árnyalatok lekérése
+  getGalvanizedMaterial(shade = 5) {
+    if (!this.initialized) {
+      this.initialize();
     }
-
-    // Apró fém foltok/pöttyök - világosabb
-    context.globalAlpha = 1;
-    for (let i = 0; i < 200; i++) {
-      const x = Math.random() * 512;
-      const y = Math.random() * 512;
-      const radius = 1 + Math.random() * 3;
-
-      // Világos fém pontok
-      const lightSpots = ["#FFFCC8", "#FCF4A8", "#F8EC88"];
-      context.fillStyle = lightSpots[Math.floor(Math.random() * lightSpots.length)];
-      context.globalAlpha = 0.6 + Math.random() * 0.4;
-
-      context.beginPath();
-      context.arc(x, y, radius, 0, Math.PI * 2);
-      context.fill();
-    }
-
-    // Minimális oxidációs foltok (kevesebb és halványabb)
-    context.globalAlpha = 1;
-    for (let i = 0; i < 8; i++) {
-      const x = Math.random() * 512;
-      const y = Math.random() * 512;
-      const radius = 3 + Math.random() * 8;
-
-      context.fillStyle = `rgba(180, 190, 140, ${0.05 + Math.random() * 0.1})`;
-      context.beginPath();
-      context.arc(x, y, radius, 0, Math.PI * 2);
-      context.fill();
-    }
-
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(4, 4);
-    return texture;
+    return this.createGalvanizedMaterialWithShade(shade);
   }
 
   // Realistic anyagok létrehozása
   createRealisticMaterials() {
     const woodTexture = this.textures.get('wood');
     const grassTexture = this.textures.get('grass');
-    const galvanizedTexture = this.textures.get('galvanized');
 
     return {
       plate: new THREE.MeshPhongMaterial({
@@ -214,16 +172,12 @@ class TextureManager {
         shininess: 30,
         transparent: false,
       }),
-      galvanized: new THREE.MeshPhongMaterial({
-        color: 0xf0dc8e, // Világos sárga-arany
-        map: galvanizedTexture,
-        shininess: 60,
-        transparent: false,
-      }),
+      // Alapértelmezett galvanizált (shade 5)
+      galvanized: this.createGalvanizedMaterialWithShade(5),
     };
   }
 
-  // Wireframe anyag létrehozása (ViewModeManager-ből átvéve)
+  // Wireframe anyag létrehozása
   createWireframeMaterial() {
     return new THREE.LineBasicMaterial({
       color: 0x333333,
@@ -233,7 +187,37 @@ class TextureManager {
     });
   }
 
-  // Fa textúra létrehozása (ViewModeManager-ből átvéve)
+  // Papír textúra létrehozása
+  createPaperTexture() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 512;
+    const context = canvas.getContext("2d");
+
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, 512, 512);
+
+    const imageData = context.getImageData(0, 0, 512, 512);
+    const data = imageData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const noise = (Math.random() - 0.5) * 1;
+      data[i] = Math.max(0, Math.min(255, 255 + noise));
+      data[i + 1] = Math.max(0, Math.min(255, 255 + noise));
+      data[i + 2] = Math.max(0, Math.min(255, 255 + noise));
+      data[i + 3] = 255;
+    }
+
+    context.putImageData(imageData, 0, 0);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(16, 16);
+    return texture;
+  }
+
+  // Fa textúra létrehozása
   createWoodTexture() {
     const canvas = document.createElement("canvas");
     canvas.width = 512;
@@ -266,7 +250,7 @@ class TextureManager {
     return texture;
   }
 
-  // Műfű textúra létrehozása (ViewModeManager-ből átvéve)
+  // Műfű textúra létrehozása
   createGrassTexture() {
     const canvas = document.createElement("canvas");
     canvas.width = 512;
@@ -304,10 +288,11 @@ class TextureManager {
       availableTextures: Array.from(this.textures.keys()),
       hasRealisticMaterials: !!this.realisticMaterials,
       hasWireframeMaterial: !!this.wireframeMaterial,
+      galvanizedShadeRange: '1-10',
     };
   }
 
-  // Cleanup (későbbi használatra)
+  // Cleanup
   destroy() {
     // Textúrák cleanup
     this.textures.forEach((texture) => {
@@ -333,7 +318,7 @@ class TextureManager {
     }
 
     this.initialized = false;
-    console.log("TextureManager v1.1.0 cleanup kész");
+    console.log("TextureManager v1.2.0 cleanup kész");
   }
 }
 

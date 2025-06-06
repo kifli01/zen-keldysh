@@ -326,6 +326,7 @@ function screw(params) {
     name: name,
     type: ELEMENT_TYPES.PART,
     material: "GALVANIZED_STEEL",
+    shade: 9,
     geometry: {
       type: GEOMETRY_TYPES.GROUP,
       elements: [

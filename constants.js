@@ -53,7 +53,7 @@ const MATERIALS = {
   GALVANIZED_STEEL: {
     name: "Galvanizált acél",
     density: 7.8, // g/cm³
-    color: 0xf0dc8e, // Világos sárga-arany galvanizált szín
+    color: 0xffffff, // Világos sárga-arany galvanizált szín
     shininess: 60, // Fényes fém felület
   },
 };

@@ -147,7 +147,7 @@ class MaterialManager {
   }
 
   // Realistic anyag kiválasztása elem típus szerint
-  getRealisticMaterial(elementMaterial) {
+  getRealisticMaterial(elementMaterial, shade = 5) {
     if (!this.realisticMaterials) {
       console.warn("Realistic anyagok nincsenek betöltve");
       return this.createFallbackMaterial(0x808080);
@@ -163,7 +163,7 @@ class MaterialManager {
       case MATERIALS.WHITE_PLASTIC:
         return this.realisticMaterials.ball;
       case MATERIALS.GALVANIZED_STEEL:
-        return this.realisticMaterials.galvanized; // Galvanizált fém bigCorner-hez
+        return this.textureManager.getGalvanizedMaterial(shade);
       default:
         return this.realisticMaterials.frame; // Fallback
     }
