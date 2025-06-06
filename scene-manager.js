@@ -1,7 +1,7 @@
 /**
  * Scene Manager
  * THREE.js scene, kamera, fények és kontrolok kezelése
- * v1.2.1 - Koordináta rendszer hozzáadva
+ * v1.3.0 - HDR kompatibilis inicializálás + color management
  */
 
 class SceneManager {
@@ -14,11 +14,11 @@ class SceneManager {
 
     // Koordináta rendszer
     this.coordinateSystem = null;
-    this.coordinateSystemVisible = false; // BIZTOSAN kikapcsolva
+    this.coordinateSystemVisible = false;
     this.css2DRenderer = null;
     this.coordinateLabels = [];
     
-    console.log("SceneManager konstruktor - koordináta rendszer állapot:", this.coordinateSystemVisible);
+    console.log("SceneManager konstruktor v1.3.0 - koordináta rendszer állapot:", this.coordinateSystemVisible);
 
     // Kontroll változók
     this.controls = {
@@ -30,17 +30,14 @@ class SceneManager {
     // Alapértelmezett kamera pozíció
     this.defaultCameraPosition = { x: -250, y: 100, z: 200 };
 
-    // Előre definiált nézetek - csak irányok
+    // Előre definiált nézetek
     this.viewPresets = {
       default: {
         direction: this.defaultCameraPosition,
         target: { x: 0, y: 0, z: 0 },
       },
       top: { direction: { x: 0, y: 1, z: 0 }, target: { x: 0, y: 0, z: 0 } },
-      bottom: {
-        direction: { x: 0, y: -1, z: 0 },
-        target: { x: 0, y: 0, z: 0 },
-      },
+      bottom: { direction: { x: 0, y: -1, z: 0 }, target: { x: 0, y: 0, z: 0 } },
       front: { direction: { x: -1, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } },
       back: { direction: { x: 1, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } },
       left: { direction: { x: 0, y: 0, z: -1 }, target: { x: 0, y: 0, z: 0 } },
@@ -51,27 +48,29 @@ class SceneManager {
     this.animationId = null;
   }
 
-  // Scene inicializálása
+  // Scene inicializálása - MÓDOSÍTOTT sorrend
   setup() {
+    console.log("🚀 SceneManager v1.3.0 setup kezdése...");
+    
     this.createScene();
     this.createCamera();
-    this.createRenderer();
+    this.createRenderer(); // ← Ez most hamarabb történik
     this.createCSS2DRenderer();
-    this.createLights();
     this.createCoordinateSystem();
     this.setupEventListeners();
     this.startAnimationLoop();
 
-    console.log("Scene Manager v1.2.1 initialized");
+    console.log("✅ Scene Manager v1.3.0 initialized - HDR ready");
   }
 
-  // Scene létrehozása
+  // Scene létrehozása - VÁLTOZATLAN
   createScene() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xf9f9f9);
+    console.log("✅ Scene létrehozva");
   }
 
-  // Kamera létrehozása
+  // Kamera létrehozása - VÁLTOZATLAN
   createCamera() {
     const aspect = this.container.clientWidth / this.container.clientHeight;
     this.camera = new THREE.PerspectiveCamera(55, aspect, 0.1, 1000);
@@ -83,24 +82,61 @@ class SceneManager {
     );
 
     this.camera.lookAt(0, 0, 0);
+    console.log("✅ Kamera létrehozva");
   }
 
-  // Renderer létrehozása
+  // Renderer létrehozása - BŐVÍTETT HDR támogatással
   createRenderer() {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    console.log("🎨 Renderer létrehozása HDR támogatással...");
+    
+    this.renderer = new THREE.WebGLRenderer({ 
+      antialias: true,
+      powerPreference: "high-performance", // ÚJ: GPU preferencia
+      stencil: false, // ÚJ: Optimalizálás
+      depth: true,
+    });
+    
     this.renderer.setSize(
       this.container.clientWidth,
       this.container.clientHeight
     );
-    this.renderer.shadowMap.enabled = true;
+    
+    // ÚJ v1.3.0: HDR és color management beállítások
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.LinearToneMapping; // Alapértelmezett
+    this.renderer.toneMappingExposure = 1.0;
+    
+    // Árnyék beállítások - fejlett
+    this.renderer.shadowMap.enabled = false; // Kezdetben ki, LightingManager kapcsolja be
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
+    this.renderer.shadowMap.autoUpdate = true;
+    
+    // ÚJ: Fizikai világítás támogatás - JAVÍTOTT verzió kompatibilitás
+    // Three.js r155+ verzióban useLegacyLights lett
+    if (this.renderer.useLegacyLights !== undefined) {
+      this.renderer.useLegacyLights = false; // Új API
+      console.log("   - Fizikai világítás: useLegacyLights = false");
+    } else if (this.renderer.physicallyCorrectLights !== undefined) {
+      this.renderer.physicallyCorrectLights = true; // Régi API
+      console.log("   - Fizikai világítás: physicallyCorrectLights = true");
+    }
+    
+    // ÚJ: További rendering optimalizálások
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Max 2x DPI
+    this.renderer.localClippingEnabled = false; // Optimalizálás
+    
+    // DOM hozzáadás
     this.container.appendChild(this.renderer.domElement);
+    
+    console.log("✅ WebGL Renderer létrehozva HDR támogatással");
+    console.log(`   - Output Color Space: ${this.renderer.outputColorSpace}`);
+    console.log(`   - Tone Mapping: ${this.renderer.toneMapping}`);
+    console.log(`   - Pixel Ratio: ${this.renderer.getPixelRatio()}`);
+    console.log(`   - Shadow Map: ${this.renderer.shadowMap.type}`);
   }
 
-  // CSS2D Renderer létrehozása koordináta címkékhez
+  // CSS2D Renderer létrehozása - VÁLTOZATLAN
   createCSS2DRenderer() {
-    // CSS2DRenderer csak akkor, ha elérhető
     if (window.CSS2DRenderer) {
       this.css2DRenderer = new window.CSS2DRenderer();
       this.css2DRenderer.setSize(
@@ -111,13 +147,13 @@ class SceneManager {
       this.css2DRenderer.domElement.style.top = '0px';
       this.css2DRenderer.domElement.style.pointerEvents = 'none';
       this.container.appendChild(this.css2DRenderer.domElement);
-      console.log("CSS2DRenderer inicializálva");
+      console.log("✅ CSS2DRenderer inicializálva");
     } else {
-      console.warn("CSS2DRenderer nem elérhető, címkék nélkül folytatás");
+      console.warn("⚠️ CSS2DRenderer nem elérhető, címkék nélkül folytatás");
     }
   }
 
-  // Koordináta rendszer létrehozása
+  // Koordináta rendszer létrehozása - VÁLTOZATLAN
   createCoordinateSystem() {
     this.coordinateSystem = new THREE.Group();
     this.coordinateLabels = [];
@@ -129,7 +165,7 @@ class SceneManager {
       z: 0x0000ff  // Kék - Z tengely
     };
 
-    // X tengely nyilak (pozitív és negatív irány)
+    // X tengely nyilak
     const xArrowPos = new THREE.ArrowHelper(
       new THREE.Vector3(1, 0, 0),
       new THREE.Vector3(0, 0, 0),
@@ -150,7 +186,7 @@ class SceneManager {
     );
     this.coordinateSystem.add(xArrowNeg);
 
-    // Y tengely nyilak (pozitív és negatív irány)
+    // Y tengely nyilak
     const yArrowPos = new THREE.ArrowHelper(
       new THREE.Vector3(0, 1, 0),
       new THREE.Vector3(0, 0, 0),
@@ -171,7 +207,7 @@ class SceneManager {
     );
     this.coordinateSystem.add(yArrowNeg);
 
-    // Z tengely nyilak (pozitív és negatív irány)
+    // Z tengely nyilak
     const zArrowPos = new THREE.ArrowHelper(
       new THREE.Vector3(0, 0, 1),
       new THREE.Vector3(0, 0, 0),
@@ -192,24 +228,23 @@ class SceneManager {
     );
     this.coordinateSystem.add(zArrowNeg);
 
-    // Címkék létrehozása (ha CSS2DRenderer elérhető)
+    // Címkék létrehozása
     if (this.css2DRenderer && window.CSS2DObject) {
       this.createCoordinateLabels(arrowLength);
     }
 
-    // Koordináta rendszer hozzáadása a scene-hez
     this.scene.add(this.coordinateSystem);
     
-    // Alapértelmezett láthatóság beállítása (nyilak és címkék együtt)
+    // Alapértelmezett láthatóság
     this.coordinateSystem.visible = this.coordinateSystemVisible;
     this.coordinateLabels.forEach(label => {
       label.visible = this.coordinateSystemVisible;
     });
 
-    console.log("Koordináta rendszer létrehozva");
+    console.log("✅ Koordináta rendszer létrehozva");
   }
 
-  // Koordináta címkék létrehozása
+  // Koordináta címkék létrehozása - VÁLTOZATLAN
   createCoordinateLabels(arrowLength) {
     const labelOffset = arrowLength + 10;
     
@@ -241,18 +276,46 @@ class SceneManager {
       const label = new window.CSS2DObject(labelDiv);
       label.position.set(...labelData.position);
       
-      // KÉNYSZERÍTETT REJTÉS
       label.visible = false;
       
-      // Címke is a koordináta rendszer gyerekének
       this.coordinateSystem.add(label);
       this.coordinateLabels.push(label);
     });
 
-    console.log("Koordináta címkék létrehozva - mind rejtett állapotban");
+    console.log("✅ Koordináta címkék létrehozva");
   }
 
-  // Koordináta rendszer ki/be kapcsolása
+  // ÚJ v1.3.0: Renderer capabilities lekérdezés
+  getRendererCapabilities() {
+    if (!this.renderer) return null;
+    
+    const gl = this.renderer.getContext();
+    const capabilities = this.renderer.capabilities;
+    
+    return {
+      maxTextureSize: capabilities.maxTextureSize,
+      maxCubemapSize: capabilities.maxCubemapSize,
+      maxAnisotropy: capabilities.getMaxAnisotropy(),
+      floatTextures: capabilities.isWebGL2,
+      hdrSupport: capabilities.isWebGL2,
+      shadowMapSupport: true,
+      extensions: {
+        derivatives: !!gl.getExtension('OES_standard_derivatives'),
+        fragDepth: !!gl.getExtension('EXT_frag_depth'),
+        drawBuffers: !!gl.getExtension('WEBGL_draw_buffers'),
+      }
+    };
+  }
+
+  // ÚJ v1.3.0: HDR readiness check
+  isHDRReady() {
+    if (!this.renderer) return false;
+    
+    const caps = this.getRendererCapabilities();
+    return caps && caps.hdrSupport && caps.floatTextures;
+  }
+
+  // Koordináta rendszer ki/be kapcsolása - VÁLTOZATLAN
   toggleCoordinateSystem(visible = null) {
     if (visible !== null) {
       this.coordinateSystemVisible = visible;
@@ -261,10 +324,8 @@ class SceneManager {
     }
 
     if (this.coordinateSystem) {
-      // Nyilak és címkék együtt kapcsolása
       this.coordinateSystem.visible = this.coordinateSystemVisible;
       
-      // EXTRA: Címkék külön is, ha nem öröklik a parent láthatóságot
       this.coordinateLabels.forEach(label => {
         if (label && label.visible !== undefined) {
           label.visible = this.coordinateSystemVisible;
@@ -276,37 +337,7 @@ class SceneManager {
     return this.coordinateSystemVisible;
   }
 
-  // Fények hozzáadása
-  createLights() {
-    // Ambient light - erősebb általános megvilágítás
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9); // 0.5 -> 0.7
-    ambientLight.position.set(3, 1, 1);
-    this.scene.add(ambientLight);
-
-    // Directional light - gyengébb irányított fény
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9); // 0.6 -> 0.4
-    directionalLight.position.set(150, 100, 50);
-    directionalLight.castShadow = true;
-
-    // Árnyék beállítások - lágyabb árnyékok
-    directionalLight.shadow.mapSize.width = 1024; // 2048 -> 1024
-    directionalLight.shadow.mapSize.height = 1024; // 2048 -> 1024
-    directionalLight.shadow.camera.near = 0.5;
-    directionalLight.shadow.camera.far = 500;
-    directionalLight.shadow.camera.left = -200;
-    directionalLight.shadow.camera.right = 200;
-    directionalLight.shadow.camera.top = 200;
-    directionalLight.shadow.camera.bottom = -200;
-
-    this.scene.add(directionalLight);
-
-    // További lágyabb fény oldalt - erősebb
-    const sideLight = new THREE.DirectionalLight(0xffffff, 0.9); // 0.3 -> 0.4
-    sideLight.position.set(3, 1, 1);
-    this.scene.add(sideLight);
-  }
-
-  // Event listener-ek beállítása
+  // Event listener-ek beállítása - VÁLTOZATLAN
   setupEventListeners() {
     // Keyboard events
     document.addEventListener("keydown", (e) => {
@@ -323,7 +354,7 @@ class SceneManager {
       }
     });
 
-    // Mouse events - csak a renderer canvas-ra
+    // Mouse events
     this.renderer.domElement.addEventListener("mousedown", (e) => {
       this.controls.isDragging = true;
       this.controls.previousMousePosition = { x: e.offsetX, y: e.offsetY };
@@ -342,17 +373,15 @@ class SceneManager {
       };
 
       if (this.controls.spaceDown) {
-        // Mozgatás (pan)
         this.panScene(deltaMove);
       } else {
-        // Forgatás
         this.rotateScene(deltaMove);
       }
 
       this.controls.previousMousePosition = { x: e.offsetX, y: e.offsetY };
     });
 
-    // Zoom (wheel)
+    // Zoom
     this.renderer.domElement.addEventListener("wheel", (e) => {
       e.preventDefault();
       this.zoomCamera(e.deltaY);
@@ -362,46 +391,44 @@ class SceneManager {
     window.addEventListener("resize", () => {
       this.handleResize();
     });
+
+    console.log("✅ Event listener-ek beállítva");
   }
 
-  // Scene forgatása
+  // Scene forgatása - VÁLTOZATLAN
   rotateScene(deltaMove) {
     const rotationSpeed = 0.01;
     this.scene.rotation.y += deltaMove.x * rotationSpeed;
     this.scene.rotation.x += deltaMove.y * rotationSpeed;
   }
 
-  // Scene mozgatása
+  // Scene mozgatása - VÁLTOZATLAN
   panScene(deltaMove) {
     const panSpeed = 0.5;
     this.scene.position.x += deltaMove.x * panSpeed;
     this.scene.position.y -= deltaMove.y * panSpeed;
   }
 
-  // Kamera zoom - javított verzió
+  // Kamera zoom - VÁLTOZATLAN
   zoomCamera(deltaY) {
     const zoomSpeed = 0.1;
     const zoomFactor = 1 + deltaY * zoomSpeed * 0.01;
 
-    // A kamera pozíciót a középponttól való távolság alapján skálázzuk
-    const target = new THREE.Vector3(0, 0, 0); // Középpont
+    const target = new THREE.Vector3(0, 0, 0);
     const direction = this.camera.position.clone().sub(target);
     const newDistance = direction.length() * zoomFactor;
 
-    // Távolság korlátozása
     const clampedDistance = Math.max(50, Math.min(400, newDistance));
 
-    // Új pozíció számítása
     direction.normalize();
     this.camera.position.copy(
       target.clone().add(direction.multiplyScalar(clampedDistance))
     );
 
-    // Biztosítjuk, hogy a kamera a középpontra néz
     this.camera.lookAt(target);
   }
 
-  // ÚJ: Kamera pozíció váltása előre definiált nézetekre
+  // Kamera pozíció váltása - VÁLTOZATLAN
   setViewPreset(viewName, animate = false) {
     const preset = this.viewPresets[viewName];
     if (!preset) {
@@ -409,24 +436,20 @@ class SceneManager {
       return;
     }
 
-    // Scene pozíció és forgatás nullázása
     this.scene.position.set(0, 0, 0);
     this.scene.rotation.set(0, 0, 0);
 
-    // Jelenlegi távolság megőrzése
     const currentDistance = this.camera.position.length();
 
     let newPosition;
 
     if (viewName === "default") {
-      // Default nézetnél az eredeti pozíciót használjuk
       newPosition = new THREE.Vector3(
         preset.direction.x,
         preset.direction.y,
         preset.direction.z
       );
     } else {
-      // Más nézeteknél az irányt normalizáljuk és megszorozzuk a jelenlegi távolsággal
       const direction = new THREE.Vector3(
         preset.direction.x,
         preset.direction.y,
@@ -436,84 +459,30 @@ class SceneManager {
       newPosition = direction.multiplyScalar(currentDistance);
     }
 
-    // Azonnali pozíció beállítás - nincs animáció
     this.camera.position.set(newPosition.x, newPosition.y, newPosition.z);
     this.camera.lookAt(preset.target.x, preset.target.y, preset.target.z);
   }
 
-  // ÚJ: Kamera animáció egy pozícióba
-  animateCameraToPosition(targetPosition, targetLookAt, duration = 800) {
-    const startPosition = this.camera.position.clone();
-    const startLookAt = new THREE.Vector3(0, 0, 0); // Jelenlegi célpont
+  // Nézet váltó funkciók - VÁLTOZATLAN
+  setTopView() { this.setViewPreset("top"); }
+  setBottomView() { this.setViewPreset("bottom"); }
+  setFrontView() { this.setViewPreset("front"); }
+  setBackView() { this.setViewPreset("back"); }
+  setLeftView() { this.setViewPreset("left"); }
+  setRightView() { this.setViewPreset("right"); }
 
-    const startTime = Date.now();
-
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-
-      // Easing function (ease-out)
-      const easedProgress = 1 - Math.pow(1 - progress, 3);
-
-      // Pozíció interpoláció
-      this.camera.position.x =
-        startPosition.x + (targetPosition.x - startPosition.x) * easedProgress;
-      this.camera.position.y =
-        startPosition.y + (targetPosition.y - startPosition.y) * easedProgress;
-      this.camera.position.z =
-        startPosition.z + (targetPosition.z - startPosition.z) * easedProgress;
-
-      // LookAt interpoláció
-      const currentLookAt = startLookAt
-        .clone()
-        .lerp(
-          new THREE.Vector3(targetLookAt.x, targetLookAt.y, targetLookAt.z),
-          easedProgress
-        );
-      this.camera.lookAt(currentLookAt);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-
-    animate();
-  }
-
-  // ÚJ: Gyors nézet váltó gombok funkciói
-  setTopView() {
-    this.setViewPreset("top");
-  }
-  setBottomView() {
-    this.setViewPreset("bottom");
-  }
-  setFrontView() {
-    this.setViewPreset("front");
-  }
-  setBackView() {
-    this.setViewPreset("back");
-  }
-  setLeftView() {
-    this.setViewPreset("left");
-  }
-  setRightView() {
-    this.setViewPreset("right");
-  }
-
-  // Mesh hozzáadása a scene-hez
+  // Mesh kezelés - VÁLTOZATLAN
   addMesh(elementId, mesh) {
     this.scene.add(mesh);
     this.meshes.set(elementId, mesh);
   }
 
-  // Mesh eltávolítása
   removeMesh(elementId) {
     const mesh = this.meshes.get(elementId);
     if (mesh) {
       this.scene.remove(mesh);
       this.meshes.delete(elementId);
 
-      // Cleanup
       if (mesh.geometry) mesh.geometry.dispose();
       if (mesh.material) {
         if (Array.isArray(mesh.material)) {
@@ -525,43 +494,39 @@ class SceneManager {
     }
   }
 
-  // Összes mesh hozzáadása
   addAllMeshes(meshMap) {
     meshMap.forEach((mesh, elementId) => {
       this.addMesh(elementId, mesh);
     });
   }
 
-  // Mesh lekérése
   getMesh(elementId) {
     return this.meshes.get(elementId);
   }
 
-  // Összes mesh
   getAllMeshes() {
     return this.meshes;
   }
 
-  // Nézet visszaállítása
+  // Nézet visszaállítása - VÁLTOZATLAN
   resetView() {
     this.setViewPreset("default");
   }
 
-  // Animáció loop
+  // Animáció loop - VÁLTOZATLAN
   startAnimationLoop() {
     const animate = () => {
       this.animationId = requestAnimationFrame(animate);
       this.renderer.render(this.scene, this.camera);
       
-      // CSS2D renderer frissítése
       if (this.css2DRenderer) {
         this.css2DRenderer.render(this.scene, this.camera);
       }
     };
     animate();
+    console.log("✅ Animáció loop elindítva");
   }
 
-  // Animáció megállítása
   stopAnimationLoop() {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
@@ -569,7 +534,7 @@ class SceneManager {
     }
   }
 
-  // Ablak átméretezés kezelése
+  // Ablak átméretezés kezelése - VÁLTOZATLAN
   handleResize() {
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
@@ -578,13 +543,12 @@ class SceneManager {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
 
-    // CSS2D renderer átméretezése
     if (this.css2DRenderer) {
       this.css2DRenderer.setSize(width, height);
     }
   }
 
-  // Elem keresése pozíció alapján (raycast)
+  // Elem keresése pozíció alapján - VÁLTOZATLAN
   getElementAtPosition(x, y) {
     const mouse = new THREE.Vector2();
     mouse.x = (x / this.container.clientWidth) * 2 - 1;
@@ -604,7 +568,7 @@ class SceneManager {
     return null;
   }
 
-  // Scene export (GLTF)
+  // Scene export - VÁLTOZATLAN
   exportScene(binary = false) {
     return new Promise((resolve, reject) => {
       if (!window.THREE.GLTFExporter) {
@@ -622,7 +586,7 @@ class SceneManager {
     });
   }
 
-  // Debug info
+  // Debug info - BŐVÍTETT
   getSceneInfo() {
     return {
       meshCount: this.meshes.size,
@@ -631,32 +595,36 @@ class SceneManager {
       scenePosition: this.scene.position,
       sceneRotation: this.scene.rotation,
       coordinateSystemVisible: this.coordinateSystemVisible,
-      version: "1.2.1",
+      renderer: {
+        outputColorSpace: this.renderer?.outputColorSpace,
+        toneMapping: this.renderer?.toneMapping,
+        toneMappingExposure: this.renderer?.toneMappingExposure,
+        shadowMapEnabled: this.renderer?.shadowMap.enabled,
+        pixelRatio: this.renderer?.getPixelRatio(),
+      },
+      hdrReady: this.isHDRReady(), // ÚJ
+      capabilities: this.getRendererCapabilities(), // ÚJ
+      version: "1.3.0",
     };
   }
 
-  // Cleanup
+  // Cleanup - BŐVÍTETT
   destroy() {
     this.stopAnimationLoop();
 
-    // Meshek tisztítása
     this.meshes.forEach((mesh, elementId) => {
       this.removeMesh(elementId);
     });
 
-    // CSS2D renderer cleanup
     if (this.css2DRenderer && this.css2DRenderer.domElement) {
       this.container.removeChild(this.css2DRenderer.domElement);
     }
 
-    // Renderer cleanup
     if (this.renderer) {
       this.container.removeChild(this.renderer.domElement);
       this.renderer.dispose();
     }
 
-    // Event listeners eltávolítása
-    // (Ez bonyolultabb lenne, mert névtelen függvényeket használunk)
-    console.log("Scene Manager v1.2.1 destroyed");
+    console.log("Scene Manager v1.3.0 destroyed");
   }
 }
