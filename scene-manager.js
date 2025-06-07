@@ -1,7 +1,7 @@
 /**
  * Scene Manager
  * THREE.js scene, kamera, fények és kontrolok kezelése
- * v1.2.1 - Koordináta rendszer hozzáadva
+ * v1.3.0 - PBR világítás és tone mapping
  */
 
 class SceneManager {
@@ -14,7 +14,7 @@ class SceneManager {
 
     // Koordináta rendszer
     this.coordinateSystem = null;
-    this.coordinateSystemVisible = false; // BIZTOSAN kikapcsolva
+    this.coordinateSystemVisible = false;
     this.css2DRenderer = null;
     this.coordinateLabels = [];
     
@@ -57,12 +57,12 @@ class SceneManager {
     this.createCamera();
     this.createRenderer();
     this.createCSS2DRenderer();
-    this.createLights();
+    this.createPBRLights(); // ÚJ: PBR világítás
     this.createCoordinateSystem();
     this.setupEventListeners();
     this.startAnimationLoop();
 
-    console.log("Scene Manager v1.2.1 initialized");
+    console.log("Scene Manager v1.3.0 initialized - PBR lighting");
   }
 
   // Scene létrehozása
@@ -85,15 +85,37 @@ class SceneManager {
     this.camera.lookAt(0, 0, 0);
   }
 
-  // Renderer létrehozása
+  // ÚJ: PBR kompatibilis renderer létrehozása
   createRenderer() {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({ 
+      antialias: true,
+      powerPreference: "high-performance" // GPU gyorsítás
+    });
+    
     this.renderer.setSize(
       this.container.clientWidth,
       this.container.clientHeight
     );
+    
+    // ÚJ: PBR beállítások (hardcoded hogy ne függjön konstansoktól)
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.physicallyCorrectLights = true;
+    
+    // ÚJ: Tone mapping és color management
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
+    this.renderer.outputEncoding = THREE.sRGBEncoding;
+    
+    // ÚJ: Fejlett renderelési beállítások
+    this.renderer.gammaFactor = 2.2;
+    this.renderer.useLegacyLights = false; // Modern világítás
+
+    console.log("✅ PBR Renderer létrehozva:", {
+      toneMapping: this.renderer.toneMapping,
+      physicallyCorrectLights: this.renderer.physicallyCorrectLights,
+      outputEncoding: this.renderer.outputEncoding
+    });
 
     this.container.appendChild(this.renderer.domElement);
   }
@@ -115,6 +137,48 @@ class SceneManager {
     } else {
       console.warn("CSS2DRenderer nem elérhető, címkék nélkül folytatás");
     }
+  }
+
+  // ÚJ: PBR kompatibilis világítás létrehozása
+  createPBRLights() {
+    // 1. Erős ambient light - globális megvilágítás
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    this.scene.add(ambientLight);
+
+    // 2. Fő directional light - nap szimulálása
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    mainLight.position.set(200, 150, 100);
+    mainLight.castShadow = true;
+    
+    // Fejlett árnyék beállítások PBR-hez
+    mainLight.shadow.mapSize.width = 2048;
+    mainLight.shadow.mapSize.height = 2048;
+    mainLight.shadow.camera.near = 0.5;
+    mainLight.shadow.camera.far = 800;
+    mainLight.shadow.camera.left = -300;
+    mainLight.shadow.camera.right = 300;
+    mainLight.shadow.camera.top = 300;
+    mainLight.shadow.camera.bottom = -300;
+    mainLight.shadow.bias = -0.0001; // Árnyék pontosság
+    
+    this.scene.add(mainLight);
+
+    // 3. Fill light - árnyékok kitöltése
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+    fillLight.position.set(-100, 50, -100);
+    this.scene.add(fillLight);
+
+    // 4. Rim light - kontúr világítás
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    rimLight.position.set(50, 100, -200);
+    this.scene.add(rimLight);
+
+    // 5. ÚJ: Point light a labda közelében - lokális fény
+    const ballLight = new THREE.PointLight(0xffffff, 0.5, 50);
+    ballLight.position.set(-100, 20, -30);
+    this.scene.add(ballLight);
+
+    console.log("✅ PBR világítás létrehozva: 5 fényforrás");
   }
 
   // Koordináta rendszer létrehozása
@@ -276,34 +340,19 @@ class SceneManager {
     return this.coordinateSystemVisible;
   }
 
-  // Fények hozzáadása
-  createLights() {
-    // Ambient light - erősebb általános megvilágítás
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9); // 0.5 -> 0.7
-    ambientLight.position.set(3, 1, 1);
-    this.scene.add(ambientLight);
-
-    // Directional light - gyengébb irányított fény
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9); // 0.6 -> 0.4
-    directionalLight.position.set(150, 100, 50);
-    directionalLight.castShadow = true;
-
-    // Árnyék beállítások - lágyabb árnyékok
-    directionalLight.shadow.mapSize.width = 1024; // 2048 -> 1024
-    directionalLight.shadow.mapSize.height = 1024; // 2048 -> 1024
-    directionalLight.shadow.camera.near = 0.5;
-    directionalLight.shadow.camera.far = 500;
-    directionalLight.shadow.camera.left = -200;
-    directionalLight.shadow.camera.right = 200;
-    directionalLight.shadow.camera.top = 200;
-    directionalLight.shadow.camera.bottom = -200;
-
-    this.scene.add(directionalLight);
-
-    // További lágyabb fény oldalt - erősebb
-    const sideLight = new THREE.DirectionalLight(0xffffff, 0.9); // 0.3 -> 0.4
-    sideLight.position.set(3, 1, 1);
-    this.scene.add(sideLight);
+  // ÚJ: PBR render beállítások módosítása
+  updatePBRSettings(settings = {}) {
+    if (settings.toneMapping !== undefined) {
+      this.renderer.toneMapping = settings.toneMapping;
+    }
+    if (settings.toneMappingExposure !== undefined) {
+      this.renderer.toneMappingExposure = settings.toneMappingExposure;
+    }
+    if (settings.physicallyCorrectLights !== undefined) {
+      this.renderer.physicallyCorrectLights = settings.physicallyCorrectLights;
+    }
+    
+    console.log("PBR beállítások frissítve:", settings);
   }
 
   // Event listener-ek beállítása
@@ -622,7 +671,7 @@ class SceneManager {
     });
   }
 
-  // Debug info
+  // ÚJ: Debug info PBR adatokkal
   getSceneInfo() {
     return {
       meshCount: this.meshes.size,
@@ -631,7 +680,14 @@ class SceneManager {
       scenePosition: this.scene.position,
       sceneRotation: this.scene.rotation,
       coordinateSystemVisible: this.coordinateSystemVisible,
-      version: "1.2.1",
+      // PBR info
+      pbrSettings: {
+        toneMapping: this.renderer.toneMapping,
+        toneMappingExposure: this.renderer.toneMappingExposure,
+        physicallyCorrectLights: this.renderer.physicallyCorrectLights,
+        outputEncoding: this.renderer.outputEncoding,
+      },
+      version: "1.3.0",
     };
   }
 
@@ -655,8 +711,6 @@ class SceneManager {
       this.renderer.dispose();
     }
 
-    // Event listeners eltávolítása
-    // (Ez bonyolultabb lenne, mert névtelen függvényeket használunk)
-    console.log("Scene Manager v1.2.1 destroyed");
+    console.log("Scene Manager v1.3.0 destroyed");
   }
 }

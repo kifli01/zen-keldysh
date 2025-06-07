@@ -1,7 +1,7 @@
 /**
  * Material Manager
- * Anyagok kezelése és váltása (blueprint/realistic)
- * v1.4.0 - Egyszerűsített, felesleges részek eltávolítva
+ * Anyagok kezelése PBR támogatással (blueprint/realistic)
+ * v1.5.0 - PBR Materials támogatás
  */
 
 class MaterialManager {
@@ -11,8 +11,9 @@ class MaterialManager {
     this.blueprintMaterial = null;
     this.groupMaterial = null;
     this.initialized = false;
+    this.usePBR = true; // ÚJ: PBR mód váltó
 
-    console.log("MaterialManager v1.4.0 - egyszerűsített");
+    console.log("MaterialManager v1.5.0 - PBR támogatással");
   }
 
   // Inicializálás
@@ -23,11 +24,19 @@ class MaterialManager {
     }
 
     this.createBlueprintMaterials();
-    console.log("✅ MaterialManager inicializálva");
+    console.log("✅ MaterialManager PBR inicializálva");
     this.initialized = true;
   }
 
-  // Blueprint anyagok létrehozása - egyszerű fehér és szürke
+  // ÚJ: PBR mód váltás
+  setPBRMode(enabled) {
+    const oldMode = this.usePBR;
+    this.usePBR = enabled;
+    console.log(`PBR mód: ${enabled ? 'BE' : 'KI'} (előző: ${oldMode})`);
+    return this.usePBR;
+  }
+
+  // Blueprint anyagok létrehozása - egyszerű fehér és szürke (Phong marad)
   createBlueprintMaterials() {
     this.blueprintMaterial = new THREE.MeshBasicMaterial({
       color: 0xffffff,
@@ -42,7 +51,7 @@ class MaterialManager {
     console.log("✅ Blueprint anyagok létrehozva");
   }
 
-  // Shader támogatás beállítása (egyszerűsített)
+  // Shader támogatás beállítása (megtartva blueprint módhoz)
   setShadersAvailable(available) {
     if (available) {
       this.createToonShaderMaterials();
@@ -54,7 +63,7 @@ class MaterialManager {
     }
   }
 
-  // Toon shader anyagok létrehozása (egyszerűsített)
+  // Toon shader anyagok létrehozása (blueprint módhoz)
   createToonShaderMaterials() {
     try {
       const vertexShader = document.getElementById("toonVertexShader")?.textContent;
@@ -98,7 +107,7 @@ class MaterialManager {
     }
   }
 
-  // Eredeti anyagok mentése (csak ha szükséges)
+  // Eredeti anyagok mentése
   saveOriginalMaterials(meshes) {
     if (!this.initialized) {
       this.initialize();
@@ -125,12 +134,13 @@ class MaterialManager {
     return this.blueprintMaterial; // Fehér minden máshoz
   }
 
-  // Realistic anyag kiválasztása shade támogatással
+  // ÚJ: Realistic anyag kiválasztása PBR támogatással
   getRealisticMaterial(elementMaterial, shade = 5) {
     try {
-      return this.textureManager.getMaterialWithShade(elementMaterial, shade);
+      // PBR anyag lekérése
+      return this.textureManager.getMaterialWithShade(elementMaterial, shade, this.usePBR);
     } catch (error) {
-      console.warn(`Anyag lekérési hiba (${elementMaterial}, shade: ${shade}):`, error);
+      console.warn(`PBR anyag lekérési hiba (${elementMaterial}, shade: ${shade}):`, error);
       
       // Fallback: alapértelmezett anyagok
       const realisticMaterials = this.textureManager.getRealisticMaterials();
@@ -177,9 +187,10 @@ class MaterialManager {
     console.log(`🎨 Blueprint anyagok alkalmazva: ${changedCount} elem`);
   }
 
-  // Realistic anyagok alkalmazása shade támogatással
+  // ÚJ: Realistic anyagok alkalmazása PBR támogatással
   applyRealisticMaterials(meshes, elements) {
     let changedCount = 0;
+    let pbrCount = 0;
 
     elements.forEach((element) => {
       const mesh = meshes.get(element.id);
@@ -187,6 +198,11 @@ class MaterialManager {
 
       const shade = element.shade || 5;
       const material = this.getRealisticMaterial(element.material, shade);
+      
+      // PBR számláló
+      if (material && material.isMeshStandardMaterial) {
+        pbrCount++;
+      }
 
       if (mesh.userData && mesh.userData.isGroup) {
         // GROUP gyerekek
@@ -203,7 +219,7 @@ class MaterialManager {
       }
     });
 
-    console.log(`🎨 Realistic anyagok alkalmazva: ${changedCount} elem`);
+    console.log(`🎨 Realistic anyagok alkalmazva: ${changedCount} elem (PBR: ${pbrCount}/${changedCount})`);
   }
 
   // Elem anyagának megváltoztatása
@@ -225,19 +241,59 @@ class MaterialManager {
     return false;
   }
 
-  // Anyag információk lekérése
+  // ÚJ: Anyag információk lekérése PBR adatokkal
   getMaterialInfo() {
+    const realisticMaterials = this.textureManager.getRealisticMaterials();
+    let pbrMaterialCount = 0;
+    let phongMaterialCount = 0;
+
+    if (realisticMaterials) {
+      Object.values(realisticMaterials).forEach((material) => {
+        if (material.isMeshStandardMaterial) {
+          pbrMaterialCount++;
+        } else if (material.isMeshPhongMaterial) {
+          phongMaterialCount++;
+        }
+      });
+    }
+
     return {
       initialized: this.initialized,
+      usePBR: this.usePBR,
       hasBlueprintMaterials: !!(this.blueprintMaterial && this.groupMaterial),
       originalMaterialsCount: this.originalMaterials.size,
+      pbrMaterialCount: pbrMaterialCount,
+      phongMaterialCount: phongMaterialCount,
       supportsShade: true,
       shadeRange: [1, 10],
-      version: '1.4.0'
+      version: '1.5.0'
     };
   }
 
-  // Cleanup
+  // ÚJ: PBR anyag tulajdonságok módosítása
+  updatePBRProperties(mesh, properties = {}) {
+    if (!mesh || !mesh.material || !mesh.material.isMeshStandardMaterial) {
+      return false;
+    }
+
+    const material = mesh.material;
+    
+    if (properties.roughness !== undefined) {
+      material.roughness = Math.max(0, Math.min(1, properties.roughness));
+    }
+    if (properties.metalness !== undefined) {
+      material.metalness = Math.max(0, Math.min(1, properties.metalness));
+    }
+    if (properties.envMapIntensity !== undefined) {
+      material.envMapIntensity = Math.max(0, properties.envMapIntensity);
+    }
+    
+    material.needsUpdate = true;
+    console.log(`🔧 PBR tulajdonságok frissítve: ${mesh.userData.elementId}`);
+    return true;
+  }
+
+  // Cleanup (bővített)
   destroy() {
     // Blueprint anyagok cleanup
     if (this.blueprintMaterial && this.blueprintMaterial.dispose) {
@@ -256,7 +312,7 @@ class MaterialManager {
     this.originalMaterials.clear();
 
     this.initialized = false;
-    console.log("MaterialManager v1.4.0 cleanup kész");
+    console.log("MaterialManager v1.5.0 PBR cleanup kész");
   }
 }
 

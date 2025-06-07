@@ -1,7 +1,7 @@
 /**
  * Minigolf Constants
  * Közös konstansok és alapértékek a minigolf pálya elemekhez
- * v1.5.0 - CSG műveletek támogatása
+ * v1.6.0 - PBR tulajdonságok hozzáadva
  */
 
 // Geometria típusok
@@ -24,9 +24,7 @@ const ELEMENT_TYPES = {
   PART: "part",
 };
 
-// Anyag definíciók
-
-// Anyag definíciók (egyesített - density + textúra beállítások)
+// Anyag definíciók (PBR properties hozzáadva)
 const MATERIALS = {
   PINE_PLYWOOD: {
     name: "Lucfenyő rétegelt lemez",
@@ -38,6 +36,10 @@ const MATERIALS = {
     baseColor: 0xdccfb7, // Világosabb fa szín
     repeat: { x: 2, y: 2 },
     useShade: true,
+    // PBR tulajdonságok:
+    roughnessBase: 0.8, // Fa - matt felület
+    metalnessBase: 0.0, // Nem fém
+    envMapIntensity: 0.3,
   },
   PINE_SOLID: {
     name: "Lucfenyő tömörfa",
@@ -49,6 +51,10 @@ const MATERIALS = {
     baseColor: 0xdccfb7,
     repeat: { x: 2, y: 2 },
     useShade: true,
+    // PBR tulajdonságok:
+    roughnessBase: 0.9, // Tömörfa - még mattabb
+    metalnessBase: 0.0,
+    envMapIntensity: 0.2,
   },
   ARTIFICIAL_GRASS: {
     name: "LazyLawn Meadow Twist műfű",
@@ -60,6 +66,10 @@ const MATERIALS = {
     baseColor: 0xa5bc49,
     repeat: { x: 8, y: 8 },
     useShade: true,
+    // PBR tulajdonságok:
+    roughnessBase: 0.95, // Műfű - nagyon matt
+    metalnessBase: 0.0,
+    envMapIntensity: 0.1,
   },
   WHITE_PLASTIC: {
     name: "Fehér műanyag",
@@ -71,6 +81,10 @@ const MATERIALS = {
     baseColor: 0xffffff,
     repeat: { x: 1, y: 1 },
     useShade: false, // Fix shininess
+    // PBR tulajdonságok:
+    roughnessBase: 0.1, // Műanyag - sima felület
+    metalnessBase: 0.0,
+    envMapIntensity: 0.8,
   },
   GALVANIZED_STEEL: {
     name: "Galvanizált acél",
@@ -82,6 +96,10 @@ const MATERIALS = {
     baseColor: 0xffffff,
     repeat: { x: 1, y: 1 },
     useShade: true,
+    // PBR tulajdonságok:
+    roughnessBase: 0.3, // Fém - közepesen sima
+    metalnessBase: 0.9, // Nagyon fémes
+    envMapIntensity: 1.5, // Erős reflexió
   },
 };
 
@@ -130,6 +148,21 @@ COURSE_DIMENSIONS.frontHeight =
   COURSE_DIMENSIONS.topPlateThickness / 2
   ;
 
+// Lyuk pozíciók (COURSE_DIMENSIONS után definiálva)
+const HOLE_POSITION = {
+  smallCorner: {
+    x: [
+      -COURSE_DIMENSIONS.length / 2 + 3 / 2,
+      -COURSE_DIMENSIONS.length / 4,
+      0,
+      COURSE_DIMENSIONS.length / 4,
+      COURSE_DIMENSIONS.length / 2 - 3 / 2,
+    ],
+    y: COURSE_DIMENSIONS.frameHeight,
+    z: COURSE_DIMENSIONS.width / 2
+  }
+};
+
 // ÚJ: CSG beállítások
 const CSG_CONFIG = {
   enabled: true, // CSG műveletek engedélyezése
@@ -163,19 +196,14 @@ const CSG_DEBUG = {
   wireframeResults: false, // Eredmények wireframe módban
 };
 
-
-// Lyuk pozíciók
-
-const HOLE_POSITION = {
-  smallCorner: {
-  x: [
-    -COURSE_DIMENSIONS.length / 2 + 3 / 2,
-    -COURSE_DIMENSIONS.length / 4,
-    0,
-    COURSE_DIMENSIONS.length / 4,
-    COURSE_DIMENSIONS.length / 2 - 3 / 2,
-  ],
-  y: COURSE_DIMENSIONS.frameHeight,
-  z: COURSE_DIMENSIONS.width / 2
-}
-}
+// ÚJ: PBR Render beállítások
+const PBR_CONFIG = {
+  enabled: true, // PBR renderelés engedélyezése
+  useHDR: false, // HDR environment mapping (még nincs implementálva)
+  toneMapping: THREE.ACESFilmicToneMapping, // Tone mapping típus
+  toneMappingExposure: 1.0, // Expozíció
+  physicallyCorrectLights: true, // Fizikailag helyes világítás
+  outputEncoding: THREE.sRGBEncoding, // Kimeneti kódolás
+  shadowMapSize: 2048, // Shadow map felbontás
+  shadowMapType: THREE.PCFSoftShadowMap, // Árnyék típus
+};

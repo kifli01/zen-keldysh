@@ -1,7 +1,7 @@
 /**
  * Geometry Builder
  * THREE.js geometriák és mesh-ek létrehozása elem definíciók alapján
- * v1.7.0 - Egyszerűsített, felesleges részek eltávolítva
+ * v1.8.0 - PBR Materials integráció
  */
 
 class GeometryBuilder {
@@ -15,22 +15,39 @@ class GeometryBuilder {
     console.log("CSG Manager beállítva a GeometryBuilder-ben");
   }
 
-  // THREE.js material létrehozása (egyszerűsített)
+  // ÚJ: THREE.js PBR material létrehozása
   createMaterial(materialDef, shade = 5) {
-    // Galvanizált acél TextureManager-rel
-    if (materialDef === MATERIALS.GALVANIZED_STEEL && window.textureManager) {
+    // TextureManager használata PBR anyagokhoz
+    if (window.textureManager) {
       try {
         const textureManager = window.textureManager();
-        return textureManager.getGalvanizedMaterial(shade);
+        
+        // PBR anyag lekérése shade-del
+        const pbrMaterial = textureManager.getMaterialWithShade(materialDef, shade, true);
+        
+        console.log(`🎨 PBR Material létrehozva: ${materialDef.name}, shade: ${shade}, roughness: ${pbrMaterial.roughness?.toFixed(2)}, metalness: ${pbrMaterial.metalness?.toFixed(2)}`);
+        
+        return pbrMaterial;
       } catch (error) {
-        console.warn("TextureManager nem elérhető, fallback material:", error);
+        console.warn("PBR TextureManager hiba, fallback:", error);
       }
     }
     
-    // Fallback: alapértelmezett material
-    return new THREE.MeshPhongMaterial({
-      color: materialDef.color,
-      shininess: materialDef.shininess,
+    // Fallback: Alapértelmezett PBR material ha TextureManager nem elérhető
+    const baseColor = new THREE.Color(materialDef.baseColor || materialDef.color);
+    const brightness = 0.3 + (shade - 1) * (1.2 / 9); // 0.3-1.5
+    baseColor.multiplyScalar(brightness);
+    
+    const roughness = (materialDef.roughnessBase || 0.5) + (10 - shade) * 0.05;
+    const metalness = materialDef.metalnessBase || 0.0;
+    
+    console.log(`🎨 Fallback PBR Material: ${materialDef.name}, roughness: ${roughness.toFixed(2)}, metalness: ${metalness.toFixed(2)}`);
+    
+    return new THREE.MeshStandardMaterial({
+      color: baseColor.getHex(),
+      roughness: Math.max(0, Math.min(1, roughness)),
+      metalness: Math.max(0, Math.min(1, metalness)),
+      envMapIntensity: materialDef.envMapIntensity || 1.0,
     });
   }
 
@@ -113,7 +130,7 @@ class GeometryBuilder {
     }
   }
 
-  // GROUP geometria létrehozása
+  // GROUP geometria létrehozása - PBR anyagokkal
   createGroupGeometry(element) {
     const group = new THREE.Group();
     
@@ -126,10 +143,12 @@ class GeometryBuilder {
         };
         
         const childGeometry = this.createGeometry(fullChildElement);
+        
+        // ÚJ: PBR material használata gyerek elemekhez is
         const childMaterial = this.createMaterial(element.material, element.shade || 5);
         const childMesh = new THREE.Mesh(childGeometry, childMaterial);
         
-        // Egyszerű metadata
+        // Bővített metadata
         childMesh.userData = {
           elementId: `${element.id}_child_${element.geometry.elements.indexOf(childElement)}`,
           elementName: childElement.name || `Gyerek elem`,
@@ -137,6 +156,9 @@ class GeometryBuilder {
           parentId: element.id,
           isChildElement: true,
           shade: element.shade || 5,
+          materialType: childMaterial.isMeshStandardMaterial ? 'PBR' : 'Legacy',
+          roughness: childMaterial.roughness,
+          metalness: childMaterial.metalness,
         };
         
         // Transform alkalmazása
@@ -163,7 +185,7 @@ class GeometryBuilder {
     return group;
   }
 
-  // Komplett THREE.js mesh létrehozása
+  // ÚJ: Komplett THREE.js mesh létrehozása PBR anyagokkal
   createMesh(element) {
     const geometry = this.createGeometry(element);
     const shade = element.shade || 5;
@@ -196,7 +218,7 @@ class GeometryBuilder {
       const display = element.display;
       group.visible = display.visible;
 
-      // Egyszerű GROUP metadata
+      // Bővített GROUP metadata
       group.userData = {
         elementId: element.id,
         elementName: element.name,
@@ -204,12 +226,13 @@ class GeometryBuilder {
         isGroup: true,
         childCount: group.children.length,
         shade: shade,
+        materialType: 'PBR',
       };
 
       return group;
     }
 
-    // Hagyományos mesh létrehozás
+    // ÚJ: PBR material használata hagyományos mesh-hez
     const material = this.createMaterial(element.material, shade);
     const mesh = new THREE.Mesh(geometry, material);
 
@@ -238,34 +261,46 @@ class GeometryBuilder {
     mesh.visible = display.visible;
     mesh.material.transparent = display.opacity < 1;
     mesh.material.opacity = display.opacity;
-    mesh.material.wireframe = display.wireframe;
     mesh.castShadow = display.castShadow;
     mesh.receiveShadow = display.receiveShadow;
 
-    // Egyszerű metadata
+    // Bővített metadata PBR adatokkal
     mesh.userData = {
       elementId: element.id,
       elementName: element.name,
       elementType: element.type,
       shade: shade,
+      materialType: material.isMeshStandardMaterial ? 'PBR' : 'Legacy',
+      roughness: material.roughness,
+      metalness: material.metalness,
+      envMapIntensity: material.envMapIntensity,
       hasCSGOperations: !!(element.geometry.holes || element.geometry.csgOperations),
     };
 
     return mesh;
   }
 
-  // Összes elem mesh-einek létrehozása
+  // Összes elem mesh-einek létrehozása - PBR statisztikákkal
   createAllMeshes(elements) {
     const meshes = new Map();
+    let pbrCount = 0;
+    let legacyCount = 0;
 
     elements.forEach((element) => {
       try {
         const mesh = this.createMesh(element);
         meshes.set(element.id, mesh);
 
+        // PBR statisztika
+        if (mesh.userData.materialType === 'PBR') {
+          pbrCount++;
+        } else {
+          legacyCount++;
+        }
+
         // Debug log CSG műveletekhez
         if (mesh.userData.hasCSGOperations) {
-          console.log(`CSG mesh létrehozva: ${element.id} (shade: ${mesh.userData.shade})`);
+          console.log(`CSG mesh létrehozva: ${element.id} (${mesh.userData.materialType}, shade: ${mesh.userData.shade})`);
         }
       } catch (error) {
         console.error(`Mesh létrehozás hiba (${element.id}):`, error);
@@ -286,18 +321,82 @@ class GeometryBuilder {
 
         meshes.set(element.id, fallbackMesh);
         console.warn(`Fallback mesh használata: ${element.id}`);
+        legacyCount++;
       }
     });
 
+    console.log(`🎨 Mesh-ek létrehozva: ${meshes.size} összesen (PBR: ${pbrCount}, Legacy: ${legacyCount})`);
+    
     return meshes;
   }
 
-  // CSG státusz lekérdezése
+  // ÚJ: PBR tulajdonságok módosítása
+  updateMeshPBRProperties(mesh, properties = {}) {
+    if (!mesh || !mesh.material) return false;
+
+    // Hagyományos mesh
+    if (mesh.material.isMeshStandardMaterial) {
+      return this.updateSingleMaterialPBR(mesh.material, properties);
+    }
+
+    // GROUP mesh - gyerekek frissítése
+    if (mesh.userData && mesh.userData.isGroup) {
+      let updated = false;
+      mesh.children.forEach((childMesh) => {
+        if (childMesh.material && childMesh.material.isMeshStandardMaterial) {
+          if (this.updateSingleMaterialPBR(childMesh.material, properties)) {
+            updated = true;
+          }
+        }
+      });
+      return updated;
+    }
+
+    return false;
+  }
+
+  // Helper: Egyedi material PBR frissítés
+  updateSingleMaterialPBR(material, properties) {
+    let updated = false;
+
+    if (properties.roughness !== undefined) {
+      material.roughness = Math.max(0, Math.min(1, properties.roughness));
+      updated = true;
+    }
+    if (properties.metalness !== undefined) {
+      material.metalness = Math.max(0, Math.min(1, properties.metalness));
+      updated = true;
+    }
+    if (properties.envMapIntensity !== undefined) {
+      material.envMapIntensity = Math.max(0, properties.envMapIntensity);
+      updated = true;
+    }
+
+    if (updated) {
+      material.needsUpdate = true;
+    }
+
+    return updated;
+  }
+
+  // CSG státusz lekérdezése - PBR adatokkal
   getCSGStatus() {
     return {
       csgManagerAvailable: !!this.csgManager,
       csgLibraryAvailable: this.csgManager?.isCSGAvailable || false,
       cacheSize: this.csgManager?.getCacheSize() || 0,
+      pbrEnabled: true,
+      materialType: 'MeshStandardMaterial',
+    };
+  }
+
+  // ÚJ: PBR debug info
+  getPBRStatus() {
+    return {
+      materialsCreated: true,
+      defaultShadeRange: [1, 10],
+      supportedProperties: ['roughness', 'metalness', 'envMapIntensity'],
+      textureManagerAvailable: !!window.textureManager,
     };
   }
 
@@ -306,7 +405,7 @@ class GeometryBuilder {
     if (this.csgManager) {
       this.csgManager.destroy();
     }
-    console.log("GeometryBuilder v1.7.0 destroyed");
+    console.log("GeometryBuilder v1.8.0 PBR destroyed");
   }
 }
 

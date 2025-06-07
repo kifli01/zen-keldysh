@@ -1,7 +1,7 @@
 /**
  * Texture Manager
- * Textúrák központi kezelése és létrehozása
- * v1.4.0 - Egyszerűsített, duplikációk eltávolítva
+ * Textúrák központi kezelése PBR materials támogatással
+ * v1.5.0 - PBR Materials (MeshStandardMaterial)
  */
 
 class TextureManager {
@@ -11,7 +11,7 @@ class TextureManager {
     this.wireframeMaterial = null;
     this.initialized = false;
     
-    console.log("TextureManager v1.4.0 - egyszerűsített");
+    console.log("TextureManager v1.5.0 - PBR Materials");
   }
 
   // Inicializálás
@@ -21,24 +21,24 @@ class TextureManager {
       return this.getAllTextures();
     }
 
-    console.log("🎨 Textúrák és anyagok létrehozása...");
+    console.log("🎨 PBR Textúrák és anyagok létrehozása...");
     
     // Anyagok létrehozása
     this.realisticMaterials = this.createRealisticMaterials();
     this.wireframeMaterial = this.createWireframeMaterial();
 
     this.initialized = true;
-    console.log(`✅ TextureManager inicializálva`);
+    console.log(`✅ TextureManager PBR inicializálva`);
     
     return this.getAllTextures();
   }
 
-  // UNIVERZÁLIS textúra betöltés - egyetlen függvény minden anyaghoz
+  // UNIVERZÁLIS textúra betöltés - PBR kompatibilis
   createTextureFromImage(imagePath, repeatSettings = { x: 1, y: 1 }) {
     const texture = new THREE.TextureLoader().load(
       imagePath,
       (loadedTexture) => {
-        console.log(`✅ Textúra betöltve: ${imagePath}`);
+        console.log(`✅ PBR Textúra betöltve: ${imagePath}`);
       },
       undefined,
       (error) => {
@@ -46,13 +46,11 @@ class TextureManager {
       }
     );
     
-    // Textúra beállítások
+    // PBR kompatibilis textúra beállítások
     if (repeatSettings.x === 1 && repeatSettings.y === 1) {
-      // Egyszer - galvanizált acélhoz
       texture.wrapS = THREE.ClampToEdgeWrapping;
       texture.wrapT = THREE.ClampToEdgeWrapping;
     } else {
-      // Ismétlődő - fa és műfű
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
     }
@@ -60,25 +58,66 @@ class TextureManager {
     texture.repeat.set(repeatSettings.x, repeatSettings.y);
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = true;
     
     return texture;
   }
 
-  // UNIVERZÁLIS anyag létrehozás shade-del
-  createMaterialWithShade(materialDef, shade = 5) {
+  // ÚJ: PBR anyag létrehozás shade-del
+  createPBRMaterialWithShade(materialDef, shade = 5) {
     const normalizedShade = Math.max(1, Math.min(10, shade));
     
-    // Brightness és shininess számítás
-    const brightness = 0.1 + (normalizedShade - 1) * (1.4 / 9); // 0.1-1.5
-    const shininess = 5 + (normalizedShade - 1) * (95 / 9);     // 5-100
+    // PBR értékek számítása shade alapján
+    const brightness = 0.3 + (normalizedShade - 1) * (1.2 / 9); // 0.3-1.5
+    const roughness = materialDef.roughnessBase + (10 - normalizedShade) * 0.05; // simább = fényesebb
+    const metalness = materialDef.metalnessBase || 0.0;
     
     // Textúra betöltése ha van
+    let diffuseTexture = null;
+    if (materialDef.imagePath) {
+      diffuseTexture = this.createTextureFromImage(materialDef.imagePath, materialDef.repeat);
+    }
+    
+    // Színszámítás
+    const baseColor = new THREE.Color(materialDef.baseColor);
+    baseColor.multiplyScalar(brightness);
+    
+    // PBR Material létrehozása
+    const material = new THREE.MeshStandardMaterial({
+      // Alap tulajdonságok
+      color: baseColor.getHex(),
+      map: diffuseTexture,
+      
+      // PBR tulajdonságok
+      roughness: roughness,
+      metalness: metalness,
+      
+      // Fejlett beállítások
+      transparent: false,
+      side: THREE.FrontSide,
+      flatShading: false,
+      
+      // Környezeti világítás erősség
+      envMapIntensity: materialDef.envMapIntensity || 1.0,
+    });
+    
+    console.log(`🎨 PBR Material: ${materialDef.name}, shade: ${normalizedShade}, roughness: ${roughness.toFixed(2)}, metalness: ${metalness.toFixed(2)}`);
+    
+    return material;
+  }
+
+  // Fallback - régi Phong anyag shade-del (blueprint módhoz)
+  createPhongMaterialWithShade(materialDef, shade = 5) {
+    const normalizedShade = Math.max(1, Math.min(10, shade));
+    
+    const brightness = 0.1 + (normalizedShade - 1) * (1.4 / 9);
+    const shininess = 5 + (normalizedShade - 1) * (95 / 9);
+    
     let texture = null;
     if (materialDef.imagePath) {
       texture = this.createTextureFromImage(materialDef.imagePath, materialDef.repeat);
     }
     
-    // Színszámítás
     const baseColor = new THREE.Color(materialDef.baseColor);
     baseColor.multiplyScalar(brightness);
     
@@ -90,22 +129,61 @@ class TextureManager {
     });
   }
 
-
-
-  // Realistic anyagok létrehozása alapértelmezett shade-del
+  // PBR Realistic anyagok létrehozása
   createRealisticMaterials() {
     return {
-      plate: this.createMaterialWithShade(MATERIALS.PINE_PLYWOOD, 5),
-      frame: this.createMaterialWithShade(MATERIALS.PINE_SOLID, 5),
-      covering: this.createMaterialWithShade(MATERIALS.ARTIFICIAL_GRASS, 5),
-      wall: this.createMaterialWithShade(MATERIALS.PINE_SOLID, 5),
-      leg: this.createMaterialWithShade(MATERIALS.PINE_SOLID, 5),
-      ball: this.createMaterialWithShade(MATERIALS.WHITE_PLASTIC, 5),
-      galvanized: this.createMaterialWithShade(MATERIALS.GALVANIZED_STEEL, 5),
+      plate: this.createPBRMaterialWithShade({
+        ...MATERIALS.PINE_PLYWOOD,
+        roughnessBase: 0.8, // Fa - matt felület
+        metalnessBase: 0.0, // Nem fém
+        envMapIntensity: 0.3,
+      }, 5),
+      
+      frame: this.createPBRMaterialWithShade({
+        ...MATERIALS.PINE_SOLID,
+        roughnessBase: 0.9, // Tömörfa - még mattabb
+        metalnessBase: 0.0,
+        envMapIntensity: 0.2,
+      }, 5),
+      
+      covering: this.createPBRMaterialWithShade({
+        ...MATERIALS.ARTIFICIAL_GRASS,
+        roughnessBase: 0.95, // Műfű - nagyon matt
+        metalnessBase: 0.0,
+        envMapIntensity: 0.1,
+      }, 5),
+      
+      wall: this.createPBRMaterialWithShade({
+        ...MATERIALS.PINE_SOLID,
+        roughnessBase: 0.85,
+        metalnessBase: 0.0,
+        envMapIntensity: 0.25,
+      }, 5),
+      
+      leg: this.createPBRMaterialWithShade({
+        ...MATERIALS.PINE_SOLID,
+        roughnessBase: 0.9,
+        metalnessBase: 0.0,
+        envMapIntensity: 0.2,
+      }, 5),
+      
+      ball: this.createPBRMaterialWithShade({
+        ...MATERIALS.WHITE_PLASTIC,
+        roughnessBase: 0.1, // Műanyag - sima felület
+        metalnessBase: 0.0,
+        envMapIntensity: 0.8,
+      }, 5),
+      
+      galvanized: this.createPBRMaterialWithShade({
+        ...MATERIALS.GALVANIZED_STEEL,
+        roughnessBase: 0.3, // Fém - közepesen sima
+        metalnessBase: 0.9, // Nagyon fémes
+        envMapIntensity: 1.5, // Erős reflexió
+      }, 5),
     };
   }
 
-  // Wireframe anyag
+  // Wireframe anyag (változatlan)
   createWireframeMaterial() {
     return new THREE.LineBasicMaterial({
       color: 0x333333,
@@ -115,26 +193,34 @@ class TextureManager {
     });
   }
 
-  // Univerzális anyag lekérése anyag típus és shade szerint
-  getMaterialWithShade(materialType, shade = 5) {
+  // Univerzális anyag lekérése (PBR vagy Phong)
+  getMaterialWithShade(materialType, shade = 5, usePBR = true) {
     if (!this.initialized) {
       this.initialize();
     }
 
-    return this.createMaterialWithShade(materialType, shade);
+    if (usePBR) {
+      return this.createPBRMaterialWithShade(materialType, shade);
+    } else {
+      return this.createPhongMaterialWithShade(materialType, shade);
+    }
   }
 
-  // Getter függvények kompatibilitáshoz
+  // Galvanizált anyag (PBR verzió)
   getGalvanizedMaterial(shade = 5) {
-    return this.createMaterialWithShade(MATERIALS.GALVANIZED_STEEL, shade);
+    return this.createPBRMaterialWithShade({
+      ...MATERIALS.GALVANIZED_STEEL,
+      roughnessBase: 0.3,
+      metalnessBase: 0.9,
+      envMapIntensity: 1.5,
+    }, shade);
   }
 
-  // Textúra lekérése (ha szükséges)
+  // Getter függvények (változatlan)
   getTexture(name) {
     return this.textures.get(name);
   }
 
-  // Realistic anyagok lekérése
   getRealisticMaterials() {
     if (!this.initialized) {
       this.initialize();
@@ -142,7 +228,6 @@ class TextureManager {
     return this.realisticMaterials;
   }
 
-  // Wireframe anyag lekérése
   getWireframeMaterial() {
     if (!this.initialized) {
       this.initialize();
@@ -150,7 +235,6 @@ class TextureManager {
     return this.wireframeMaterial;
   }
 
-  // Összes textúra objektumként
   getAllTextures() {
     const textureObj = {};
     this.textures.forEach((texture, name) => {
@@ -159,18 +243,20 @@ class TextureManager {
     return textureObj;
   }
 
-  // Debug info
+  // ÚJ: PBR debug info
   getStatus() {
     return {
       initialized: this.initialized,
       hasRealisticMaterials: !!this.realisticMaterials,
+      materialType: 'PBR (MeshStandardMaterial)',
       supportedMaterials: ['galvanized', 'wood', 'turf', 'plastic', 'plywood'],
       shadeRange: '1-10',
-      version: '1.4.0'
+      pbrFeatures: ['roughness', 'metalness', 'envMapIntensity'],
+      version: '1.5.0'
     };
   }
 
-  // Cleanup
+  // Cleanup (bővített)
   destroy() {
     this.textures.forEach((texture) => {
       if (texture.dispose) {
@@ -184,6 +270,9 @@ class TextureManager {
         if (material.dispose) {
           material.dispose();
         }
+        if (material.map && material.map.dispose) {
+          material.map.dispose();
+        }
       });
       this.realisticMaterials = null;
     }
@@ -194,7 +283,7 @@ class TextureManager {
     }
 
     this.initialized = false;
-    console.log("TextureManager v1.4.0 cleanup kész");
+    console.log("TextureManager v1.5.0 PBR cleanup kész");
   }
 }
 
