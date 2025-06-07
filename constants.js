@@ -196,14 +196,14 @@ const CSG_DEBUG = {
   wireframeResults: false, // Eredmények wireframe módban
 };
 
-// ÚJ: PBR Render beállítások
+// ÚJ: PBR Render beállítások (THREE objektum nélkül)
 const PBR_CONFIG = {
   enabled: true, // PBR renderelés engedélyezése
   useHDR: false, // HDR environment mapping (még nincs implementálva)
-  toneMapping: THREE.ACESFilmicToneMapping, // Tone mapping típus
+  toneMapping: 4, // THREE.ACESFilmicToneMapping = 4
   toneMappingExposure: 1.0, // Expozíció
   physicallyCorrectLights: true, // Fizikailag helyes világítás
-  outputEncoding: THREE.sRGBEncoding, // Kimeneti kódolás
+  outputEncoding: 3001, // THREE.sRGBEncoding = 3001
   shadowMapSize: 2048, // Shadow map felbontás
-  shadowMapType: THREE.PCFSoftShadowMap, // Árnyék típus
+  shadowMapType: 2, // THREE.PCFSoftShadowMap = 2
 };

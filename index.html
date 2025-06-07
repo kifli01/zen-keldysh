@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Minigolf Pálya Viewer - v1.8.2</title>
+    <title>Minigolf Pálya Viewer - v1.9.0</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
@@ -24,6 +24,7 @@
     <script src="wireframe-manager.js"></script>
     <script src="material-manager.js"></script>
     <script src="lighting-manager.js"></script>
+    <script src="hdr-environment-manager.js"></script> <!-- ÚJ: HDR Manager -->
     <!-- Folytatás eredeti fájlokkal -->
     <script src="element-manager.js"></script>
     <script src="parts.js"></script>
@@ -109,6 +110,7 @@
           "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
           "three/examples/jsm/exporters/GLTFExporter.js": "https://unpkg.com/three@0.158.0/examples/jsm/exporters/GLTFExporter.js",
           "three/examples/jsm/renderers/CSS2DRenderer.js": "https://unpkg.com/three@0.158.0/examples/jsm/renderers/CSS2DRenderer.js",
+          "three/examples/jsm/loaders/RGBELoader.js": "https://unpkg.com/three@0.158.0/examples/jsm/loaders/RGBELoader.js",
           "three-mesh-bvh": "https://unpkg.com/three-mesh-bvh@0.7.6/build/index.module.js",
           "three-bvh-csg": "https://unpkg.com/three-bvh-csg@0.0.17/build/index.module.js"
         }
@@ -117,6 +119,11 @@
 
     <script>
       let minigolfElements;
+      // RGBELoader globális elérhetővé tétele a moduláris scriptek számára
+      import('three/examples/jsm/loaders/RGBELoader.js').then(module => {
+        window.THREE = window.THREE || {};
+        window.THREE.RGBELoader = module.RGBELoader;
+      });
     </script>
 
     <script type="module" src="app.js"></script>
