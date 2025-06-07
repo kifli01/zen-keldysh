@@ -1,130 +1,114 @@
 /**
  * Material Manager
  * Anyagok kezelése és váltása (blueprint/realistic)
- * v1.3.0 - Univerzális shade támogatás minden anyag típushoz
+ * v1.4.0 - Egyszerűsített, felesleges részek eltávolítva
  */
 
 class MaterialManager {
   constructor(textureManager) {
     this.textureManager = textureManager;
     this.originalMaterials = new Map();
-    this.toonMaterials = null;
-    this.realisticMaterials = null;
+    this.blueprintMaterial = null;
+    this.groupMaterial = null;
     this.initialized = false;
 
-    console.log("MaterialManager v1.3.0 inicializálva - univerzális shade támogatás");
+    console.log("MaterialManager v1.4.0 - egyszerűsített");
   }
 
-  // Inicializálás - anyagok előkészítése
+  // Inicializálás
   initialize() {
     if (this.initialized) {
       console.log("MaterialManager már inicializálva");
       return;
     }
 
-    // Realistic anyagok betöltése TextureManager-ből
-    this.realisticMaterials = this.textureManager.getRealisticMaterials();
-    
+    this.createBlueprintMaterials();
     console.log("✅ MaterialManager inicializálva");
     this.initialized = true;
   }
 
-  // Shader támogatás beállítása és toon anyagok létrehozása
+  // Blueprint anyagok létrehozása - egyszerű fehér és szürke
+  createBlueprintMaterials() {
+    this.blueprintMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      side: THREE.DoubleSide,
+    });
+
+    this.groupMaterial = new THREE.MeshBasicMaterial({
+      color: 0x9e9e9e, // Világos szürke GROUP elemekhez
+      side: THREE.DoubleSide,
+    });
+
+    console.log("✅ Blueprint anyagok létrehozva");
+  }
+
+  // Shader támogatás beállítása (egyszerűsített)
   setShadersAvailable(available) {
     if (available) {
       this.createToonShaderMaterials();
       console.log("✅ Toon shader anyagok engedélyezve");
       return true;
     } else {
-      console.log("❌ Shader támogatás nem elérhető, fallback anyagok");
-      this.createFallbackToonMaterials();
+      console.log("❌ Shader támogatás nem elérhető");
       return false;
     }
   }
 
-  // Toon shader anyagok létrehozása
+  // Toon shader anyagok létrehozása (egyszerűsített)
   createToonShaderMaterials() {
     try {
-      // Shader kódok lekérése DOM-ból
       const vertexShader = document.getElementById("toonVertexShader")?.textContent;
       const fragmentShader = document.getElementById("toonFragmentShader")?.textContent;
 
       if (!vertexShader || !fragmentShader) {
         console.warn("❌ Toon shader kódok nem találhatóak");
-        this.createFallbackToonMaterials();
         return false;
       }
 
-      // Textúrák lekérése
-      const textures = this.textureManager.getAllTextures();
-
-      // Közös shader uniforms
       const commonUniforms = {
         lightDirection: { value: new THREE.Vector3(3, 1, 1).normalize() },
         paperStrength: { value: 0.0 },
-        paperTexture: { value: textures.paper },
       };
 
-      // Toon anyagok létrehozása
-      this.toonMaterials = {
-        default: new THREE.ShaderMaterial({
-          uniforms: {
-            ...commonUniforms,
-            color: { value: new THREE.Color(0xffffff) },
-          },
-          vertexShader: vertexShader,
-          fragmentShader: fragmentShader,
-          side: THREE.DoubleSide,
-        }),
-        // Szürke anyag GROUP elemekhez
-        group: new THREE.ShaderMaterial({
-          uniforms: {
-            ...commonUniforms,
-            color: { value: new THREE.Color(0x9e9e9e) }, // Világos szürke
-          },
-          vertexShader: vertexShader,
-          fragmentShader: fragmentShader,
-          side: THREE.DoubleSide,
-        }),
-      };
+      this.blueprintMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          ...commonUniforms,
+          color: { value: new THREE.Color(0xffffff) },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        side: THREE.DoubleSide,
+      });
 
-      console.log("✅ Toon shader anyagok létrehozva (fehér + szürke GROUP)");
+      this.groupMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          ...commonUniforms,
+          color: { value: new THREE.Color(0x9e9e9e) },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        side: THREE.DoubleSide,
+      });
+
+      console.log("✅ Toon shader anyagok létrehozva");
       return true;
     } catch (error) {
       console.error("❌ Toon shader anyagok létrehozási hiba:", error);
-      this.createFallbackToonMaterials();
       return false;
     }
   }
 
-  // Fallback toon anyagok (ha nincs shader támogatás)
-  createFallbackToonMaterials() {
-    this.toonMaterials = {
-      default: new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        side: THREE.DoubleSide,
-      }),
-      group: new THREE.MeshBasicMaterial({
-        color: 0x9e9e9e, // Világos szürke
-        side: THREE.DoubleSide,
-      }),
-    };
-    console.log("✅ Fallback toon anyagok létrehozva");
-  }
-
-  // Eredeti anyagok mentése
+  // Eredeti anyagok mentése (csak ha szükséges)
   saveOriginalMaterials(meshes) {
     if (!this.initialized) {
       this.initialize();
     }
 
     meshes.forEach((mesh, elementId) => {
-      // GROUP esetén nem mentünk material-t (nincs is)
       if (mesh.userData && mesh.userData.isGroup) {
-        return;
+        return; // GROUP esetén nincs material
       }
       
-      // Csak ha van material
       if (mesh.material) {
         this.originalMaterials.set(elementId, mesh.material.clone());
       }
@@ -133,59 +117,41 @@ class MaterialManager {
     console.log(`💾 ${this.originalMaterials.size} eredeti anyag mentve`);
   }
 
-  // Blueprint anyag kiválasztása elem típus szerint (VÁLTOZATLAN - nincs shade)
+  // Blueprint anyag kiválasztása elem típus szerint
   getBlueprintMaterial(elementType) {
-    if (!this.toonMaterials) {
-      console.warn("Toon anyagok nincsenek inicializálva");
-      return this.createFallbackMaterial(0xffffff);
-    }
-
     if (elementType === "part") {
-      return this.toonMaterials.group; // Szürke GROUP elemekhez
+      return this.groupMaterial; // Szürke GROUP elemekhez
     }
-    return this.toonMaterials.default; // Fehér minden máshoz
+    return this.blueprintMaterial; // Fehér minden máshoz
   }
 
-  // FRISSÍTETT: Realistic anyag kiválasztása MINDEN anyag típushoz shade támogatással
+  // Realistic anyag kiválasztása shade támogatással
   getRealisticMaterial(elementMaterial, shade = 5) {
-    if (!this.realisticMaterials) {
-      console.warn("Realistic anyagok nincsenek betöltve");
-      return this.createFallbackMaterial(0x808080);
-    }
-
-    // ÚJ: Univerzális shade alapú anyag lekérés a TextureManager-ből
     try {
       return this.textureManager.getMaterialWithShade(elementMaterial, shade);
     } catch (error) {
       console.warn(`Anyag lekérési hiba (${elementMaterial}, shade: ${shade}):`, error);
       
-      // Fallback: eredeti anyagok shade nélkül
+      // Fallback: alapértelmezett anyagok
+      const realisticMaterials = this.textureManager.getRealisticMaterials();
       switch (elementMaterial) {
         case MATERIALS.PINE_PLYWOOD:
-          return this.realisticMaterials.plate;
+          return realisticMaterials.plate;
         case MATERIALS.PINE_SOLID:
-          return this.realisticMaterials.frame;
+          return realisticMaterials.frame;
         case MATERIALS.ARTIFICIAL_GRASS:
-          return this.realisticMaterials.covering;
+          return realisticMaterials.covering;
         case MATERIALS.WHITE_PLASTIC:
-          return this.realisticMaterials.ball;
+          return realisticMaterials.ball;
         case MATERIALS.GALVANIZED_STEEL:
-          return this.realisticMaterials.galvanized;
+          return realisticMaterials.galvanized;
         default:
-          return this.realisticMaterials.frame; // Fallback
+          return realisticMaterials.frame;
       }
     }
   }
 
-  // Fallback anyag létrehozása
-  createFallbackMaterial(color) {
-    return new THREE.MeshBasicMaterial({
-      color: color,
-      side: THREE.DoubleSide,
-    });
-  }
-
-  // Mesh anyagok váltása blueprint módra (VÁLTOZATLAN - nincs shade)
+  // Blueprint anyagok alkalmazása
   applyBlueprintMaterials(meshes, elements) {
     let changedCount = 0;
 
@@ -193,22 +159,17 @@ class MaterialManager {
       const mesh = meshes.get(element.id);
       if (!mesh) return;
 
-      // GROUP esetén a gyerek elemeket is át kell állítani
       if (mesh.userData && mesh.userData.isGroup) {
+        // GROUP gyerekek
         mesh.children.forEach((childMesh) => {
           if (childMesh.material) {
-            const material = this.getBlueprintMaterial(element.type);
-            childMesh.material = material;
+            childMesh.material = this.getBlueprintMaterial(element.type);
             changedCount++;
           }
         });
-        return;
-      }
-
-      // Hagyományos elem
-      if (mesh.material) {
-        const material = this.getBlueprintMaterial(element.type);
-        mesh.material = material;
+      } else if (mesh.material) {
+        // Hagyományos elem
+        mesh.material = this.getBlueprintMaterial(element.type);
         changedCount++;
       }
     });
@@ -216,70 +177,40 @@ class MaterialManager {
     console.log(`🎨 Blueprint anyagok alkalmazva: ${changedCount} elem`);
   }
 
-  // FRISSÍTETT: Mesh anyagok váltása realistic módra (UNIVERZÁLIS shade támogatással)
+  // Realistic anyagok alkalmazása shade támogatással
   applyRealisticMaterials(meshes, elements) {
     let changedCount = 0;
-    const shadeStats = {};
 
     elements.forEach((element) => {
       const mesh = meshes.get(element.id);
       if (!mesh) return;
 
-      // Shade kinyerése az element-ből
-      const shade = element.shade || 5; // Alapértelmezett 5
-      
-      // Shade statisztika gyűjtése
-      const materialName = this.getMaterialDisplayName(element.material);
-      if (!shadeStats[materialName]) {
-        shadeStats[materialName] = {};
-      }
-      shadeStats[materialName][shade] = (shadeStats[materialName][shade] || 0) + 1;
+      const shade = element.shade || 5;
+      const material = this.getRealisticMaterial(element.material, shade);
 
-      // GROUP esetén a gyerek elemeket is át kell állítani
       if (mesh.userData && mesh.userData.isGroup) {
+        // GROUP gyerekek
         mesh.children.forEach((childMesh) => {
           if (childMesh.material) {
-            const material = this.getRealisticMaterial(element.material, shade);
             childMesh.material = material;
             changedCount++;
           }
         });
-        return;
-      }
-
-      // Hagyományos elem
-      if (mesh.material) {
-        const material = this.getRealisticMaterial(element.material, shade);
+      } else if (mesh.material) {
+        // Hagyományos elem
         mesh.material = material;
         changedCount++;
       }
     });
 
-    console.log(`🎨 Realistic anyagok alkalmazva: ${changedCount} elem (univerzális shade támogatással)`);
-    console.log(`📊 Shade statisztikák:`, shadeStats);
+    console.log(`🎨 Realistic anyagok alkalmazva: ${changedCount} elem`);
   }
 
-  // Eredeti anyagok visszaállítása
-  restoreOriginalMaterials(meshes) {
-    let restoredCount = 0;
-
-    this.originalMaterials.forEach((originalMaterial, elementId) => {
-      const mesh = meshes.get(elementId);
-      if (mesh && mesh.material) {
-        mesh.material = originalMaterial.clone();
-        restoredCount++;
-      }
-    });
-
-    console.log(`🔄 Eredeti anyagok visszaállítva: ${restoredCount} elem`);
-  }
-
-  // Egy elem anyagának megváltoztatása - shade támogatással
-  setElementMaterial(mesh, material, shade = 5) {
+  // Elem anyagának megváltoztatása
+  setElementMaterial(mesh, material) {
     if (!mesh) return false;
 
     if (mesh.userData && mesh.userData.isGroup) {
-      // GROUP gyerekek anyagának változtatása
       mesh.children.forEach((childMesh) => {
         if (childMesh.material) {
           childMesh.material = material;
@@ -287,7 +218,6 @@ class MaterialManager {
       });
       return true;
     } else if (mesh.material) {
-      // Hagyományos elem
       mesh.material = material;
       return true;
     }
@@ -295,131 +225,26 @@ class MaterialManager {
     return false;
   }
 
-  // ÚJ: Shade alapú anyag frissítés egy elemhez (UNIVERZÁLIS)
-  updateElementShade(mesh, element, newShade) {
-    const material = this.getRealisticMaterial(element.material, newShade);
-    const success = this.setElementMaterial(mesh, material, newShade);
-    
-    if (success) {
-      console.log(`🎨 Elem shade frissítve: ${element.id} -> shade ${newShade} (${this.getMaterialDisplayName(element.material)})`);
-    }
-    
-    return success;
-  }
-
-  // ÚJ: Batch shade frissítés anyag típus szerint
-  updateMaterialTypeShade(meshes, elements, materialType, newShade) {
-    let updatedCount = 0;
-    
-    elements.forEach((element) => {
-      if (element.material === materialType) {
-        const mesh = meshes.get(element.id);
-        if (mesh && this.updateElementShade(mesh, element, newShade)) {
-          updatedCount++;
-        }
-      }
-    });
-    
-    console.log(`🔄 ${updatedCount} elem shade frissítve (${this.getMaterialDisplayName(materialType)} -> shade ${newShade})`);
-    return updatedCount;
-  }
-
-  // ÚJ: Anyag megjelenítendő neve
-  getMaterialDisplayName(material) {
-    const materialNames = {
-      [MATERIALS.PINE_PLYWOOD]: "Rétegelt lemez",
-      [MATERIALS.PINE_SOLID]: "Tömörfa",
-      [MATERIALS.ARTIFICIAL_GRASS]: "Műfű",
-      [MATERIALS.WHITE_PLASTIC]: "Műanyag",
-      [MATERIALS.GALVANIZED_STEEL]: "Galvanizált acél",
-    };
-    return materialNames[material] || "Ismeretlen";
-  }
-
-  // FRISSÍTETT: Shade statisztikák lekérése (MINDEN anyag típushoz)
-  getShadeStats(elements) {
-    const materialStats = {};
-    let totalElements = 0;
-
-    elements.forEach((element) => {
-      const materialName = this.getMaterialDisplayName(element.material);
-      const shade = element.shade || 5;
-      
-      if (!materialStats[materialName]) {
-        materialStats[materialName] = {
-          elementCount: 0,
-          shadeUsage: {},
-          averageShade: 0,
-        };
-      }
-      
-      materialStats[materialName].elementCount++;
-      materialStats[materialName].shadeUsage[shade] = (materialStats[materialName].shadeUsage[shade] || 0) + 1;
-      totalElements++;
-    });
-
-    // Átlagos shade számítása anyag típusonként
-    Object.values(materialStats).forEach((stats) => {
-      const totalShade = Object.entries(stats.shadeUsage).reduce(
-        (sum, [shade, count]) => sum + (parseInt(shade) * count), 0
-      );
-      stats.averageShade = Math.round((totalShade / stats.elementCount) * 10) / 10;
-    });
-
-    return {
-      totalElements,
-      materialStats,
-      uniqueMaterials: Object.keys(materialStats).length,
-      globalAverageShade: totalElements > 0 ? 
-        Object.values(materialStats).reduce((sum, stats) => sum + (stats.averageShade * stats.elementCount), 0) / totalElements : 5
-    };
-  }
-
-  // FRISSÍTETT: Anyag információk lekérése debug célra
+  // Anyag információk lekérése
   getMaterialInfo() {
     return {
       initialized: this.initialized,
-      hasToonMaterials: !!this.toonMaterials,
-      hasRealisticMaterials: !!this.realisticMaterials,
+      hasBlueprintMaterials: !!(this.blueprintMaterial && this.groupMaterial),
       originalMaterialsCount: this.originalMaterials.size,
-      toonMaterialTypes: this.toonMaterials ? Object.keys(this.toonMaterials) : [],
-      realisticMaterialTypes: this.realisticMaterials ? Object.keys(this.realisticMaterials) : [],
       supportsShade: true,
       shadeRange: [1, 10],
-      supportedMaterials: ["Galvanizált acél", "Tömörfa", "Rétegelt lemez", "Műfű", "Műanyag"],
-      universalShadeSupport: true, // ÚJ: Univerzális shade támogatás jelzése
+      version: '1.4.0'
     };
-  }
-
-  // ÚJ: Debug - shade eloszlás kiírása
-  logShadeDistribution(elements) {
-    const stats = this.getShadeStats(elements);
-    
-    console.log("=== SHADE ELOSZLÁS ===");
-    console.log(`Összes elem: ${stats.totalElements}`);
-    console.log(`Globális átlag shade: ${stats.globalAverageShade}`);
-    console.log("");
-    
-    Object.entries(stats.materialStats).forEach(([materialName, stats]) => {
-      console.log(`${materialName}:`);
-      console.log(`  - Elemek: ${stats.elementCount}`);
-      console.log(`  - Átlag shade: ${stats.averageShade}`);
-      console.log(`  - Eloszlás:`, stats.shadeUsage);
-    });
-    
-    console.log("====================");
   }
 
   // Cleanup
   destroy() {
-    // Toon anyagok cleanup
-    if (this.toonMaterials) {
-      Object.values(this.toonMaterials).forEach((material) => {
-        if (material.dispose) {
-          material.dispose();
-        }
-      });
-      this.toonMaterials = null;
+    // Blueprint anyagok cleanup
+    if (this.blueprintMaterial && this.blueprintMaterial.dispose) {
+      this.blueprintMaterial.dispose();
+    }
+    if (this.groupMaterial && this.groupMaterial.dispose) {
+      this.groupMaterial.dispose();
     }
 
     // Eredeti anyagok cleanup
@@ -431,7 +256,7 @@ class MaterialManager {
     this.originalMaterials.clear();
 
     this.initialized = false;
-    console.log("MaterialManager v1.3.0 cleanup kész");
+    console.log("MaterialManager v1.4.0 cleanup kész");
   }
 }
 

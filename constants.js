@@ -25,36 +25,63 @@ const ELEMENT_TYPES = {
 };
 
 // Anyag definíciók
+
+// Anyag definíciók (egyesített - density + textúra beállítások)
 const MATERIALS = {
   PINE_PLYWOOD: {
     name: "Lucfenyő rétegelt lemez",
     density: 0.5, // g/cm³
-    color: 0xffffff,
+    color: 0xdccfb7,
     shininess: 10,
+    // Textúra beállítások:
+    imagePath: 'textures/wood-3.jpg',
+    baseColor: 0xdccfb7, // Világosabb fa szín
+    repeat: { x: 2, y: 2 },
+    useShade: true,
   },
   PINE_SOLID: {
     name: "Lucfenyő tömörfa",
     density: 0.45, // g/cm³
-    color: 0xffffff,
+    color: 0xdccfb7,
     shininess: 10,
+    // Textúra beállítások:
+    imagePath: 'textures/wood-3.jpg',
+    baseColor: 0xdccfb7,
+    repeat: { x: 2, y: 2 },
+    useShade: true,
   },
   ARTIFICIAL_GRASS: {
     name: "LazyLawn Meadow Twist műfű",
     density: 0.2, // g/cm³
-    color: 0xffffff, // Realisztikus műfű szín - OliveDrab árnyalat
-    shininess: 2, // Mattos felület, kevésbé fényes
+    color: 0xa5bc49,
+    shininess: 2,
+    // Textúra beállítások:
+    imagePath: 'textures/turf-1.jpg',
+    baseColor: 0xa5bc49,
+    repeat: { x: 8, y: 8 },
+    useShade: true,
   },
   WHITE_PLASTIC: {
     name: "Fehér műanyag",
     density: 0.9, // g/cm³
-    color: 0xffffff, // Fehér
-    shininess: 30, // Fényes felület
+    color: 0xffffff,
+    shininess: 30,
+    // Textúra beállítások:
+    imagePath: null, // Nincs textúra
+    baseColor: 0xffffff,
+    repeat: { x: 1, y: 1 },
+    useShade: false, // Fix shininess
   },
   GALVANIZED_STEEL: {
     name: "Galvanizált acél",
     density: 7.8, // g/cm³
-    color: 0xffffff, // Világos sárga-arany galvanizált szín
-    shininess: 60, // Fényes fém felület
+    color: 0xffffff,
+    shininess: 60,
+    // Textúra beállítások:
+    imagePath: 'textures/steel.jpg',
+    baseColor: 0xffffff,
+    repeat: { x: 1, y: 1 },
+    useShade: true,
   },
 };
 
