@@ -65,7 +65,7 @@ class TextureManager {
   // ÚJ: Fa textúra betöltése képből - 1-10 árnyalat skála
   createWoodTexture(shade = 9) {
     const normalizedShade = Math.max(1, Math.min(10, shade));
-    const imagePath = `textures/wood-1.jpg`;
+    const imagePath = `textures/wood-3.jpg`;
     
     const texture = new THREE.TextureLoader().load(
       imagePath,
@@ -335,7 +335,7 @@ class TextureManager {
       hasWireframeMaterial: !!this.wireframeMaterial,
       supportedMaterials: ['galvanized', 'wood', 'turf'],
       shadeRange: '1-10',
-      imageBasedTextures: ['steel.jpg', 'wood-1.jpg', 'turf-1.jpg'],
+      imageBasedTextures: ['steel.jpg', 'wood-3.jpg', 'turf-1.jpg'],
     };
   }
 
