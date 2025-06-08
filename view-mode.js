@@ -1,7 +1,7 @@
 /**
  * View Mode Manager
  * Váltás színes nézet és tervrajz stílus között
- * v4.0.0 - Teljes refaktor: WireframeManager, MaterialManager, LightingManager használatával
+ * v5.0.0 - Pure PBR Simplified - Restore pattern használata
  */
 
 class ViewModeManager {
@@ -9,12 +9,13 @@ class ViewModeManager {
     this.sceneManager = sceneManager;
     this.geometryBuilder = geometryBuilder;
     this.textureManager = textureManager;
-    this.currentMode = "blueprint"; // 'realistic' vagy 'blueprint'
+    this.currentMode = "realistic"; // Alapértelmezett: színes PBR
+    this.firstInitialization = true;
 
     // Exploder referencia tárolása
     this.exploder = null;
 
-    // ÚJ: Specializált manager objektumok inicializálása
+    // Specializált manager objektumok inicializálása
     this.csgWireframeHelper = new CSGWireframeHelper();
     this.wireframeManager = new WireframeManager(sceneManager, this.csgWireframeHelper);
     this.materialManager = new MaterialManager(textureManager);
@@ -23,7 +24,7 @@ class ViewModeManager {
     // Inicializálás
     this.materialManager.initialize();
 
-    console.log("ViewModeManager v4.0.0 - Teljes refaktor kész");
+    console.log("ViewModeManager v5.0.0 - Pure PBR Simplified");
   }
 
   // Exploder referencia beállítása
@@ -38,9 +39,10 @@ class ViewModeManager {
     console.log(`Custom shader támogatás: ${success ? '✅' : '❌'}`);
   }
 
-  // Eredeti anyagok mentése (delegálás MaterialManager-hez)
-  saveOriginalMaterials(meshes) {
-    this.materialManager.saveOriginalMaterials(meshes);
+  // Eredeti PBR anyagok mentése - EGYSZERŰSÍTETT
+  saveOriginalPBRMaterials(meshes) {
+    this.materialManager.saveOriginalPBRMaterials(meshes);
+    console.log("💾 Eredeti PBR anyagok mentve a MaterialManager-ben");
   }
 
   // Váltás tervrajz nézetbe
@@ -49,13 +51,13 @@ class ViewModeManager {
 
     console.log("🔄 Váltás tervrajz nézetbe...");
 
-    // Anyag váltás MaterialManager-rel
+    // Blueprint anyagok alkalmazása
     this.materialManager.applyBlueprintMaterials(meshes, elements);
 
     // Árnyékok kikapcsolása minden elemen
     this.setShadowsForElements(meshes, elements, false);
 
-    // Wireframe layer létrehozása WireframeManager-rel
+    // Wireframe layer létrehozása
     this.wireframeManager.createWireframeLayer(meshes, elements);
 
     // Exploded állapot kezelése
@@ -67,7 +69,7 @@ class ViewModeManager {
       }, 50);
     }
 
-    // Világítás beállítása LightingManager-rel
+    // Világítás beállítása
     this.lightingManager.setBlueprintLighting();
     this.lightingManager.setBackgroundForMode("blueprint");
 
@@ -75,27 +77,37 @@ class ViewModeManager {
     console.log(`✅ Tervrajz nézet aktív (wireframe: ${this.wireframeManager.wireframeLayer.size} elem, exploded: ${isExploded})`);
   }
 
-  // Váltás színes nézetbe
+  // Váltás színes nézetbe - EGYSZERŰSÍTETT RESTORE PATTERN
   switchToRealistic(meshes, elements) {
-    if (this.currentMode === "realistic") return;
+    if (this.currentMode === "realistic" && !this.firstInitialization) return;
 
     console.log("🔄 Váltás színes nézetbe...");
 
-    // Wireframe layer eltávolítása WireframeManager-rel
+    // Wireframe layer eltávolítása
     this.wireframeManager.removeWireframeLayer();
 
-    // Anyag váltás MaterialManager-rel
-    this.materialManager.applyRealisticMaterials(meshes, elements);
+    // EGYSZERŰSÍTETT: Eredeti PBR anyagok visszaállítása
+    if (this.firstInitialization) {
+      // Első inicializáláskor a GeometryBuilder már létrehozta a PBR material-okat
+      // Csak mentjük őket a jövőbeli váltásokhoz
+      this.saveOriginalPBRMaterials(meshes);
+      console.log("🎨 Első inicializálás: PBR material-ok mentése");
+    } else {
+      // Későbbi váltásoknál visszaállítjuk a mentett PBR material-okat
+      this.materialManager.restoreRealisticMaterials(meshes, elements);
+      console.log("🎨 PBR material-ok visszaállítva");
+    }
 
     // Árnyékok bekapcsolása minden elemen
     this.setShadowsForElements(meshes, elements, true);
 
-    // Világítás beállítása LightingManager-rel
+    // Világítás beállítása
     this.lightingManager.setRealisticLighting();
     this.lightingManager.setBackgroundForMode("realistic");
 
     this.currentMode = "realistic";
-    console.log("✅ Színes nézet aktív");
+    this.firstInitialization = false;
+    console.log("✅ Színes PBR nézet aktív");
   }
 
   // Árnyékok beállítása elemeken
@@ -141,7 +153,7 @@ class ViewModeManager {
     return this.currentMode === "realistic" ? "Színes" : "Tervrajz";
   }
 
-  // ÚJ: Manager objektumok lekérése (debug/advanced használathoz)
+  // Manager objektumok lekérése
   getWireframeManager() {
     return this.wireframeManager;
   }
@@ -158,7 +170,7 @@ class ViewModeManager {
     return this.csgWireframeHelper;
   }
 
-  // ÚJ: Speciális funkcionalitások egyszerű elérhetősége
+  // Speciális funkcionalitások egyszerű elérhetősége
   
   // Wireframe láthatóság szabályozás
   setWireframeVisibility(visible) {
@@ -187,31 +199,43 @@ class ViewModeManager {
     }
   }
 
-  // ÚJ: Teljes állapot információ
+  // PBR Properties frissítése (delegálás MaterialManager-hez)
+  updateMeshPBRProperties(mesh, properties) {
+    return this.materialManager.updatePBRProperties(mesh, properties);
+  }
+
+  // Teljes állapot információ
   getViewModeInfo() {
     return {
       currentMode: this.currentMode,
       displayName: this.getModeDisplayName(),
+      firstInitialization: this.firstInitialization,
+      purePBR: true,
+      legacySupport: false,
       wireframe: this.wireframeManager.getWireframeInfo(),
       materials: this.materialManager.getMaterialInfo(),
       lighting: this.lightingManager.getLightingInfo(),
-      version: "4.0.0"
+      version: "5.0.0"
     };
   }
 
   // Debug - teljes állapot kiírása
   logStatus() {
-    console.log("=== VIEW MODE MANAGER STATUS v4.0.0 ===");
+    console.log("=== VIEW MODE MANAGER STATUS v5.0.0 ===");
     console.log("Aktuális mód:", this.currentMode);
+    console.log("Első inicializálás:", this.firstInitialization);
     console.log("Wireframe info:", this.wireframeManager.getWireframeInfo());
     console.log("Material info:", this.materialManager.getMaterialInfo());
     console.log("Lighting info:", this.lightingManager.getLightingInfo());
+    
+    // PBR material-ok debug
+    this.materialManager.listSavedMaterials();
     console.log("=====================================");
   }
 
   // Cleanup
   destroy() {
-    console.log("🧹 ViewModeManager v4.0.0 cleanup...");
+    console.log("🧹 ViewModeManager v5.0.0 cleanup...");
     
     // Manager objektumok cleanup-ja
     this.wireframeManager.destroy();
@@ -222,8 +246,9 @@ class ViewModeManager {
     // Referenciák nullázása
     this.exploder = null;
     this.currentMode = null;
+    this.firstInitialization = true;
 
-    console.log("ViewModeManager v4.0.0 cleanup kész");
+    console.log("ViewModeManager v5.0.0 cleanup kész");
   }
 }
 

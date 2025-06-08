@@ -1,19 +1,18 @@
 /**
  * Material Manager
- * Anyagok kezelése PBR támogatással (blueprint/realistic)
- * v1.5.0 - PBR Materials támogatás + Null Protection
+ * Anyagok kezelése - Pure PBR Pipeline
+ * v2.0.0 - Legacy support eltávolítva, egyszerűsített blueprint/realistic váltás
  */
 
 class MaterialManager {
   constructor(textureManager) {
     this.textureManager = textureManager;
-    this.originalMaterials = new Map();
+    this.originalPBRMaterials = new Map(); // Eredeti PBR material-ok mentése
     this.blueprintMaterial = null;
     this.groupMaterial = null;
     this.initialized = false;
-    this.usePBR = true; // PBR mód váltó
 
-    console.log("MaterialManager v1.5.0 - PBR támogatással + Null Protection");
+    console.log("MaterialManager v2.0.0 - Pure PBR Simplified");
   }
 
   // Inicializálás
@@ -24,19 +23,11 @@ class MaterialManager {
     }
 
     this.createBlueprintMaterials();
-    console.log("✅ MaterialManager PBR inicializálva");
+    console.log("✅ MaterialManager Pure PBR inicializálva");
     this.initialized = true;
   }
 
-  // PBR mód váltás
-  setPBRMode(enabled) {
-    const oldMode = this.usePBR;
-    this.usePBR = enabled;
-    console.log(`PBR mód: ${enabled ? 'BE' : 'KI'} (előző: ${oldMode})`);
-    return this.usePBR;
-  }
-
-  // Blueprint anyagok létrehozása - egyszerű fehér és szürke (Phong marad)
+  // Blueprint anyagok létrehozása - egyszerű fehér és szürke
   createBlueprintMaterials() {
     this.blueprintMaterial = new THREE.MeshBasicMaterial({
       color: 0xffffff,
@@ -51,7 +42,7 @@ class MaterialManager {
     console.log("✅ Blueprint anyagok létrehozva");
   }
 
-  // Shader támogatás beállítása (megtartva blueprint módhoz)
+  // Shader támogatás beállítása (toon shader blueprint módhoz)
   setShadersAvailable(available) {
     if (available) {
       this.createToonShaderMaterials();
@@ -63,7 +54,7 @@ class MaterialManager {
     }
   }
 
-  // Toon shader anyagok létrehozása (blueprint módhoz)
+  // Toon shader anyagok létrehozása
   createToonShaderMaterials() {
     try {
       const vertexShader = document.getElementById("toonVertexShader")?.textContent;
@@ -107,23 +98,34 @@ class MaterialManager {
     }
   }
 
-  // Eredeti anyagok mentése
-  saveOriginalMaterials(meshes) {
+  // Eredeti PBR anyagok mentése - JAVÍTOTT LOGIKA
+  saveOriginalPBRMaterials(meshes) {
     if (!this.initialized) {
       this.initialize();
     }
 
+    let savedCount = 0;
+
     meshes.forEach((mesh, elementId) => {
+      // GROUP elemek kezelése
       if (mesh.userData && mesh.userData.isGroup) {
-        return; // GROUP esetén nincs material
-      }
-      
-      if (mesh.material) {
-        this.originalMaterials.set(elementId, mesh.material.clone());
+        // GROUP gyerekek material-jainak mentése
+        mesh.children.forEach((childMesh, index) => {
+          if (childMesh.material && childMesh.material.isMeshStandardMaterial) {
+            const childKey = `${elementId}_child_${index}`;
+            this.originalPBRMaterials.set(childKey, childMesh.material);
+            savedCount++;
+          }
+        });
+      } 
+      // Hagyományos elemek
+      else if (mesh.material && mesh.material.isMeshStandardMaterial) {
+        this.originalPBRMaterials.set(elementId, mesh.material);
+        savedCount++;
       }
     });
 
-    console.log(`💾 ${this.originalMaterials.size} eredeti anyag mentve`);
+    console.log(`💾 ${savedCount} eredeti PBR anyag mentve`);
   }
 
   // Blueprint anyag kiválasztása elem típus szerint
@@ -134,42 +136,6 @@ class MaterialManager {
     return this.blueprintMaterial; // Fehér minden máshoz
   }
 
-  // Realistic anyag kiválasztása PBR támogatással
-  async getRealisticMaterial(elementMaterial, shade = 5) {
-    try {
-      // PBR anyag lekérése async módon
-      if (this.textureManager) {
-        return await this.textureManager.getMaterialWithShade(elementMaterial, shade, this.usePBR);
-      } else {
-        console.warn("TextureManager nem elérhető, fallback material");
-        return this.createFallbackMaterial(elementMaterial, shade);
-      }
-    } catch (error) {
-      console.warn(`PBR anyag lekérési hiba (${elementMaterial.name}, shade: ${shade}):`, error);
-      
-      // Fallback: alapértelmezett anyagok
-      return this.createFallbackMaterial(elementMaterial, shade);
-    }
-  }
-
-  // Fallback material létrehozása
-  createFallbackMaterial(elementMaterial, shade = 5) {
-    const normalizedShade = Math.max(1, Math.min(10, shade));
-    const brightness = 0.3 + (normalizedShade - 1) * (1.2 / 9);
-    const roughness = (elementMaterial.roughnessBase || 0.5) + (10 - normalizedShade) * 0.05;
-    const metalness = elementMaterial.metalnessBase || 0.0;
-    
-    const baseColor = new THREE.Color(elementMaterial.baseColor || elementMaterial.color || 0x808080);
-    baseColor.multiplyScalar(brightness);
-    
-    return new THREE.MeshStandardMaterial({
-      color: baseColor.getHex(),
-      roughness: Math.max(0, Math.min(1, roughness)),
-      metalness: Math.max(0, Math.min(1, metalness)),
-      envMapIntensity: elementMaterial.envMapIntensity || 1.0,
-    });
-  }
-
   // Blueprint anyagok alkalmazása
   applyBlueprintMaterials(meshes, elements) {
     let changedCount = 0;
@@ -178,17 +144,19 @@ class MaterialManager {
       const mesh = meshes.get(element.id);
       if (!mesh) return;
 
+      const blueprintMaterial = this.getBlueprintMaterial(element.type);
+
       if (mesh.userData && mesh.userData.isGroup) {
         // GROUP gyerekek
         mesh.children.forEach((childMesh) => {
           if (childMesh.material) {
-            childMesh.material = this.getBlueprintMaterial(element.type);
+            childMesh.material = blueprintMaterial;
             changedCount++;
           }
         });
       } else if (mesh.material) {
         // Hagyományos elem
-        mesh.material = this.getBlueprintMaterial(element.type);
+        mesh.material = blueprintMaterial;
         changedCount++;
       }
     });
@@ -196,46 +164,49 @@ class MaterialManager {
     console.log(`🎨 Blueprint anyagok alkalmazva: ${changedCount} elem`);
   }
 
-  // Realistic anyagok alkalmazása PBR támogatással (ASYNC)
-  async applyRealisticMaterials(meshes, elements) {
-    let changedCount = 0;
-    let pbrCount = 0;
+  // Realistic anyagok visszaállítása - EGYSZERŰSÍTETT
+  restoreRealisticMaterials(meshes, elements) {
+    let restoredCount = 0;
+    let missingCount = 0;
 
-    console.log("🎨 Async realistic materials alkalmazása...");
+    console.log("🎨 Eredeti PBR anyagok visszaállítása...");
 
-    for (const element of elements) {
+    elements.forEach((element) => {
       const mesh = meshes.get(element.id);
-      if (!mesh) continue;
+      if (!mesh) return;
 
-      try {
-        const shade = element.shade || 5;
-        const material = await this.getRealisticMaterial(element.material, shade);
+      if (mesh.userData && mesh.userData.isGroup) {
+        // GROUP gyerekek visszaállítása
+        mesh.children.forEach((childMesh, index) => {
+          const childKey = `${element.id}_child_${index}`;
+          const originalMaterial = this.originalPBRMaterials.get(childKey);
+          
+          if (originalMaterial && childMesh.material) {
+            childMesh.material = originalMaterial;
+            restoredCount++;
+          } else {
+            missingCount++;
+            console.warn(`⚠️ Hiányzó eredeti material: ${childKey}`);
+          }
+        });
+      } else {
+        // Hagyományos elem visszaállítása
+        const originalMaterial = this.originalPBRMaterials.get(element.id);
         
-        // PBR számláló
-        if (material && material.isMeshStandardMaterial) {
-          pbrCount++;
+        if (originalMaterial && mesh.material) {
+          mesh.material = originalMaterial;
+          restoredCount++;
+        } else {
+          missingCount++;
+          console.warn(`⚠️ Hiányzó eredeti material: ${element.id}`);
         }
-
-        if (mesh.userData && mesh.userData.isGroup) {
-          // GROUP gyerekek
-          mesh.children.forEach((childMesh) => {
-            if (childMesh.material) {
-              childMesh.material = material;
-              changedCount++;
-            }
-          });
-        } else if (mesh.material) {
-          // Hagyományos elem
-          mesh.material = material;
-          changedCount++;
-        }
-      } catch (error) {
-        console.error(`Material alkalmazási hiba (${element.id}):`, error);
-        // Folytatás a következő elemmel
       }
-    }
+    });
 
-    console.log(`🎨 Realistic anyagok alkalmazva: ${changedCount} elem (PBR: ${pbrCount}/${changedCount})`);
+    console.log(`✅ PBR anyagok visszaállítva: ${restoredCount} elem`);
+    if (missingCount > 0) {
+      console.warn(`⚠️ ${missingCount} material nem volt mentve`);
+    }
   }
 
   // Elem anyagának megváltoztatása
@@ -257,38 +228,18 @@ class MaterialManager {
     return false;
   }
 
-  // Anyag információk lekérése PBR adatokkal (BIZTONSÁGOSAN)
+  // Anyag információk lekérése
   getMaterialInfo() {
-    const realisticMaterials = this.textureManager ? this.textureManager.getRealisticMaterials() : null;
-    let pbrMaterialCount = 0;
-    let phongMaterialCount = 0;
-
-    // BIZTONSÁGOS material ellenőrzés
-    if (realisticMaterials) {
-      Object.values(realisticMaterials).forEach((material) => {
-        // NULL CHECK!
-        if (material) {
-          if (material.isMeshStandardMaterial) {
-            pbrMaterialCount++;
-          } else if (material.isMeshPhongMaterial) {
-            phongMaterialCount++;
-          }
-        } else {
-          console.warn("⚠️ Null material found in realisticMaterials");
-        }
-      });
-    }
-
     return {
       initialized: this.initialized,
-      usePBR: this.usePBR,
+      purePBR: true,
+      legacySupport: false,
       hasBlueprintMaterials: !!(this.blueprintMaterial && this.groupMaterial),
-      originalMaterialsCount: this.originalMaterials.size,
-      pbrMaterialCount: pbrMaterialCount,
-      phongMaterialCount: phongMaterialCount,
+      originalPBRMaterialsCount: this.originalPBRMaterials.size,
       supportsShade: true,
       shadeRange: [1, 10],
-      version: '1.5.0'
+      materialType: 'MeshStandardMaterial (only)',
+      version: '2.0.0'
     };
   }
 
@@ -315,7 +266,25 @@ class MaterialManager {
     return true;
   }
 
-  // Cleanup (bővített)
+  // Debug - mentett material-ok listája
+  listSavedMaterials() {
+    console.log("=== MENTETT PBR MATERIAL-OK ===");
+    console.log(`Mentett anyagok: ${this.originalPBRMaterials.size}`);
+    
+    this.originalPBRMaterials.forEach((material, elementId) => {
+      const maps = [];
+      if (material.map) maps.push('diffuse');
+      if (material.normalMap) maps.push('normal');
+      if (material.roughnessMap) maps.push('roughness');
+      if (material.metalnessMap) maps.push('metalness');
+      if (material.aoMap) maps.push('ao');
+      
+      console.log(`📄 ${elementId}: [${maps.join(', ')}]`);
+    });
+    console.log("==============================");
+  }
+
+  // Cleanup
   destroy() {
     // Blueprint anyagok cleanup
     if (this.blueprintMaterial && this.blueprintMaterial.dispose) {
@@ -325,16 +294,11 @@ class MaterialManager {
       this.groupMaterial.dispose();
     }
 
-    // Eredeti anyagok cleanup
-    this.originalMaterials.forEach((material) => {
-      if (material.dispose) {
-        material.dispose();
-      }
-    });
-    this.originalMaterials.clear();
+    // Eredeti anyagok nem kell dispose-olni, mert még használhatóak
+    this.originalPBRMaterials.clear();
 
     this.initialized = false;
-    console.log("MaterialManager v1.5.0 cleanup kész");
+    console.log("MaterialManager v2.0.0 cleanup kész");
   }
 }
 

@@ -1,6 +1,6 @@
 /**
  * Minigolf Pálya Viewer - Főalkalmazás
- * v1.12.0 - Async Normal Maps Integration
+ * v1.13.0 - Pure PBR Simplified - Optimalizált inicializálás
  */
 
 // ES6 importok
@@ -116,21 +116,21 @@ function checkCSS2DAvailability() {
   }
 }
 
-// ÚJ v1.12.0: Főalkalmazás inicializálása async normal maps-ekkel
+// FŘISSÍTETT v1.13.0: Egyszerűsített inicializálás Pure PBR pipeline-nal
 async function initialize() {
   try {
-    console.log("🚀 Inicializálás kezdete v1.12.0 - Normal Maps Integration...");
+    console.log("🚀 Inicializálás kezdete v1.13.0 - Pure PBR Simplified...");
 
     // Könyvtárak ellenőrzése
     const csgAvailable = initializeCSG();
     const shadersAvailable = checkShaderAvailability();
     const css2dAvailable = checkCSS2DAvailability();
 
-    // ÚJ v1.12.0: TextureManager első inicializálása
-    console.log("🎨 TextureManager inicializálása...");
+    // ELSŐ: TextureManager inicializálása
+    console.log("🎨 TextureManager Pure PBR inicializálása...");
     textureManager = new TextureManager();
     textureManager.initialize();
-    console.log("✅ TextureManager v1.6.0 inicializálva");
+    console.log("✅ TextureManager v1.7.0 Pure PBR inicializálva");
 
     // Alapvető manager objektumok létrehozása
     elementManager = new ElementManager();
@@ -138,14 +138,14 @@ async function initialize() {
       document.getElementById("viewer-container")
     );
     
-    // ÚJ v1.12.0: GeometryBuilder + TextureManager integráció
-    console.log("🔧 GeometryBuilder + TextureManager integráció...");
+    // GeometryBuilder + TextureManager integráció
+    console.log("🔧 GeometryBuilder v2.0.0 + TextureManager integráció...");
     geometryBuilder = new GeometryBuilder();
-    geometryBuilder.setTextureManager(textureManager); // ← ÚJ!
+    geometryBuilder.setTextureManager(textureManager);
     
     exploder = new Exploder();
     
-    // Refaktorált ViewModeManager
+    // FRISSÍTETT: ViewModeManager v5.0.0 - Pure PBR
     viewModeManager = new ViewModeManager(sceneManager, geometryBuilder, textureManager);
 
     // HDR Environment Manager létrehozása
@@ -197,36 +197,31 @@ async function initialize() {
     });
     console.log(`✅ ${minigolfElements.length} elem betöltve`);
 
-    // ÚJ v1.12.0: Async Mesh-ek létrehozása Normal Maps-ekkel
-    console.log("🎨 Async PBR Mesh-ek létrehozása Normal Maps-ekkel...");
+    // KULCS v1.13.0: Pure PBR Mesh-ek létrehozása
+    console.log("🎨 Pure PBR Mesh-ek létrehozása...");
     const elements = elementManager.getAllElements();
     
-    // KRITIKUS: Async hívás!
+    // ASYNC PBR mesh creation
     allMeshes = await geometryBuilder.createAllMeshes(elements);
-    console.log(`✅ ${allMeshes.size} PBR mesh létrehozva Normal Maps-ekkel`);
+    console.log(`✅ ${allMeshes.size} Pure PBR mesh létrehozva`);
 
-    // ÚJ v1.12.0: PBR Statistics logging
+    // PBR Statistics logging
     logPBRStatistics(allMeshes);
 
     // Mesh-ek hozzáadása a scene-hez
     sceneManager.addAllMeshes(allMeshes);
     console.log("Mesh-ek hozzáadva a scene-hez");
 
-    // ViewModeManager inicializálása
-    viewModeManager.saveOriginalMaterials(allMeshes);
-    console.log("Eredeti anyagok mentve");
+    // KULCS v1.13.0: ViewModeManager v5.0.0 inicializálása - színes az alapértelmezett
+    console.log("🌟 ViewModeManager v5.0.0 - színes PBR alapértelmezett...");
+    
+    // ELSŐ: PBR material-ok mentése (GeometryBuilder készítette őket)
+    viewModeManager.switchToRealistic(allMeshes, elementManager.getAllElements());
+    console.log("✅ Színes PBR nézet beállítva alapértelmezettként + PBR material-ok mentve");
 
     // Exploder inicializálása
     exploder.saveOriginalPositions(allMeshes);
     console.log("Eredeti pozíciók mentve");
-
-    // ALAPÉRTELMEZETT: Színes nézet beállítása (PBR Normal Maps-ekkel)
-    console.log("🌟 Színes PBR nézet aktiválása Normal Maps-ekkel...");
-    viewModeManager.switchToRealistic(
-      allMeshes,
-      elementManager.getAllElements()
-    );
-    console.log("✅ Színes PBR nézet beállítva alapértelmezettként");
 
     // HDR Environment inicializálása
     console.log("🌿 Meadow HDR Environment inicializálása...");
@@ -238,9 +233,9 @@ async function initialize() {
         
         try {
           await hdrEnvironmentManager.loadHDREnvironment();
-          // Minden mesh environment frissítése (most már Normal Maps-ekkel!)
+          // Minden mesh environment frissítése
           hdrEnvironmentManager.updateAllMeshesEnvironment();
-          console.log("🌟 Meadow HDR Environment + Normal Maps aktiválva!");
+          console.log("🌟 Meadow HDR Environment aktiválva!");
         } catch (hdrError) {
           console.warn("⚠️ Meadow HDR betöltés sikertelen, fallback használata:", hdrError);
         }
@@ -266,7 +261,7 @@ async function initialize() {
           postProcessingManager.setSSAOPreset('architectural');
           postProcessingManager.setSSAOEnabled(true);
           
-          console.log("🌟 Bloom + SSAO Effect aktiválva Normal Maps-ekkel!");
+          console.log("🌟 Bloom + SSAO Effect aktiválva!");
         } else {
           console.warn("❌ Post-Processing nem inicializálható");
         }
@@ -299,24 +294,23 @@ async function initialize() {
       console.log("Event listener-ek beállítva");
     }
 
-    console.log("🎉 Inicializálás sikeres v1.12.0 - Normal Maps Integration!");
+    console.log("🎉 Inicializálás sikeres v1.13.0 - Pure PBR Simplified!");
     
-    // ÚJ v1.12.0: Teljes rendszer status
+    // Teljes rendszer status
     logSystemStatus();
     
   } catch (error) {
     console.error("❌ Hiba az inicializálás során:", error);
     
-    // ÚJ v1.12.0: Error recovery - fallback inicializálás Normal Maps nélkül
-    console.log("🔄 Error recovery - fallback inicializálás...");
+    // Error recovery - egyszerűsített fallback
+    console.log("🔄 Error recovery...");
     await initializeFallback();
   }
 }
 
-// ÚJ v1.12.0: PBR Statistics logging
+// PBR Statistics logging (változatlan)
 function logPBRStatistics(meshes) {
   let pbrCount = 0;
-  let legacyCount = 0;
   let totalMaps = {
     diffuse: 0,
     normal: 0,
@@ -326,32 +320,28 @@ function logPBRStatistics(meshes) {
   };
 
   meshes.forEach((mesh, elementId) => {
-    if (mesh.userData.materialType === 'PBR') {
-      pbrCount++;
-      
-      // Map statistics
-      if (mesh.userData.hasDiffuseMap) totalMaps.diffuse++;
-      if (mesh.userData.hasNormalMap) totalMaps.normal++;
-      if (mesh.userData.hasRoughnessMap) totalMaps.roughness++;
-      if (mesh.userData.hasMetalnessMap) totalMaps.metalness++;
-      if (mesh.userData.hasAOMap) totalMaps.ao++;
-      
-      // GROUP gyerekek számítása
-      if (mesh.userData.isGroup) {
-        mesh.children.forEach(child => {
-          if (child.userData.hasNormalMap) totalMaps.normal++;
-          if (child.userData.hasRoughnessMap) totalMaps.roughness++;
-          if (child.userData.hasMetalnessMap) totalMaps.metalness++;
-          if (child.userData.hasAOMap) totalMaps.ao++;
-        });
-      }
-    } else {
-      legacyCount++;
+    pbrCount++;
+    
+    // Map statistics
+    if (mesh.userData.hasDiffuseMap) totalMaps.diffuse++;
+    if (mesh.userData.hasNormalMap) totalMaps.normal++;
+    if (mesh.userData.hasRoughnessMap) totalMaps.roughness++;
+    if (mesh.userData.hasMetalnessMap) totalMaps.metalness++;
+    if (mesh.userData.hasAOMap) totalMaps.ao++;
+    
+    // GROUP gyerekek számítása
+    if (mesh.userData.isGroup) {
+      mesh.children.forEach(child => {
+        if (child.userData.hasNormalMap) totalMaps.normal++;
+        if (child.userData.hasRoughnessMap) totalMaps.roughness++;
+        if (child.userData.hasMetalnessMap) totalMaps.metalness++;
+        if (child.userData.hasAOMap) totalMaps.ao++;
+      });
     }
   });
 
-  console.log("📊 PBR STATISTICS v1.12.0:");
-  console.log(`   Materials: ${pbrCount} PBR, ${legacyCount} Legacy`);
+  console.log("📊 PURE PBR STATISTICS v1.13.0:");
+  console.log(`   Materials: ${pbrCount} Pure PBR (100%)`);
   console.log(`   Diffuse Maps: ${totalMaps.diffuse}`);
   console.log(`   Normal Maps: ${totalMaps.normal} ✨`);
   console.log(`   Roughness Maps: ${totalMaps.roughness}`);
@@ -360,34 +350,44 @@ function logPBRStatistics(meshes) {
   console.log(`   Total Texture Maps: ${Object.values(totalMaps).reduce((a, b) => a + b, 0)}`);
 }
 
-// ÚJ v1.12.0: Teljes rendszer status
+// Teljes rendszer status (frissített)
 function logSystemStatus() {
-  console.log("🎯 SYSTEM STATUS v1.12.0:");
-  console.log(`   TextureManager: ${textureManager.getStatus().version}`);
-  console.log(`   GeometryBuilder: ${geometryBuilder.getPBRStatus().version}`);
-  console.log(`   Material Cache: ${geometryBuilder.getMaterialCacheStats().cacheSize} items`);
+  console.log("🎯 SYSTEM STATUS v1.13.0:");
+  console.log(`   TextureManager: ${textureManager.getStatus().version} (Pure PBR)`);
+  console.log(`   GeometryBuilder: ${geometryBuilder.getPBRStatus().version} (Pure PBR)`);
+  console.log(`   ViewModeManager: ${viewModeManager.getViewModeInfo().version} (Pure PBR)`);
+  console.log(`   MaterialManager: ${materialManager.getMaterialInfo().version} (Pure PBR)`);
   console.log(`   HDR Environment: ${hdrEnvironmentManager.getStatus().isLoaded ? '✅' : '❌'}`);
   console.log(`   Post-Processing: ${postProcessingManager ? '✅' : '❌'}`);
+  console.log(`   Legacy Support: ❌ (Pure PBR only)`);
 }
 
-// ÚJ v1.12.0: Fallback inicializálás Normal Maps hibák esetén
+// Egyszerűsített fallback inicializálás
 async function initializeFallback() {
   try {
-    console.log("🔄 Fallback inicializálás Normal Maps nélkül...");
+    console.log("🔄 Fallback inicializálás...");
     
-    // Egyszerű mesh-ek létrehozása legacy módban
+    // Egyszerű emergency mesh-ek létrehozása
     const elements = elementManager.getAllElements();
     
-    // Disable PBR minden material-ban
+    allMeshes = new Map();
     elements.forEach(element => {
-      if (element.material && element.material.enablePBR) {
-        element.material.enablePBR = false;
-        console.log(`🔄 PBR disabled: ${element.id}`);
-      }
+      const fallbackGeometry = new THREE.BoxGeometry(10, 10, 10);
+      const fallbackMaterial = new THREE.MeshBasicMaterial({
+        color: 0xff0000,
+        wireframe: true,
+      });
+      const fallbackMesh = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
+      
+      fallbackMesh.userData = {
+        elementId: element.id,
+        elementName: element.name + " (FALLBACK)",
+        hasError: true,
+      };
+      
+      allMeshes.set(element.id, fallbackMesh);
     });
     
-    // Fallback mesh creation
-    allMeshes = await geometryBuilder.createAllMeshes(elements);
     sceneManager.addAllMeshes(allMeshes);
     
     console.log("✅ Fallback inicializálás sikeres");
@@ -397,9 +397,9 @@ async function initializeFallback() {
   }
 }
 
-// Globális hozzáférés debug-hoz (bővített v1.12.0)
+// Globális hozzáférés debug-hoz (frissített v1.13.0)
 window.debugInfo = () => {
-  console.log("=== DEBUG INFO v1.12.0 ===");
+  console.log("=== DEBUG INFO v1.13.0 - Pure PBR ===");
   console.log("Element Manager:", elementManager?.getAllElements().length + " elem");
   console.log("Scene Manager:", sceneManager?.getSceneInfo());
   console.log("Exploder:", exploder?.getState());
@@ -412,7 +412,7 @@ window.debugInfo = () => {
     console.log("CSG Manager:", csgManager.getDebugInfo());
   }
   
-  // Refaktorált manager debug info
+  // Pure PBR manager debug info
   if (wireframeManager) {
     console.log("Wireframe Manager:", wireframeManager.getWireframeInfo());
   }
@@ -429,22 +429,19 @@ window.debugInfo = () => {
     console.log("Post-Processing Manager:", postProcessingManager.getStatus());
   }
   
-  // ÚJ v1.12.0: PBR Debug info
+  // Pure PBR Debug info
   if (textureManager) {
     console.log("Texture Manager:", textureManager.getStatus());
     textureManager.listLoadedTextures();
   }
   if (geometryBuilder) {
     console.log("Geometry Builder:", geometryBuilder.getPBRStatus());
-    console.log("Material Cache:", geometryBuilder.getMaterialCacheStats());
   }
   
-  console.log("Shaders:", checkShaderAvailability());
-  console.log("CSS2D:", checkCSS2DAvailability());
   console.log("==================");
 };
 
-// ÚJ v1.12.0: Normal Maps specifikus debug
+// Normal Maps specifikus debug (változatlan)
 window.normalMapsDebug = () => {
   if (!allMeshes) {
     console.log("❌ Nincs mesh adat");
@@ -470,7 +467,7 @@ window.normalMapsDebug = () => {
   console.log("========================");
 };
 
-// Részletes ViewMode debug (változatlan)
+// ViewMode debug (változatlan)
 window.viewModeDebug = () => {
   if (viewModeManager) {
     viewModeManager.logStatus();
@@ -487,7 +484,7 @@ window.viewModeManager = () => viewModeManager;
 window.exploder = () => exploder;
 window.textureManager = () => textureManager;
 
-// Refaktorált manager elérhetőség
+// Pure PBR manager elérhetőség
 window.wireframeManager = () => wireframeManager;
 window.materialManager = () => materialManager;
 window.lightingManager = () => lightingManager;
@@ -515,7 +512,7 @@ window.toggleElementVisibility = function (elementId, isVisible) {
 // Inicializálás indítása az oldal betöltése után
 document.addEventListener("DOMContentLoaded", initialize);
 
-// Exportálás más modulok számára (bővített v1.12.0)
+// Exportálás más modulok számára (frissített v1.13.0)
 export {
   elementManager,
   sceneManager,
@@ -523,8 +520,8 @@ export {
   exploder,
   viewModeManager,
   csgManager,
-  textureManager, // TextureManager export
-  // Refaktorált manager exportok
+  textureManager,
+  // Pure PBR manager exportok
   wireframeManager,
   materialManager,
   lightingManager,

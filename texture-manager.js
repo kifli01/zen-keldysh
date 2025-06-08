@@ -1,14 +1,12 @@
 /**
  * Texture Manager
- * Textúrák központi kezelése teljes PBR pipeline támogatással
- * v1.6.0 - Normal Maps, Roughness, Metalness, AO Maps + Emergency Materials
+ * Textúrák központi kezelése - Pure PBR Pipeline
+ * v1.7.0 - Legacy Phong támogatás eltávolítva, csak async PBR
  */
 
 class TextureManager {
   constructor() {
     this.textures = new Map(); // Összes textúra cache
-    this.realisticMaterials = null;
-    this.wireframeMaterial = null;
     this.initialized = false;
     this.loader = new THREE.TextureLoader();
     
@@ -16,26 +14,19 @@ class TextureManager {
     this.pbrTextureCache = new Map(); // PBR texture set-ek
     this.loadingPromises = new Map(); // Async loading tracking
     
-    console.log("TextureManager v1.6.0 - Normal Maps & Multi-Texture Pipeline + Emergency Materials");
+    console.log("TextureManager v1.7.0 - Pure PBR Pipeline");
   }
 
   // Inicializálás
   initialize() {
     if (this.initialized) {
       console.log("TextureManager már inicializálva");
-      return this.getAllTextures();
+      return;
     }
 
-    console.log("🎨 PBR Multi-Texture Pipeline inicializálása...");
-    
-    // Alapvető anyagok létrehozása
-    this.realisticMaterials = this.createRealisticMaterials();
-    this.wireframeMaterial = this.createWireframeMaterial();
-
+    console.log("🎨 Pure PBR Pipeline inicializálása...");
     this.initialized = true;
-    console.log(`✅ TextureManager v1.6.0 inicializálva`);
-    
-    return this.getAllTextures();
+    console.log(`✅ TextureManager v1.7.0 inicializálva`);
   }
 
   // Textúra betöltés hibakezeléssel
@@ -192,17 +183,12 @@ class TextureManager {
     return textureSet;
   }
 
-  // PBR Material létrehozása teljes texture set-tel BIZTONSÁGOS
-  async createPBRMaterialWithTextures(materialDef, shade = 5, materialName = 'Unknown') {
+  // Pure PBR Material létrehozása - JAVÍTOTT brightness formula
+  async createPBRMaterial(materialDef, shade = 5, materialName = 'Unknown') {
     // NULL CHECK
     if (!materialDef) {
       console.error(`❌ MaterialDef is null: ${materialName}`);
       return this.createEmergencyMaterial();
-    }
-
-    if (!materialDef.enablePBR) {
-      console.log(`📄 Legacy material: ${materialName}`);
-      return this.createPhongMaterialWithShade(materialDef, shade);
     }
 
     try {
@@ -214,40 +200,28 @@ class TextureManager {
         console.error(`❌ TextureSet is null: ${materialName}`);
         throw new Error('TextureSet is null');
       }
-      
-      // Fallback ha nincs diffuse
-      if (!textureSet.diffuse && materialDef.imagePath) {
-        console.log(`🔄 Fallback legacy textúra: ${materialName}`);
-        textureSet.diffuse = await this.loadTextureAsync(
-          materialDef.imagePath, 
-          `${materialName}_Legacy`
-        );
-      }
 
       const normalizedShade = Math.max(1, Math.min(10, shade));
       
-      // PBR értékek számítása shade alapján
-      const brightness = 0.3 + (normalizedShade - 1) * (1.2 / 9);
+      // JAVÍTOTT brightness formula - világosabb
+      const brightness = 0.8 + (normalizedShade - 1) * (0.8 / 9); // 0.8-1.6 tartomány
       const roughness = (materialDef.roughnessBase || 0.5) + (10 - normalizedShade) * 0.05;
       const metalness = materialDef.metalnessBase || 0.0;
       
-      // Alapszín számítás - MÓDOSÍTOTT COLOR BLENDING
+      // Alapszín számítás - csökkentett color tinting
       const baseColor = new THREE.Color(materialDef.baseColor || materialDef.color || 0x808080);
       baseColor.multiplyScalar(brightness);
       
-      // ÚJ v1.8.0: Color Tinting - textúra színének erős módosítása
+      // Csökkentett Color Tinting
       let finalColor = baseColor;
-      let colorIntensity = 1.0; // Alap color intensity
+      let colorIntensity = 1.0; // Visszaállítva az alapértelmezett értékre
       
       if (textureSet.diffuse && materialDef.enableColorTinting !== false) {
-        // ERŐS COLOR TINTING - textúra színezése
-        colorIntensity = materialDef.colorTintStrength || 1.5; // Default 1.5x erősebb
-        
-        // Szín intenzitás növelése a meleg tónus eléréséhez
+        colorIntensity = materialDef.colorTintStrength || 1.0; // Alapértelmezett 1.0
         finalColor = baseColor.clone();
         finalColor.multiplyScalar(colorIntensity);
         
-        console.log(`🎨 Strong Color Tinting: ${materialName}, intensity: ${colorIntensity}, color: #${finalColor.getHexString()}`);
+        console.log(`🎨 Color Tinting: ${materialName}, intensity: ${colorIntensity}, color: #${finalColor.getHexString()}`);
       }
       
       // Textúra repeat beállítása (BIZTONSÁGOSAN)
@@ -268,13 +242,10 @@ class TextureManager {
         textureSet.ao.repeat.set(repeat.x, repeat.y);
       }
 
-      // ÚJ v1.8.0: Dynamic Normal Scale számítás
+      // Dynamic Normal Scale számítás
       let finalNormalScale = materialDef.normalScale || 1.0;
       
       if (materialDef.normalScaleRange && textureSet.normal) {
-        // Shade alapú normal scale interpoláció
-        // Shade 1 = max normal (matt, durva)
-        // Shade 10 = min normal (fényes, sima)
         const shadeProgress = (normalizedShade - 1) / 9; // 0-1 között
         const normalProgress = 1 - shadeProgress; // Fordított logika
         
@@ -286,11 +257,11 @@ class TextureManager {
 
       // PBR Material létrehozása
       const material = new THREE.MeshStandardMaterial({
-        // ÚJ v1.8.0: Color dominál a textúra felett
+        // Color dominál a textúra felett
         color: finalColor.getHex(),
         map: textureSet.diffuse,
         
-        // ÚJ v1.8.0: Dynamic Normal Map
+        // Dynamic Normal Map
         normalMap: textureSet.normal,
         normalScale: new THREE.Vector2(finalNormalScale, finalNormalScale),
         
@@ -311,8 +282,8 @@ class TextureManager {
         side: THREE.FrontSide,
         flatShading: false,
         
-        // Környezeti világítás
-        envMapIntensity: materialDef.envMapIntensity || 1.0,
+        // Csökkentett környezeti világítás
+        envMapIntensity: materialDef.envMapIntensity || 0.5, // 1.0 helyett 0.5
       });
 
       // Debug log
@@ -323,7 +294,7 @@ class TextureManager {
       if (textureSet.metalness) appliedMaps.push('metalness');
       if (textureSet.ao) appliedMaps.push('ao');
       
-      console.log(`🎨 PBR Material: ${materialName}, shade: ${normalizedShade}, maps: [${appliedMaps.join(', ')}]`);
+      console.log(`🎨 PBR Material: ${materialName}, shade: ${normalizedShade}, brightness: ${brightness.toFixed(2)}, maps: [${appliedMaps.join(', ')}]`);
       
       return material;
       
@@ -343,74 +314,8 @@ class TextureManager {
     });
   }
 
-  // Legacy Phong anyag (fallback)
-  createPhongMaterialWithShade(materialDef, shade = 5) {
-    const normalizedShade = Math.max(1, Math.min(10, shade));
-    
-    const brightness = 0.1 + (normalizedShade - 1) * (1.4 / 9);
-    const shininess = 5 + (normalizedShade - 1) * (95 / 9);
-    
-    let texture = null;
-    if (materialDef.imagePath) {
-      texture = this.createTextureFromImage(materialDef.imagePath, materialDef.repeat);
-    }
-    
-    const baseColor = new THREE.Color(materialDef.baseColor || materialDef.color || 0x808080);
-    baseColor.multiplyScalar(brightness);
-    
-    return new THREE.MeshPhongMaterial({
-      color: baseColor.getHex(),
-      map: texture,
-      shininess: materialDef.useShade ? shininess : materialDef.shininess,
-      transparent: false,
-    });
-  }
-
-  // Legacy textúra betöltés (kompatibilitás)
-  createTextureFromImage(imagePath, repeatSettings = { x: 1, y: 1 }) {
-    const texture = new THREE.TextureLoader().load(
-      imagePath,
-      (loadedTexture) => {
-        console.log(`✅ Legacy textúra betöltve: ${imagePath}`);
-      },
-      undefined,
-      (error) => {
-        console.warn(`⚠️ Legacy kép nem található: ${imagePath}`);
-      }
-    );
-    
-    if (repeatSettings.x === 1 && repeatSettings.y === 1) {
-      texture.wrapS = THREE.ClampToEdgeWrapping;
-      texture.wrapT = THREE.ClampToEdgeWrapping;
-    } else {
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.RepeatWrapping;
-    }
-    
-    texture.repeat.set(repeatSettings.x, repeatSettings.y);
-    texture.minFilter = THREE.LinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    texture.generateMipmaps = true;
-    
-    return texture;
-  }
-
-  // Realistic anyagok létrehozása (BIZTONSÁGOS emergency materials)
-  createRealisticMaterials() {
-    // BIZTONSÁGOS emergency material-ok - nem null!
-    return {
-      plate: new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.8, metalness: 0.0 }),
-      frame: new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.9, metalness: 0.0 }),
-      covering: new THREE.MeshStandardMaterial({ color: 0x228B22, roughness: 0.95, metalness: 0.0 }),
-      wall: new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.85, metalness: 0.0 }),
-      leg: new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.9, metalness: 0.0 }),
-      ball: new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.1, metalness: 0.0 }),
-      galvanized: new THREE.MeshStandardMaterial({ color: 0xC0C0C0, roughness: 0.3, metalness: 0.9 }),
-    };
-  }
-
-  // Univerzális anyag lekérése (async-ra módosítva)
-  async getMaterialWithShade(materialType, shade = 5, usePBR = true) {
+  // Univerzális anyag lekérése - csak PBR
+  async getMaterialWithShade(materialType, shade = 5) {
     if (!this.initialized) {
       this.initialize();
     }
@@ -418,21 +323,7 @@ class TextureManager {
     // Material név meghatározása debug-hoz
     const materialName = materialType.name || 'Unknown';
 
-    if (usePBR && materialType.enablePBR) {
-      return await this.createPBRMaterialWithTextures(materialType, shade, materialName);
-    } else {
-      return this.createPhongMaterialWithShade(materialType, shade);
-    }
-  }
-
-  // Wireframe anyag (változatlan)
-  createWireframeMaterial() {
-    return new THREE.LineBasicMaterial({
-      color: 0x333333,
-      linewidth: 2,
-      transparent: true,
-      opacity: 0.8,
-    });
+    return await this.createPBRMaterial(materialType, shade, materialName);
   }
 
   // Getter függvények
@@ -442,20 +333,6 @@ class TextureManager {
 
   getPBRTextureSet(materialName) {
     return this.pbrTextureCache.get(materialName);
-  }
-
-  getRealisticMaterials() {
-    if (!this.initialized) {
-      this.initialize();
-    }
-    return this.realisticMaterials;
-  }
-
-  getWireframeMaterial() {
-    if (!this.initialized) {
-      this.initialize();
-    }
-    return this.wireframeMaterial;
   }
 
   getAllTextures() {
@@ -476,13 +353,13 @@ class TextureManager {
   getStatus() {
     return {
       initialized: this.initialized,
-      version: 'v1.6.0 - Normal Maps & Multi-Texture + Emergency',
-      pbrPipelineEnabled: PBR_PIPELINE.enabled,
+      version: 'v1.7.0 - Pure PBR Pipeline',
+      pbrPipelineEnabled: true,
       textureCache: this.textures.size,
       pbrCache: this.pbrTextureCache.size,
       loadingPromises: this.loadingPromises.size,
       supportedMaps: ['diffuse', 'normal', 'roughness', 'metalness', 'ao'],
-      materialType: 'MeshStandardMaterial',
+      materialType: 'MeshStandardMaterial (only)',
       shadeRange: '1-10',
       maxTextureSize: PBR_PIPELINE.maxTextureSize,
       capabilities: {
@@ -528,23 +405,8 @@ class TextureManager {
     this.pbrTextureCache.clear();
     this.loadingPromises.clear();
 
-    // Materials cleanup
-    if (this.realisticMaterials) {
-      Object.values(this.realisticMaterials).forEach((material) => {
-        if (material && material.dispose) {
-          material.dispose();
-        }
-      });
-      this.realisticMaterials = null;
-    }
-
-    if (this.wireframeMaterial && this.wireframeMaterial.dispose) {
-      this.wireframeMaterial.dispose();
-      this.wireframeMaterial = null;
-    }
-
     this.initialized = false;
-    console.log("TextureManager v1.6.0 cleanup kész");
+    console.log("TextureManager v1.7.0 cleanup kész");
   }
 }
 
