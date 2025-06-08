@@ -23,15 +23,191 @@ body {
   flex: 1;
   position: relative;
   height: 100%;
+  padding-top: 60px; /* Toolbar magasság */
+  /* margin-right eltávolítva - panel nem tolja el */
+}
+
+/* Felső Toolbar v1.14.0 */
+#top-toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0; /* Teljes szélességű mindig */
+  height: 60px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e7e7ec;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 1000;
+  /* transition eltávolítva - nem változik mérete */
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-label {
+  font-size: 12px;
+  color: #4f5461;
+  font-weight: 500;
+  margin-right: 5px;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 30px;
+  background: #e7e7ec;
+}
+
+/* Eredeti controls - rejtve */
+#controls {
+  display: none;
+}
+
+#view-controls {
+  display: none;
+}
+
+/* Toolbar gombok */
+#top-toolbar button {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#top-toolbar button i {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.5;
+}
+
+#top-toolbar button:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #334155;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Fő akció gombok (jobb oldal) - kiemelve */
+.toolbar-right button {
+  background: #4a67eb;
+  border: 1px solid #4a67eb;
+  color: white;
+  font-weight: 500;
+  padding: 12px 16px;
+  min-width: 45px;
+  height: 45px;
+}
+
+.toolbar-right button i {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+.toolbar-right button:hover {
+  background: #3b50ba;
+  border-color: #3b50ba;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(74, 103, 235, 0.3);
+}
+
+/* Responsive toolbar */
+@media (max-width: 1200px) {
+  .toolbar-label {
+    display: none;
+  }
+  
+  .toolbar-group {
+    gap: 6px;
+  }
+  
+  #top-toolbar button {
+    padding: 8px 10px;
+    font-size: 12px;
+    min-width: 35px;
+    height: 35px;
+  }
+}
+
+@media (max-width: 768px) {
+  #top-toolbar {
+    padding: 0 10px;
+    height: 50px;
+  }
+  
+  .toolbar-left {
+    gap: 10px;
+  }
+  
+  .toolbar-separator {
+    display: none;
+  }
+  
+  #top-toolbar button {
+    padding: 6px 8px;
+    font-size: 11px;
+    min-width: 30px;
+    height: 30px;
+  }
+  
+  .toolbar-right button {
+    min-width: 35px;
+    height: 35px;
+  }
 }
 
 #summary-panel {
   width: 450px;
-  height: 100%;
+  height: calc(100vh - 60px); /* Teljes magasság mínusz toolbar */
   background-color: #f9f9f9;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.15);
   padding: 20px;
   overflow-y: auto;
+  position: fixed;
+  top: 60px; /* Toolbar alatt kezdődik */
+  right: 0;
+  transform: translateX(100%); /* Alapból kívül */
+  transition: transform 0.3s ease;
+  z-index: 999; /* Toolbar alatt */
+}
+
+#summary-panel.visible {
+  transform: translateX(0); /* Becsúszik a toolbar alatt */
+}
+
+#summary-panel.hidden {
+  transform: translateX(100%); /* Kicsúszik */
 }
 
 #summary-panel h1 {
@@ -223,10 +399,6 @@ body {
   font-size: 14px;
 }
 
-.element-count {
-  font-size: 12px;
-}
-
 .element-weight {
   background-color: #fef3c7;
   color: #92400e;
@@ -355,17 +527,6 @@ body {
   font-weight: 400;
 }
 
-#controls {
-  position: absolute;
-  bottom: 15px;
-  left: 15px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e7e7ec;
-}
-
 button {
   background: #4a67eb;
   border: none;
@@ -419,40 +580,4 @@ button:hover {
 
 .collapsible-content.collapsed {
   max-height: 0;
-}
-
-/* Nézet váltó gombok stílusa */
-#view-controls {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e7e7ec;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  width: 120px;
-  flex-direction: column;
-}
-
-.view-label {
-  width: 100%;
-  font-size: 12px;
-  color: #4f5461;
-  margin-bottom: 5px;
-  font-weight: 500;
-}
-
-#view-controls button {
-  background: #6c7b7f;
-  font-size: 12px;
-  padding: 6px 12px;
-  min-width: auto;
-}
-
-#view-controls button:hover {
-  background: #5a666a;
 }

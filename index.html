@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Minigolf Pálya Viewer - v1.13.1 localStorage</title>
+    <title>Minigolf Pálya Viewer - v1.14.0 Felső Toolbar</title>
 
     <!-- ES6 modules támogatás -->
     <script
@@ -35,6 +35,9 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="styles.css" />
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <!-- Toon Shader kódok -->
     <script id="toonVertexShader" type="x-shader/x-vertex">
@@ -129,35 +132,90 @@
 
     <script type="module" src="app.js"></script>
 
+    <!-- Lucide Icons inicializálása -->
+    <script>
+      // Lucide ikonok inicializálása az oldal betöltése után
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+          console.log('✅ Lucide Icons inicializálva');
+        } else {
+          console.warn('⚠️ Lucide Icons nem töltődött be');
+        }
+      });
+    </script>
+
     <!-- UI struktúra -->
     <div id="viewer-container">
-      <!-- Fő vezérlők -->
-      <div id="controls">
-        <button id="toggle-explode">Szétszedés</button>
-        <button id="toggle-view-mode">Színes</button>
+      <!-- Felső Toolbar - EREDETITŐL ELTÉRŐ ELRENDEZÉS -->
+      <div id="top-toolbar">
+        <!-- Bal oldal: Nézetek és kontrollok -->
+        <div class="toolbar-left">
+          <div class="toolbar-group">
+            <button id="view-top" title="Felülnézet"><i data-lucide="arrow-up"></i></button>
+            <button id="view-bottom" title="Alulnézet"><i data-lucide="arrow-down"></i></button>
+            <button id="view-front" title="Elölnézet"><i data-lucide="arrow-left"></i></button>
+            <button id="view-back" title="Hátulnézet"><i data-lucide="arrow-right"></i></button>
+            <button id="view-left" title="Bal oldalnézet"><i data-lucide="arrow-up-left"></i></button>
+            <button id="view-right" title="Jobb oldalnézet"><i data-lucide="arrow-up-right"></i></button>
+          </div>
+          
+          <div class="toolbar-separator"></div>
+          
+          <div class="toolbar-group">
+            <button id="zoom-in" title="Nagyítás"><i data-lucide="zoom-in"></i></button>
+            <button id="zoom-out" title="Kicsinyítés"><i data-lucide="zoom-out"></i></button>
+            <button id="reset-view" title="Alaphelyzet"><i data-lucide="home"></i></button>
+          </div>
+          
+          <div class="toolbar-separator"></div>
+          
+          <div class="toolbar-group">
+            <button id="toggle-coordinates" title="Koordináta rendszer"><i data-lucide="axis-3d"></i></button>
+          </div>
+        </div>
+
+        <!-- Jobb oldal: Fő műveletek -->
+        <div class="toolbar-right">
+          <div class="toolbar-group">
+            <button id="toggle-view-mode" title="Nézet váltás"><i data-lucide="palette"></i></button>
+            <button id="toggle-explode" title="Szétszedés"><i data-lucide="box"></i></button>
+          </div>
+          
+          <div class="toolbar-separator"></div>
+          
+          <div class="toolbar-group">
+            <button id="toggle-summary-panel" title="Specifikációs panel"><i data-lucide="panel-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- EREDETI KONTROLL CONTAINER-EK - REJTVE, DE MEGMARADNAK -->
+      <div id="controls" style="display: none;">
+        <button id="toggle-explode-hidden">Szétszedés</button>
+        <button id="toggle-view-mode-hidden">Színes</button>
         <button id="export-gltf">GLTF Export</button>
       </div>
 
-      <!-- Nézet váltó gombok -->
-      <div id="view-controls">
+      <div id="view-controls" style="display: none;">
         <div class="view-label">Nézetek:</div>
-        <button id="view-top">Felül</button>
-        <button id="view-bottom">Alul</button>
-        <button id="view-front">Elöl</button>
-        <button id="view-back">Hátul</button>
-        <button id="view-left">Bal</button>
-        <button id="view-right">Jobb</button>
+        <button id="view-top-hidden">Felül</button>
+        <button id="view-bottom-hidden">Alul</button>
+        <button id="view-front-hidden">Elöl</button>
+        <button id="view-back-hidden">Hátul</button>
+        <button id="view-left-hidden">Bal</button>
+        <button id="view-right-hidden">Jobb</button>
         <hr />
-        <button id="zoom-in">Zoom +</button>
-        <button id="zoom-out">Zoom -</button>
+        <button id="zoom-in-hidden">Zoom +</button>
+        <button id="zoom-out-hidden">Zoom -</button>
         <hr />
-        <button id="toggle-coordinates">Koordináták</button>
-        <button id="reset-view">Alaphelyzet</button>
+        <button id="toggle-coordinates-hidden">Koordináták</button>
+        <button id="reset-view-hidden">Alaphelyzet</button>
       </div>
     </div>
 
-    <!-- Summary panel -->
-    <div id="summary-panel">
+    <!-- Summary panel - alapból rejtett -->
+    <div id="summary-panel" class="hidden">
       <h1>Minigolf Pálya Specifikáció</h1>
       <!-- A summary javascript-ből lesz feltöltve -->
     </div>
