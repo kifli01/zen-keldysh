@@ -29,12 +29,12 @@ const MATERIALS = {
   PINE_PLYWOOD: {
     name: "Lucfenyő rétegelt lemez",
     density: 0.5, // g/cm³
-    color: 0xdccfb7,
+    color: 0xF2E4C9, // ÚJ: Erősebb meleg krém a tinting-hez
     shininess: 10,
     
     // LEGACY textúra (fallback):
     imagePath: 'textures/wood-3.jpg',
-    baseColor: 0xdccfb7,
+    baseColor: 0xF2E4C9, // ÚJ: Melegebb alapszín a hideg Wood017 ellensúlyozására
     repeat: { x: 2, y: 2 },
     useShade: true,
     
@@ -42,6 +42,10 @@ const MATERIALS = {
     diffusePath: 'textures/Wood017_1K-JPG_Color.jpg',
     normalPath: 'textures/Wood017_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Wood017_1K-JPG_Roughness.jpg',
+    
+    // ÚJ v1.8.0: Color Tinting Control
+    enableColorTinting: true, // Material color keverése textúrával
+    colorTintStrength: 2.0, // Erős meleg tinting (2x intenzívebb)
     
     // PBR tulajdonságok:
     roughnessBase: 0.8, // Fa - matt felület
@@ -63,12 +67,12 @@ const MATERIALS = {
   PINE_SOLID: {
     name: "Lucfenyő tömörfa",
     density: 0.45, // g/cm³
-    color: 0xdccfb7,
+    color: 0xEADCC1, // ÚJ: Melegebb tömörfa szín
     shininess: 10,
     
     // LEGACY textúra (fallback):
     imagePath: 'textures/wood-3.jpg',
-    baseColor: 0xdccfb7,
+    baseColor: 0xEADCC1, // ÚJ: Meleg tömörfa alapszín
     repeat: { x: 2, y: 2 },
     useShade: true,
     
@@ -76,6 +80,10 @@ const MATERIALS = {
     diffusePath: 'textures/Wood017_1K-JPG_Color.jpg',
     normalPath: 'textures/Wood017_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Wood017_1K-JPG_Roughness.jpg',
+    
+    // ÚJ v1.8.0: Color Tinting Control
+    enableColorTinting: true, // Material color keverése textúrával
+    colorTintStrength: 1.8, // Közepesen erős tinting (tömörfa)
     
     // PBR tulajdonságok:
     roughnessBase: 0.9, // Tömörfa - még mattabb
@@ -96,12 +104,12 @@ const MATERIALS = {
   ARTIFICIAL_GRASS: {
     name: "LazyLawn Meadow Twist műfű",
     density: 0.2, // g/cm³
-    color: 0xa5bc49,
+    color: 0x4A7C59, // ÚJ: Vibráns természetes zöld (referencia alapján)
     shininess: 2,
     
     // LEGACY textúra (fallback):
     imagePath: 'textures/turf-1.jpg',
-    baseColor: 0xa5bc49,
+    baseColor: 0x4A7C59, // ÚJ: Élénk műfű zöld
     repeat: { x: 8, y: 8 },
     useShade: true,
     
@@ -110,6 +118,10 @@ const MATERIALS = {
     normalPath: 'textures/Grass008_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Grass008_1K-JPG_Roughness.jpg',
     aoPath: 'textures/Grass008_1K-JPG_AmbientOcclusion.jpg', // ✅ VAN AO!
+    
+    // ÚJ v1.8.0: Color Tinting Control - erős zöld tinting
+    enableColorTinting: true, // Material color keverése textúrával
+    colorTintStrength: 1.6, // Erős zöld tinting a természetes színhez
     
     // PBR tulajdonságok:
     roughnessBase: 0.95, // Műfű - nagyon matt
@@ -164,12 +176,12 @@ const MATERIALS = {
   GALVANIZED_STEEL: {
     name: "Galvanizált acél",
     density: 7.8, // g/cm³
-    color: 0xffffff,
+    color: 0xffffff, // ÚJ: Fényes rozsdamentes acél ezüst
     shininess: 60,
     
     // LEGACY textúra (fallback):
     imagePath: 'textures/steel.jpg',
-    baseColor: 0xffffff,
+    baseColor: 0xffffff, // ÚJ: Tiszta fényes ezüst acél
     repeat: { x: 1, y: 1 },
     useShade: true,
     
@@ -179,10 +191,14 @@ const MATERIALS = {
     roughnessPath: 'textures/Metal011_1K-JPG_Roughness.jpg',
     metalnessPath: 'textures/Metal011_1K-JPG_Metalness.jpg', // ✅ METALNESS MAP!
     
+    // ÚJ v1.8.0: Color Tinting Control - fényes acél
+    enableColorTinting: true, // Material color keverése textúrával
+    colorTintStrength: 1.4, // Közepesen erős tinting (tiszta fém szín)
+    
     // PBR tulajdonságok:
-    roughnessBase: 0.3, // Fém - közepesen sima
-    metalnessBase: 0.9, // Nagyon fémes
-    envMapIntensity: 1.5, // Erős reflexió
+    roughnessBase: 0.2, // Fényes acél - simább felület
+    metalnessBase: 0.95, // Még fémesebb (rozsdamentes)
+    envMapIntensity: 2.0, // Erősebb reflexió (fényes acél)
     
     // ÚJ v1.8.0: Dynamic Normal Scale - fém felület finishing
     normalScale: 0.5, // Alapértelmezett érték

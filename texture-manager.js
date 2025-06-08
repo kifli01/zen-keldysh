@@ -231,9 +231,24 @@ class TextureManager {
       const roughness = (materialDef.roughnessBase || 0.5) + (10 - normalizedShade) * 0.05;
       const metalness = materialDef.metalnessBase || 0.0;
       
-      // Alapszín számítás
+      // Alapszín számítás - MÓDOSÍTOTT COLOR BLENDING
       const baseColor = new THREE.Color(materialDef.baseColor || materialDef.color || 0x808080);
       baseColor.multiplyScalar(brightness);
+      
+      // ÚJ v1.8.0: Color Tinting - textúra színének erős módosítása
+      let finalColor = baseColor;
+      let colorIntensity = 1.0; // Alap color intensity
+      
+      if (textureSet.diffuse && materialDef.enableColorTinting !== false) {
+        // ERŐS COLOR TINTING - textúra színezése
+        colorIntensity = materialDef.colorTintStrength || 1.5; // Default 1.5x erősebb
+        
+        // Szín intenzitás növelése a meleg tónus eléréséhez
+        finalColor = baseColor.clone();
+        finalColor.multiplyScalar(colorIntensity);
+        
+        console.log(`🎨 Strong Color Tinting: ${materialName}, intensity: ${colorIntensity}, color: #${finalColor.getHexString()}`);
+      }
       
       // Textúra repeat beállítása (BIZTONSÁGOSAN)
       const repeat = materialDef.pbrRepeat || materialDef.repeat || { x: 1, y: 1 };
@@ -271,8 +286,8 @@ class TextureManager {
 
       // PBR Material létrehozása
       const material = new THREE.MeshStandardMaterial({
-        // Alapvető tulajdonságok
-        color: baseColor.getHex(),
+        // ÚJ v1.8.0: Color dominál a textúra felett
+        color: finalColor.getHex(),
         map: textureSet.diffuse,
         
         // ÚJ v1.8.0: Dynamic Normal Map

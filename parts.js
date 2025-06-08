@@ -57,6 +57,7 @@ function bigCorner(params) {
     name: "Nagy sarok elem",
     type: ELEMENT_TYPES.PART,
     material: "GALVANIZED_STEEL",
+    shade: 10,
     geometry: {
       type: GEOMETRY_TYPES.GROUP,
       elements: [     // Gyerek elemek
@@ -326,7 +327,7 @@ function screw(params) {
     name: name,
     type: ELEMENT_TYPES.PART,
     material: "GALVANIZED_STEEL",
-    shade: 9,
+    shade: 1,
     geometry: {
       type: GEOMETRY_TYPES.GROUP,
       elements: [
