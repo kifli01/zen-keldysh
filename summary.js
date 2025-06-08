@@ -1,7 +1,7 @@
 /**
  * Minigolf Summary Generator
  * Létrehozza és kezeli a minigolf pálya specifikációs panelt
- * v1.4.0 - Egyedi elem láthatóság kapcsolók
+ * v1.6.0 - Hierarchikus UI + Csoportos toggle
  */
 
 // Összegző panel létrehozása
@@ -31,70 +31,48 @@ const summaryGenerator = {
   },
 
   /**
-   * Teljes méretek szekció létrehozása
-   * @param {Object} summaryData - A summary objektum
-   * @returns {string} - HTML string a szekcióhoz
+   * Teljes méretek szekció - VÁLTOZATLAN
    */
   createTotalDimensionsSection: function (summaryData) {
     const { totalDimensions, weights } = summaryData;
 
     return `
       <div class="summary-section">
-          <h2 class="collapsible">Teljes méretek</h2>
+          <h2 class="collapsible">Teljes méretek és súly</h2>
           <div class="collapsible-content">
-              <div class="dim-section">
-                  <div>
-                      <div class="summary-item">
-                          <span class="summary-item-key">Hosszúság:</span>
-                          <span class="summary-item-value">${
-                            totalDimensions.length
-                          } cm</span>
-                      </div>
-                      <div class="summary-item">
-                          <span class="summary-item-key">Szélesség:</span>
-                          <span class="summary-item-value">${
-                            totalDimensions.width
-                          } cm</span>
-                      </div>
-                  </div>
-                  <div>
-                      <div class="summary-item">
-                          <span class="summary-item-key">Magasság:</span>
-                          <span class="summary-item-value">${
-                            totalDimensions.height.withSides
-                          } cm</span>
-                      </div>
-                      <div class="summary-item">
-                          <span class="summary-item-key">Alap magasság:</span>
-                          <span class="summary-item-value">${totalDimensions.height.withoutSides.toFixed(
-                            1
-                          )} cm</span>
-                      </div>
-                  </div>
+              <div class="summary-item">
+                  <span class="summary-item-key">Hosszúság:</span>
+                  <span class="summary-item-value">${
+                    totalDimensions.length.toFixed(1)
+                  } cm</span>
+              </div>
+              <div class="summary-item">
+                  <span class="summary-item-key">Szélesség:</span>
+                  <span class="summary-item-value">${
+                    totalDimensions.width.toFixed(1)
+                  } cm</span>
+              </div>
+              <div class="summary-item">
+                  <span class="summary-item-key">Magasság (oldalfalakkal):</span>
+                  <span class="summary-item-value">${
+                    totalDimensions.height.withSides
+                  } cm</span>
+              </div>
+              <div class="summary-item">
+                  <span class="summary-item-key">Magasság (váz csak):</span>
+                  <span class="summary-item-value">${totalDimensions.height.withoutSides.toFixed(
+                    1
+                  )} cm</span>
               </div>
               <div class="weight-summary">
-                  Teljes súly: ${weights.total.kilograms.toFixed(1)} kg
-              </div>
-              <div class="summary-item">
-                  <span class="summary-item-key">Térfogat:</span>
-                  <span class="summary-item-value">${totalDimensions.totalVolume.toFixed(
-                    2
-                  )} cm³</span>
-              </div>
-              <div class="summary-item">
-                  <span class="summary-item-key">Súly:</span>
-                  <span class="summary-item-value">${weights.total.grams.toFixed(
-                    2
-                  )} g</span>
+                  <strong>Teljes súly: ${weights.total.kilograms.toFixed(1)} kg</strong>
               </div>
           </div>
       </div>`;
   },
 
   /**
-   * Komponensek szekció létrehozása
-   * @param {Object} summaryData - A summary objektum
-   * @returns {string} - HTML string a szekcióhoz
+   * ÚJRAÍRT: Komponensek szekció - Hierarchikus UI
    */
   createComponentsSection: function (summaryData) {
     const { components } = summaryData;
@@ -104,162 +82,174 @@ const summaryGenerator = {
           <h2 class="collapsible">Komponensek</h2>
           <div class="collapsible-content">`;
 
-    // Komponensek végigjárása
-    components.forEach((component) => {
-      html += this.createComponentCard(component);
+    // Komponensek végigjárása - ÚJ hierarchikus struktúra
+    components.forEach((component, componentIndex) => {
+      html += this.createHierarchicalComponentCard(component, componentIndex);
     });
 
     html += `</div></div>`;
-
     return html;
   },
 
   /**
-   * Egy komponens kártya létrehozása
-   * @param {Object} component - A komponens objektum
-   * @returns {string} - HTML string a komponens kártyához
+   * ÚJ: Hierarchikus komponens kártya - Minimális fejléc
    */
-  createComponentCard: function (component) {
+  createHierarchicalComponentCard: function (component, componentIndex) {
+    const componentId = `component_${componentIndex}`;
+    
     let html = `
-      <div class="component-card">
-          <h3>${component.name}</h3>
-          <span class="material-tag">${component.material}</span>
-          
-          ${
-            component.dimensions
-              ? this.createDimensionsItem(component.dimensions)
-              : ""
-          }
-          
-          <div class="summary-item">
-              <span class="summary-item-key">Térfogat:</span>
-              <span class="summary-item-value">${(
-                component.volume || component.totalVolume
-              ).toFixed(2)} cm³</span>
+      <div class="component-card hierarchical">
+          <!-- KOMPONENS FEJLÉC - Csak név + elemszám -->
+          <div class="component-header">
+              <div class="component-info">
+                  <span class="component-name">${component.name}</span>
+                  <span class="element-count">${component.elements.length} elem</span>
+              </div>
+              
+              <div class="component-controls">
+                  <label class="visibility-toggle" title="Komponens láthatóság">
+                      <input type="checkbox" checked 
+                             data-component-id="${componentId}" 
+                             onchange="toggleComponentVisibility('${componentId}', this.checked)">
+                      <span class="toggle-slider"></span>
+                  </label>
+                  <button class="details-chevron collapsed" type="button" 
+                          onclick="toggleComponentDetails('${componentId}', this)"
+                          title="Részletek ki/be">
+                      <span>▼</span>
+                  </button>
+              </div>
           </div>
-          
-          <div class="summary-item">
-              <span class="summary-item-key">Súly:</span>
-              <span class="summary-item-value">${(
-                (component.weight || component.totalWeight) / 1000
-              ).toFixed(2)} kg</span>
-          </div>`;
 
-    // Ha vannak alelemek
-    if (
-      component.elements &&
-      Array.isArray(component.elements) &&
-      component.elements.length > 0
-    ) {
-      html += `<h3 class="collapsible">Részletek</h3>
-          <div class="collapsible-content">`;
+          <!-- KOMPONENS RÉSZLETEK - Anyag + súly itt -->
+          <div class="component-details collapsed" id="${componentId}_details">
+              <div class="component-meta-details">
+                  <div class="summary-item">
+                      <span class="summary-item-key">Anyag:</span>
+                      <span class="summary-item-value">
+                          <span class="material-tag">${component.material}</span>
+                      </span>
+                  </div>
+                  <div class="summary-item">
+                      <span class="summary-item-key">Összsúly:</span>
+                      <span class="summary-item-value">${(component.totalWeight / 1000).toFixed(1)} kg</span>
+                  </div>
+              </div>
+              
+              <div class="elements-list">`;
 
-      component.elements.forEach((element) => {
-        html += this.createSubComponentItem(element);
+    // Elemek listája
+    if (component.elements && component.elements.length > 0) {
+      component.elements.forEach((element, elementIndex) => {
+        html += this.createHierarchicalElementItem(element, componentId, elementIndex);
       });
-
-      html += `</div>`;
     }
 
-    html += `</div>`;
+    html += `
+              </div>
+          </div>
+      </div>`;
 
     return html;
   },
 
   /**
-   * Egy al-komponens elem létrehozása
-   * @param {Object} element - Az alelem objektum
-   * @returns {string} - HTML string az alelemhez
+   * ÚJ: Hierarchikus elem item - Alapból összecsukatott
    */
-  createSubComponentItem: function (element) {
+  createHierarchicalElementItem: function (element, componentId, elementIndex) {
+    const elementId = `${componentId}_element_${elementIndex}`;
+    
     let html = `
-      <div class="sub-component">
+      <div class="element-item hierarchical">
+          <!-- ELEM FEJLÉC -->
           <div class="element-header">
-              <div class="summary-item">
-                  <span class="summary-item-key">${element.name}:</span>
-                  <span class="summary-item-value">${
-                    element.count || 1
-                  } db</span>
+              <div class="element-info">
+                  <span class="element-name">${element.name}</span>
+                  <span class="element-count">${element.count || 1} db</span>
+                  <span class="element-weight">${((element.weight || 0) / 1000).toFixed(3)} kg</span>
               </div>
-              <label class="visibility-toggle">
-                  <input type="checkbox" checked data-element-id="${
-                    element.id
-                  }" onchange="toggleElementVisibility('${
-      element.id
-    }', this.checked)">
-                  <span class="toggle-slider"></span>
-              </label>
+              
+              <div class="element-controls">
+                  <label class="visibility-toggle" title="Elem láthatóság">
+                      <input type="checkbox" checked 
+                             data-element-id="${element.id}" 
+                             onchange="toggleElementVisibility('${element.id}', this.checked)">
+                      <span class="toggle-slider"></span>
+                  </label>
+                  <button class="details-chevron collapsed" type="button" 
+                          onclick="toggleElementDetails('${elementId}', this)"
+                          title="Részletek ki/be">
+                      <span>▼</span>
+                  </button>
+              </div>
           </div>
-          
-          ${
-            element.dimensions
-              ? this.createDimensionsItem(element.dimensions)
-              : ""
-          }
-          
-          ${
-            element.volume
-              ? `
-          <div class="summary-item">
-              <span class="summary-item-key">Térfogat:</span>
-              <span class="summary-item-value">${element.volume.toFixed(
-                2
-              )} cm³</span>
-          </div>
-          `
-              : ""
-          }
-          
-          ${
-            element.weight
-              ? `
-          <div class="summary-item">
-              <span class="summary-item-key">Súly:</span>
-              <span class="summary-item-value">${(
-                element.weight / 1000
-              ).toFixed(2)} kg</span>
-          </div>
-          `
-              : ""
-          }`;
 
-    // Ha van spacing
+          <!-- ELEM RÉSZLETEK - Alapból összecsukva -->
+          <div class="element-details collapsed" id="${elementId}_details">`;
+
+    // Részletes információk
+    if (element.dimensions) {
+      html += this.createDimensionsItem(element.dimensions);
+    }
+
+    // Súly részletesebben
+    html += `
+              <div class="summary-item">
+                  <span class="summary-item-key">Súly részletesen:</span>
+                  <span class="summary-item-value">${((element.weight || 0) / 1000).toFixed(3)} kg</span>
+              </div>`;
+
+    // Spacing ha van
     if (element.spacing) {
       html += `
-          <div class="summary-item">
-              <span class="summary-item-key">Távolság:</span>
-              <span class="summary-item-value">${element.spacing.toFixed(
-                1
-              )} cm</span>
-          </div>`;
+              <div class="summary-item">
+                  <span class="summary-item-key">Távolság:</span>
+                  <span class="summary-item-value">${element.spacing.toFixed(1)} cm</span>
+              </div>`;
     }
 
-    html += `</div>`;
+    html += `
+          </div>
+      </div>`;
 
     return html;
   },
 
   /**
-   * Méretek elem létrehozása
-   * @param {Object} dimensions - A méretek objektum
-   * @returns {string} - HTML string a méretekhez
+   * Méretek elem létrehozása - VÁLTOZATLAN
    */
   createDimensionsItem: function (dimensions) {
+    let dimensionText = "";
+    
+    if (dimensions.length && dimensions.width && (dimensions.thickness || dimensions.height)) {
+      const thickness = dimensions.thickness || dimensions.height;
+      dimensionText = `${dimensions.length} × ${dimensions.width} × ${thickness} cm`;
+    } else if (dimensions.diameter && dimensions.height) {
+      dimensionText = `⌀${dimensions.diameter} × ${dimensions.height} cm`;
+    } else if (dimensions.radius && dimensions.height) {
+      dimensionText = `⌀${(dimensions.radius * 2).toFixed(1)} × ${dimensions.height} cm`;
+    } else if (dimensions.diameter) {
+      dimensionText = `⌀${dimensions.diameter} cm`;
+    } else if (dimensions.radius) {
+      dimensionText = `⌀${(dimensions.radius * 2).toFixed(1)} cm`;
+    } else {
+      const parts = [];
+      if (dimensions.length) parts.push(`H:${dimensions.length}`);
+      if (dimensions.width) parts.push(`Sz:${dimensions.width}`);
+      if (dimensions.height) parts.push(`M:${dimensions.height}`);
+      if (dimensions.thickness) parts.push(`V:${dimensions.thickness}`);
+      dimensionText = parts.join(" × ") + " cm";
+    }
+
     return `
       <div class="summary-item">
           <span class="summary-item-key">Méret:</span>
-          <span class="summary-item-value">
-              ${dimensions.length} × 
-              ${dimensions.width} × 
-              ${dimensions.thickness || dimensions.height} cm
-          </span>
+          <span class="summary-item-value">${dimensionText}</span>
       </div>`;
   },
 
   /**
-   * Anyagok szakasz létrehozása
-   * @param {Object} summaryData - A summary objektum
-   * @returns {string} - HTML string az anyagok szekcióhoz
+   * Anyagok szakasz - VÁLTOZATLAN
    */
   createMaterialsSection: function (summaryData) {
     const { weights } = summaryData;
@@ -269,23 +259,36 @@ const summaryGenerator = {
           <h2 class="collapsible">Anyagok szerinti súlybontás</h2>
           <div class="collapsible-content">`;
 
-    weights.byMaterial.forEach((material) => {
+    const sortedMaterials = weights.byMaterial
+      .filter(material => material.weightKg > 0)
+      .sort((a, b) => b.weightKg - a.weightKg);
+
+    sortedMaterials.forEach((material) => {
+      const percentage = ((material.weightKg / weights.total.kilograms) * 100).toFixed(1);
+      
       html += `
           <div class="summary-item">
               <span class="summary-item-key">${material.name}:</span>
-              <span class="summary-item-value">${material.weightKg.toFixed(
-                2
-              )} kg</span>
+              <span class="summary-item-value">
+                  ${material.weightKg.toFixed(2)} kg 
+                  <small>(${percentage}%)</small>
+              </span>
           </div>`;
     });
 
-    html += `</div></div>`;
+    html += `
+          <hr style="margin: 15px 0; border: 1px solid #e7e7ec;">
+          <div class="summary-item" style="font-weight: 600;">
+              <span class="summary-item-key">Összes anyag:</span>
+              <span class="summary-item-value">${weights.total.kilograms.toFixed(2)} kg</span>
+          </div>`;
 
+    html += `</div></div>`;
     return html;
   },
 
   /**
-   * Az összecsukható paneleket inicializálja
+   * Collapsible funkció inicializálása
    */
   initCollapseFeature: function () {
     document.querySelectorAll(".collapsible").forEach((item) => {
@@ -300,18 +303,78 @@ const summaryGenerator = {
   },
 
   /**
-   * Frissíti a summary panel tartalmát
-   * @param {HTMLElement} container - A container elem
-   * @param {Object} summaryData - Az új summary objektum
+   * Summary frissítése
    */
   updateSummary: function (container, summaryData) {
-    // Jelenlegi scrollbar pozíció mentése
     const scrollPos = container.scrollTop;
-
-    // Tartalom frissítése
     this.renderFullSummary(container, summaryData);
-
-    // Scrollbar pozíció visszaállítása
     container.scrollTop = scrollPos;
   },
+};
+
+// ÚJ: Globális funkciók a hierarchikus UI-hoz
+
+/**
+ * Komponens részletek ki/bekapcsolása
+ */
+window.toggleComponentDetails = function(componentId, button) {
+  const details = document.getElementById(`${componentId}_details`);
+  const chevron = button.querySelector('span');
+  
+  if (details) {
+    details.classList.toggle('collapsed');
+    button.classList.toggle('collapsed');
+    
+    // Chevron animáció
+    if (details.classList.contains('collapsed')) {
+      chevron.style.transform = 'rotate(-90deg)';
+    } else {
+      chevron.style.transform = 'rotate(0deg)';
+    }
+  }
+};
+
+/**
+ * Elem részletek ki/bekapcsolása
+ */
+window.toggleElementDetails = function(elementId, button) {
+  const details = document.getElementById(`${elementId}_details`);
+  const chevron = button.querySelector('span');
+  
+  if (details) {
+    details.classList.toggle('collapsed');
+    button.classList.toggle('collapsed');
+    
+    // Chevron animáció
+    if (details.classList.contains('collapsed')) {
+      chevron.style.transform = 'rotate(-90deg)';
+    } else {
+      chevron.style.transform = 'rotate(0deg)';
+    }
+  }
+};
+
+/**
+ * ÚJ: Komponens szintű láthatóság toggle (összes elem)
+ */
+window.toggleComponentVisibility = function(componentId, isVisible) {
+  console.log(`Komponens láthatóság: ${componentId} -> ${isVisible}`);
+  
+  // Komponens alatti összes elem toggle
+  const componentCard = document.querySelector(`[data-component-id="${componentId}"]`).closest('.component-card');
+  const elementTogles = componentCard.querySelectorAll('[data-element-id]');
+  
+  elementTogles.forEach(toggle => {
+    const elementId = toggle.getAttribute('data-element-id');
+    
+    // Toggle állapot szinkronizálása
+    toggle.checked = isVisible;
+    
+    // 3D scene-ben elem láthatóság
+    if (window.toggleElementVisibility) {
+      window.toggleElementVisibility(elementId, isVisible);
+    }
+  });
+  
+  console.log(`✅ Komponens ${componentId}: ${elementTogles.length} elem ${isVisible ? 'bekapcsolva' : 'kikapcsolva'}`);
 };

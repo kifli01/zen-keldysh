@@ -1,7 +1,7 @@
 /**
  * Minigolf Constants
  * Közös konstansok és alapértékek a minigolf pálya elemekhez
- * v1.8.0 - Dynamic Normal Scale rendszer hozzáadva
+ * v1.8.1 - Material objektumok javítása és konzisztencia
  */
 
 // Geometria típusok
@@ -24,17 +24,17 @@ const ELEMENT_TYPES = {
   PART: "part",
 };
 
-// ÚJ v1.7.0: Anyag definíciók teljes PBR pipeline-nal
+// JAVÍTOTT v1.8.1: Anyag definíciók - konzisztens objektum struktúra
 const MATERIALS = {
   PINE_PLYWOOD: {
     name: "Lucfenyő rétegelt lemez",
     density: 0.5, // g/cm³
-    color: 0xF2E4C9, // ÚJ: Erősebb meleg krém a tinting-hez
+    color: 0xF2E4C9,
+    baseColor: 0xF2E4C9,
     shininess: 10,
     
-    // LEGACY textúra (fallback):
+    // LEGACY textúra (fallback)
     imagePath: 'textures/wood-3.jpg',
-    baseColor: 0xF2E4C9, // ÚJ: Melegebb alapszín a hideg Wood017 ellensúlyozására
     repeat: { x: 2, y: 2 },
     useShade: true,
     
@@ -43,100 +43,93 @@ const MATERIALS = {
     normalPath: 'textures/Wood017_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Wood017_1K-JPG_Roughness.jpg',
     
-    // ÚJ v1.8.0: Color Tinting Control
-    enableColorTinting: true, // Material color keverése textúrával
-    colorTintStrength: 2.0, // Erős meleg tinting (2x intenzívebb)
+    // Color Tinting Control
+    enableColorTinting: true,
+    colorTintStrength: 2.0,
     
-    // PBR tulajdonságok:
-    roughnessBase: 0.8, // Fa - matt felület
-    metalnessBase: 0.0, // Nem fém
+    // PBR tulajdonságok
+    roughnessBase: 0.8,
+    metalnessBase: 0.0,
     envMapIntensity: 0.3,
     
-    // ÚJ v1.8.0: Dynamic Normal Scale
-    normalScale: 0.6, // Alapértelmezett érték
-    normalScaleRange: {
-      min: 0.3,  // Shade 10 - fényes, kevés textúra
-      max: 0.9   // Shade 1 - matt, erős textúra
-    },
+    // Dynamic Normal Scale
+    normalScale: 0.6,
+    normalScaleRange: { min: 0.3, max: 0.9 },
     
-    // Textúra beállítások:
-    pbrRepeat: { x: 1, y: 1 }, // PBR textúrák ismétlése
-    enablePBR: true, // PBR pipeline használata
+    // Textúra beállítások
+    pbrRepeat: { x: 1, y: 1 },
+    enablePBR: true,
   },
   
   PINE_SOLID: {
     name: "Lucfenyő tömörfa",
     density: 0.45, // g/cm³
-    color: 0xEADCC1, // ÚJ: Melegebb tömörfa szín
+    color: 0xEADCC1,
+    baseColor: 0xEADCC1,
     shininess: 10,
     
-    // LEGACY textúra (fallback):
+    // LEGACY textúra (fallback)
     imagePath: 'textures/wood-3.jpg',
-    baseColor: 0xEADCC1, // ÚJ: Meleg tömörfa alapszín
     repeat: { x: 2, y: 2 },
     useShade: true,
     
-    // PBR Texture Pipeline (azonos Wood017)
+    // PBR Texture Pipeline
     diffusePath: 'textures/Wood017_1K-JPG_Color.jpg',
     normalPath: 'textures/Wood017_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Wood017_1K-JPG_Roughness.jpg',
     
-    // ÚJ v1.8.0: Color Tinting Control
-    enableColorTinting: true, // Material color keverése textúrával
-    colorTintStrength: 1.8, // Közepesen erős tinting (tömörfa)
+    // Color Tinting Control
+    enableColorTinting: true,
+    colorTintStrength: 1.8,
     
-    // PBR tulajdonságok:
-    roughnessBase: 0.9, // Tömörfa - még mattabb
+    // PBR tulajdonságok
+    roughnessBase: 0.9,
     metalnessBase: 0.0,
     envMapIntensity: 0.2,
     
-    // ÚJ v1.8.0: Dynamic Normal Scale - erősebb tömörfánál
-    normalScale: 0.7, // Alapértelmezett érték
-    normalScaleRange: {
-      min: 0.4,  // Shade 10 - fényes, simább
-      max: 1.1   // Shade 1 - matt, durva fafelület
-    },
+    // Dynamic Normal Scale
+    normalScale: 0.7,
+    normalScaleRange: { min: 0.4, max: 1.1 },
     
-    pbrRepeat: { x: 1.5, y: 1.5 }, // Kicsit sűrűbb ismétlés
+    // Textúra beállítások
+    pbrRepeat: { x: 1.5, y: 1.5 },
     enablePBR: true,
   },
   
   ARTIFICIAL_GRASS: {
     name: "LazyLawn Meadow Twist műfű",
     density: 0.2, // g/cm³
-    color: 0x4A7C59, // ÚJ: Vibráns természetes zöld (referencia alapján)
+    color: 0x4A7C59,
+    baseColor: 0x4A7C59,
     shininess: 2,
     
-    // LEGACY textúra (fallback):
+    // LEGACY textúra (fallback)
     imagePath: 'textures/turf-1.jpg',
-    baseColor: 0x4A7C59, // ÚJ: Élénk műfű zöld
     repeat: { x: 8, y: 8 },
     useShade: true,
     
-    // PBR Texture Pipeline - TELJES CSOMAG! 🌱
+    // PBR Texture Pipeline
     diffusePath: 'textures/Grass008_1K-JPG_Color.jpg',
     normalPath: 'textures/Grass008_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Grass008_1K-JPG_Roughness.jpg',
-    aoPath: 'textures/Grass008_1K-JPG_AmbientOcclusion.jpg', // ✅ VAN AO!
+    aoPath: 'textures/Grass008_1K-JPG_AmbientOcclusion.jpg',
     
-    // ÚJ v1.8.0: Color Tinting Control - erős zöld tinting
-    enableColorTinting: true, // Material color keverése textúrával
-    colorTintStrength: 1.6, // Erős zöld tinting a természetes színhez
+    // Color Tinting Control
+    enableColorTinting: true,
+    colorTintStrength: 1.6,
     
-    // PBR tulajdonságok:
-    roughnessBase: 0.95, // Műfű - nagyon matt
+    // PBR tulajdonságok
+    roughnessBase: 0.95,
     metalnessBase: 0.0,
     envMapIntensity: 0.1,
     
-    // ÚJ v1.8.0: Dynamic Normal Scale - természetes fű variáció
-    normalScale: 0.8, // Alapértelmezett érték
-    normalScaleRange: {
-      min: 0.5,  // Shade 10 - kopott fű, kevés textúra
-      max: 1.2   // Shade 1 - friss fű, erős fűszál relief
-    },
-    aoIntensity: 0.7, // AO map erősség
+    // Dynamic Normal Scale
+    normalScale: 0.8,
+    normalScaleRange: { min: 0.5, max: 1.2 },
+    aoIntensity: 0.7,
     
-    pbrRepeat: { x: 4, y: 4 }, // Természetes fű ismétlés
+    // Textúra beállítások
+    pbrRepeat: { x: 4, y: 4 },
     enablePBR: true,
   },
   
@@ -144,96 +137,88 @@ const MATERIALS = {
     name: "Fehér műanyag",
     density: 0.9, // g/cm³
     color: 0xffffff,
+    baseColor: 0xffffff,
     shininess: 30,
     
-    // LEGACY textúra (fallback):
-    imagePath: null, // Nincs textúra
-    baseColor: 0xffffff,
+    // LEGACY textúra (fallback)
+    imagePath: null,
     repeat: { x: 1, y: 1 },
-    useShade: false, // Fix shininess
+    useShade: false,
     
     // PBR Texture Pipeline
     diffusePath: 'textures/Plastic013A_1K-JPG_Color.jpg',
     normalPath: 'textures/Plastic013A_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Plastic013A_1K-JPG_Roughness.jpg',
     
-    // PBR tulajdonságok:
-    roughnessBase: 0.1, // Műanyag - sima felület
+    // Color Tinting Control
+    enableColorTinting: true,
+    colorTintStrength: 1.0,
+    
+    // PBR tulajdonságok
+    roughnessBase: 0.1,
     metalnessBase: 0.0,
     envMapIntensity: 0.8,
     
-    // ÚJ v1.8.0: Dynamic Normal Scale - műanyag felület variáció
-    normalScale: 0.3, // Alapértelmezett érték (gyenge normal)
-    normalScaleRange: {
-      min: 0.1,  // Shade 10 - tükörfényes, sima
-      max: 0.6   // Shade 1 - matt műanyag, textúrált
-    },
+    // Dynamic Normal Scale
+    normalScale: 0.3,
+    normalScaleRange: { min: 0.1, max: 0.6 },
     
-    pbrRepeat: { x: 1, y: 1 }, // Egységes felület
+    // Textúra beállítások
+    pbrRepeat: { x: 1, y: 1 },
     enablePBR: true,
   },
   
   GALVANIZED_STEEL: {
     name: "Galvanizált acél",
     density: 7.8, // g/cm³
-    color: 0xffffff, // ÚJ: Fényes rozsdamentes acél ezüst
+    color: 0xC0C0C0,
+    baseColor: 0xC0C0C0,
     shininess: 60,
     
-    // LEGACY textúra (fallback):
+    // LEGACY textúra (fallback)
     imagePath: 'textures/steel.jpg',
-    baseColor: 0xffffff, // ÚJ: Tiszta fényes ezüst acél
     repeat: { x: 1, y: 1 },
     useShade: true,
     
-    // PBR Texture Pipeline - TELJES FÉMCSOMAG! 🔩
+    // PBR Texture Pipeline
     diffusePath: 'textures/Metal011_1K-JPG_Color.jpg',
     normalPath: 'textures/Metal011_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Metal011_1K-JPG_Roughness.jpg',
-    metalnessPath: 'textures/Metal011_1K-JPG_Metalness.jpg', // ✅ METALNESS MAP!
+    metalnessPath: 'textures/Metal011_1K-JPG_Metalness.jpg',
     
-    // ÚJ v1.8.0: Color Tinting Control - fényes acél
-    enableColorTinting: true, // Material color keverése textúrával
-    colorTintStrength: 1.4, // Közepesen erős tinting (tiszta fém szín)
+    // Color Tinting Control
+    enableColorTinting: true,
+    colorTintStrength: 1.4,
     
-    // PBR tulajdonságok:
-    roughnessBase: 0.2, // Fényes acél - simább felület
-    metalnessBase: 0.95, // Még fémesebb (rozsdamentes)
-    envMapIntensity: 2.0, // Erősebb reflexió (fényes acél)
+    // PBR tulajdonságok
+    roughnessBase: 0.2,
+    metalnessBase: 0.95,
+    envMapIntensity: 2.0,
     
-    // ÚJ v1.8.0: Dynamic Normal Scale - fém felület finishing
-    normalScale: 0.5, // Alapértelmezett érték
-    normalScaleRange: {
-      min: 0.2,  // Shade 10 - polírozott fém, sima
-      max: 0.8   // Shade 1 - durva fém, karcolások
-    },
-    metalnessIntensity: 1.0, // Metalness map erősség
+    // Dynamic Normal Scale
+    normalScale: 0.5,
+    normalScaleRange: { min: 0.2, max: 0.8 },
+    metalnessIntensity: 1.0,
     
-    pbrRepeat: { x: 1, y: 1 }, // Egységes fém felület
+    // Textúra beállítások
+    pbrRepeat: { x: 1, y: 1 },
     enablePBR: true,
   },
 };
 
-// ÚJ v1.7.0: PBR Pipeline beállítások
+// PBR Pipeline beállítások
 const PBR_PIPELINE = {
-  enabled: true, // Globális PBR pipeline
-  fallbackToLegacy: true, // Ha PBR textúra nincs, legacy használata
-  
-  // Texture betöltési beállítások
-  textureFormat: 'jpg', // jpg vagy png
-  mipmaps: true, // Automatic mipmap generation
-  anisotropy: 4, // Anisotropic filtering
-  
-  // Normal map beállítások
-  normalFormat: 'OpenGL', // OpenGL vagy DirectX
-  normalFlipY: false, // Y csatorna invertálása
-  
-  // Performance beállítások
-  maxTextureSize: 1024, // 1K textúrák (1024x1024)
-  enableCompression: false, // GPU texture compression
-  
-  // Debug beállítások
-  logTextureLoading: true, // Textúra betöltés naplózása
-  showMissingTextures: true, // Hiányzó textúrák jelzése
+  enabled: true,
+  fallbackToLegacy: true,
+  textureFormat: 'jpg',
+  mipmaps: true,
+  anisotropy: 4,
+  normalFormat: 'OpenGL',
+  normalFlipY: false,
+  maxTextureSize: 1024,
+  enableCompression: false,
+  logTextureLoading: true,
+  showMissingTextures: true,
 };
 
 // Alapértelmezett megjelenítési beállítások
@@ -252,12 +237,12 @@ const DEFAULT_TRANSFORM = {
   scale: { x: 1, y: 1, z: 1 },
 };
 
-// Minigolf pálya alapvető méretek (VÁLTOZATLAN)
+// JAVÍTOTT: Minigolf pálya alapvető méretek
 const COURSE_DIMENSIONS = {
   length: 250, // cm
   width: 80, // cm
-  topPlateThickness: 0.9, // 9 mm
-  turfThickness: 0.5, // 11.5mm
+  topPlateThickness: 1.2, // JAVÍTOTT: 12mm = 1.2cm (nem 0.9)
+  turfThickness: 0.6, // JAVÍTOTT: 6mm = 0.6cm (nem 0.5)
   holeRadius: 5.4, // átmérő: 10.8 cm
   holePositionX: 50, // A lyuk pozíciója a pálya végétől (cm)
   frontWidth: 2, // 2cm első takaró léc
@@ -265,21 +250,22 @@ const COURSE_DIMENSIONS = {
   frameHeight: 4, // 4 cm magas lécek
   sideWidth: 5, // 5 cm széles oldallécek
   sideHeight: 16, // 16 cm magas oldallécek
-  sideVerticalShift: 7, // 6 cm-re a borítástól felfelé
+  sideVerticalShift: 7, // 7 cm-re a borítástól felfelé
   legDiameter: 6, // 6 cm átmérőjű lábak
   legHeight: 12, // 12 cm magas lábak
-  legInset: 3, // 4cm-rel bentebb
-  crossBeamCount: 2, // belső keresztlécek száma (+ 2 szélső = összesen 4)
-  crossBeamWidth: 12, // keresztlécek szélessége (2x6cm)
+  legInset: 3, // 3cm-rel bentebb
+  crossBeamCount: 2, // belső keresztlécek száma
+  crossBeamWidth: 12, // keresztlécek szélessége
 };
 
+// JAVÍTOTT: Számított értékek
 COURSE_DIMENSIONS.frontHeight =
   COURSE_DIMENSIONS.sideHeight -
   COURSE_DIMENSIONS.sideVerticalShift -
   COURSE_DIMENSIONS.turfThickness + 
   COURSE_DIMENSIONS.topPlateThickness / 2;
 
-// Lyuk pozíciók (COURSE_DIMENSIONS után definiálva)
+// Lyuk pozíciók
 const HOLE_POSITION = {
   smallCorner: {
     x: [
@@ -294,7 +280,7 @@ const HOLE_POSITION = {
   }
 };
 
-// CSG beállítások (VÁLTOZATLAN)
+// CSG beállítások
 const CSG_CONFIG = {
   enabled: true,
   useWorker: false,
@@ -315,6 +301,7 @@ const CSG_PERFORMANCE = {
   warnThreshold: 100,
   maxCacheAge: 300000,
   batchSize: 10,
+  cacheSize: 50,
 };
 
 const CSG_DEBUG = {
@@ -324,20 +311,18 @@ const CSG_DEBUG = {
   wireframeResults: false,
 };
 
-// PBR Render beállítások (FRISSÍTETT v1.7.0)
+// PBR Render beállítások
 const PBR_CONFIG = {
-  enabled: true, // PBR renderelés engedélyezése
-  useHDR: true, // HDR environment mapping ✅ BEKAPCSOLVA
-  toneMapping: 4, // THREE.ACESFilmicToneMapping = 4
-  toneMappingExposure: 1.0, // Expozíció
-  physicallyCorrectLights: true, // Fizikailag helyes világítás
-  outputEncoding: 3001, // THREE.sRGBEncoding = 3001
-  shadowMapSize: 2048, // Shadow map felbontás
-  shadowMapType: 2, // THREE.PCFSoftShadowMap = 2
-  
-  // ÚJ: Normal Maps specifikus beállítások
-  normalMaps: true, // Normal map támogatás
-  roughnessMaps: true, // Roughness map támogatás
-  metalnessMaps: true, // Metalness map támogatás
-  ambientOcclusionMaps: true, // AO map támogatás
+  enabled: true,
+  useHDR: true,
+  toneMapping: 4, // THREE.ACESFilmicToneMapping
+  toneMappingExposure: 1.0,
+  physicallyCorrectLights: true,
+  outputEncoding: 3001, // THREE.sRGBEncoding
+  shadowMapSize: 2048,
+  shadowMapType: 2, // THREE.PCFSoftShadowMap
+  normalMaps: true,
+  roughnessMaps: true,
+  metalnessMaps: true,
+  ambientOcclusionMaps: true,
 };

@@ -6,6 +6,7 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 body {
   margin: 0;
   overflow: hidden;
@@ -17,11 +18,13 @@ body {
     Helvetica, Arial, sans-serif;
   font-weight: 300;
 }
+
 #viewer-container {
   flex: 1;
   position: relative;
   height: 100%;
 }
+
 #summary-panel {
   width: 450px;
   height: 100%;
@@ -30,6 +33,7 @@ body {
   padding: 20px;
   overflow-y: auto;
 }
+
 #summary-panel h1 {
   font-size: 22px;
   margin-bottom: 20px;
@@ -39,6 +43,7 @@ body {
   font-family: "Merriweather", Georgia, serif;
   font-weight: 300;
 }
+
 #summary-panel h2 {
   font-size: 18px;
   margin: 20px 0 15px 0;
@@ -46,13 +51,23 @@ body {
   font-family: "Merriweather", Georgia, serif;
   font-weight: 300;
 }
+
 #summary-panel h3 {
   font-size: 16px;
-  margin: 15px 0 10px 0;
+  margin: 0;
+  color: #262730;
+  font-family: "Merriweather", Georgia, serif;
+  font-weight: 400;
+}
+
+#summary-panel h4 {
+  font-size: 14px;
+  margin: 12px 0 8px 0;
   color: #262730;
   font-family: "Merriweather", Georgia, serif;
   font-weight: 300;
 }
+
 .summary-section {
   margin-bottom: 25px;
   background-color: #ffffff;
@@ -60,51 +75,200 @@ body {
   padding: 16px;
   border: 1px solid #e7e7ec;
 }
+
 .summary-item {
   margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
 }
+
 .summary-item-key {
   font-weight: 400;
   color: #4f5461;
 }
+
 .summary-item-value {
   text-align: right;
 }
-.dim-section {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-}
+
+/* HIERARCHIKUS KOMPONENS KÁRTYA */
 .component-card {
   background-color: #ffffff;
   border-radius: 10px;
-  padding: 15px;
+  padding: 16px;
   margin-bottom: 15px;
   border: 1px solid #e7e7ec;
 }
 
+.component-card.hierarchical {
+  border-left: 4px solid #4a67eb;
+  padding-left: 12px;
+}
+
+/* KOMPONENS FEJLÉC - Minimális */
+.component-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.component-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.component-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #262730;
+  font-family: "Merriweather", Georgia, serif;
+}
+
+.component-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Komponens meta részletek - a részletekben */
+.component-meta-details {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.elements-list {
+  /* Elemek konténer */
+}
+
+.element-count {
+  background-color: #f1f5f9;
+  color: #64748b;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.component-weight {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* KOMPONENS KONTROLOK */
+.component-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 16px;
+}
+
+/* KOMPONENS RÉSZLETEK */
+.component-details {
+  transition: max-height 0.4s ease-out, opacity 0.3s ease;
+  overflow: hidden;
+  opacity: 1;
+  max-height: 1000px;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.component-details.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* HIERARCHIKUS ELEM ITEM */
+.element-item {
+  background-color: #f8fafc;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #94a3b8;
+}
+
+.element-item.hierarchical {
+  margin-left: 16px;
+}
+
+/* ELEM FEJLÉC */
 .element-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
-.element-header .summary-item {
-  margin-bottom: 0;
+.element-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex: 1;
+}
+
+.element-name {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.element-count {
+  font-size: 12px;
+}
+
+.element-weight {
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ELEM KONTROLOK */
+.element-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ELEM RÉSZLETEK */
+.element-details {
+  transition: max-height 0.3s ease-out, opacity 0.2s ease;
+  overflow: hidden;
+  opacity: 1;
+  max-height: 300px;
+  padding-top: 12px;
+  margin-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.element-details.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
 }
 
 /* Toggle kapcsoló stílusai */
 .visibility-toggle {
   position: relative;
   display: inline-block;
-  width: 40px;
-  height: 20px;
+  width: 36px;
+  height: 18px;
   cursor: pointer;
-  margin-left: 10px;
 }
 
 .visibility-toggle input {
@@ -119,16 +283,16 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #eb824a;
+  background-color: #ccc;
   transition: 0.3s;
-  border-radius: 20px;
+  border-radius: 18px;
 }
 
 .toggle-slider:before {
   position: absolute;
   content: "";
-  height: 16px;
-  width: 16px;
+  height: 14px;
+  width: 14px;
   left: 2px;
   bottom: 2px;
   background-color: white;
@@ -137,11 +301,48 @@ body {
 }
 
 .visibility-toggle input:checked + .toggle-slider {
-  background-color: #ccc;
+  background-color: #4ade80;
 }
 
 .visibility-toggle input:checked + .toggle-slider:before {
-  transform: translateX(20px);
+  transform: translateX(18px);
+}
+
+/* Details chevron gomb stílusai */
+.details-chevron {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  color: #4a67eb;
+  font-size: 10px;
+  transition: all 0.2s ease;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+}
+
+.details-chevron:hover {
+  background-color: #f1f5f9;
+  color: #3b50ba;
+  border-color: #cbd5e1;
+}
+
+.details-chevron span {
+  transition: transform 0.2s ease;
+  display: block;
+}
+
+.details-chevron.collapsed span {
+  transform: rotate(-90deg);
+}
+
+.details-chevron:not(.collapsed) span {
+  transform: rotate(0deg);
 }
 
 .material-tag {
@@ -151,17 +352,9 @@ body {
   border-radius: 16px;
   font-size: 12px;
   display: inline-block;
-  margin-top: 8px;
-  margin-bottom: 8px;
   font-weight: 400;
 }
-.sub-component {
-  background-color: #f9f9fa;
-  border-radius: 8px;
-  padding: 12px;
-  margin: 12px 0;
-  border: 1px solid #e7e7ec;
-}
+
 #controls {
   position: absolute;
   bottom: 15px;
@@ -172,6 +365,7 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e7e7ec;
 }
+
 button {
   background: #4a67eb;
   border: none;
@@ -183,9 +377,11 @@ button {
   transition: background 0.2s;
   font-weight: 400;
 }
+
 button:hover {
   background: #3b50ba;
 }
+
 .weight-summary {
   background-color: #e8f5e9;
   color: #2e7d32;
@@ -196,11 +392,13 @@ button:hover {
   font-weight: 400;
   border: 1px solid #c8e6c9;
 }
+
 .collapsible {
   cursor: pointer;
   position: relative;
   padding-right: 20px;
 }
+
 .collapsible::after {
   content: "▼";
   position: absolute;
@@ -209,18 +407,21 @@ button:hover {
   font-size: 12px;
   color: #4a67eb;
 }
+
 .collapsible.collapsed::after {
   content: "►";
 }
+
 .collapsible-content {
   transition: max-height 0.3s ease-out;
   overflow: hidden;
 }
+
 .collapsible-content.collapsed {
   max-height: 0;
 }
 
-/* Új nézet váltó gombok stílusa - v1.2.0 */
+/* Nézet váltó gombok stílusa */
 #view-controls {
   position: absolute;
   top: 15px;
