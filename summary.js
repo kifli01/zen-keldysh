@@ -1,7 +1,7 @@
 /**
  * Minigolf Summary Generator
  * Létrehozza és kezeli a minigolf pálya specifikációs panelt
- * v1.6.0 - Hierarchikus UI + Csoportos toggle
+ * v1.6.1 - localStorage láthatóság támogatás
  */
 
 // Összegző panel létrehozása
@@ -92,10 +92,22 @@ const summaryGenerator = {
   },
 
   /**
-   * ÚJ: Hierarchikus komponens kártya - Minimális fejléc
+   * ÚJ: Hierarchikus komponens kártya - localStorage figyelembevételével
    */
   createHierarchicalComponentCard: function (component, componentIndex) {
     const componentId = `component_${componentIndex}`;
+    
+    // ÚJ v1.6.1: Komponens láthatóság meghatározása - mind látható-e?
+    let componentVisible = true; // Alapértelmezett
+    if (window.loadVisibilityState && component.elements) {
+      const savedVisibility = window.loadVisibilityState();
+      if (Object.keys(savedVisibility).length > 0) {
+        // Ha minden elem látható, akkor a komponens is látható
+        componentVisible = component.elements.every(element => 
+          savedVisibility.hasOwnProperty(element.id) ? savedVisibility[element.id] : true
+        );
+      }
+    }
     
     let html = `
       <div class="component-card hierarchical">
@@ -108,7 +120,7 @@ const summaryGenerator = {
               
               <div class="component-controls">
                   <label class="visibility-toggle" title="Komponens láthatóság">
-                      <input type="checkbox" checked 
+                      <input type="checkbox" ${componentVisible ? 'checked' : ''} 
                              data-component-id="${componentId}" 
                              onchange="toggleComponentVisibility('${componentId}', this.checked)">
                       <span class="toggle-slider"></span>
@@ -154,10 +166,19 @@ const summaryGenerator = {
   },
 
   /**
-   * ÚJ: Hierarchikus elem item - Alapból összecsukatott
+   * ÚJ: Hierarchikus elem item - localStorage figyelembevételével
    */
   createHierarchicalElementItem: function (element, componentId, elementIndex) {
     const elementId = `${componentId}_element_${elementIndex}`;
+    
+    // ÚJ v1.6.1: localStorage állapot ellenőrzése checkbox-hoz
+    let isChecked = true; // Alapértelmezett
+    if (window.loadVisibilityState) {
+      const savedVisibility = window.loadVisibilityState();
+      if (savedVisibility.hasOwnProperty(element.id)) {
+        isChecked = savedVisibility[element.id];
+      }
+    }
     
     let html = `
       <div class="element-item hierarchical">
@@ -171,7 +192,7 @@ const summaryGenerator = {
               
               <div class="element-controls">
                   <label class="visibility-toggle" title="Elem láthatóság">
-                      <input type="checkbox" checked 
+                      <input type="checkbox" ${isChecked ? 'checked' : ''} 
                              data-element-id="${element.id}" 
                              onchange="toggleElementVisibility('${element.id}', this.checked)">
                       <span class="toggle-slider"></span>
@@ -355,7 +376,7 @@ window.toggleElementDetails = function(elementId, button) {
 };
 
 /**
- * ÚJ: Komponens szintű láthatóság toggle (összes elem)
+ * ÚJ v1.6.1: Komponens szintű láthatóság toggle (összes elem) + localStorage
  */
 window.toggleComponentVisibility = function(componentId, isVisible) {
   console.log(`Komponens láthatóság: ${componentId} -> ${isVisible}`);
@@ -375,6 +396,12 @@ window.toggleComponentVisibility = function(componentId, isVisible) {
       window.toggleElementVisibility(elementId, isVisible);
     }
   });
+  
+  // ÚJ v1.6.1: Komponens szintű változás után localStorage mentés
+  // (a toggleElementVisibility már menti, de biztonsági mentés)
+  if (window.saveVisibilityState) {
+    window.saveVisibilityState();
+  }
   
   console.log(`✅ Komponens ${componentId}: ${elementTogles.length} elem ${isVisible ? 'bekapcsolva' : 'kikapcsolva'}`);
 };

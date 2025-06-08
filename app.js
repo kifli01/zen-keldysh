@@ -1,6 +1,6 @@
 /**
  * Minigolf Pálya Viewer - Főalkalmazás
- * v1.13.0 - Pure PBR Simplified - Optimalizált inicializálás
+ * v1.13.1 - Pure PBR + localStorage Láthatóság
  */
 
 // ES6 importok
@@ -34,6 +34,91 @@ let lightingManager;
 let hdrEnvironmentManager;
 let postProcessingManager;
 let allMeshes;
+
+// ÚJ v1.13.1: localStorage Láthatóság Mentés
+const VISIBILITY_STORAGE_KEY = 'minigolf_element_visibility';
+
+// Láthatóság állapot betöltése localStorage-ból
+function loadVisibilityState() {
+  console.log("📂 Láthatóság állapot betöltése localStorage-ból...");
+  
+  try {
+    const savedState = localStorage.getItem(VISIBILITY_STORAGE_KEY);
+    if (savedState) {
+      const visibilityMap = JSON.parse(savedState);
+      console.log(`✅ ${Object.keys(visibilityMap).length} elem láthatóság betöltve`);
+      return visibilityMap;
+    }
+  } catch (error) {
+    console.warn("⚠️ Láthatóság betöltési hiba:", error);
+  }
+  
+  console.log("Nincs mentett láthatóság állapot");
+  return {};
+}
+
+// Láthatóság állapot mentése localStorage-ba
+function saveVisibilityState() {
+  if (!allMeshes) return;
+  
+  try {
+    const visibilityMap = {};
+    
+    allMeshes.forEach((mesh, elementId) => {
+      visibilityMap[elementId] = mesh.visible;
+    });
+    
+    localStorage.setItem(VISIBILITY_STORAGE_KEY, JSON.stringify(visibilityMap));
+    console.log(`💾 ${Object.keys(visibilityMap).length} elem láthatóság mentve`);
+  } catch (error) {
+    console.warn("⚠️ Láthatóság mentési hiba:", error);
+  }
+}
+
+// Mentett láthatóság alkalmazása az elemekre
+function applyVisibilityState(visibilityMap) {
+  if (!allMeshes || Object.keys(visibilityMap).length === 0) return;
+  
+  let appliedCount = 0;
+  
+  allMeshes.forEach((mesh, elementId) => {
+    if (visibilityMap.hasOwnProperty(elementId)) {
+      const shouldBeVisible = visibilityMap[elementId];
+      
+      if (mesh.visible !== shouldBeVisible) {
+        mesh.visible = shouldBeVisible;
+        
+        // Blueprint wireframe is frissítése
+        if (viewModeManager && viewModeManager.getCurrentMode() === "blueprint") {
+          wireframeManager.setElementWireframeVisibility(elementId, shouldBeVisible);
+        }
+        
+        // UI checkbox szinkronizálása
+        const checkbox = document.querySelector(`[data-element-id="${elementId}"]`);
+        if (checkbox) {
+          checkbox.checked = shouldBeVisible;
+        }
+        
+        appliedCount++;
+      }
+    }
+  });
+  
+  if (appliedCount > 0) {
+    console.log(`🔄 ${appliedCount} elem láthatóság frissítve localStorage-ból`);
+    sceneManager.renderer.render(sceneManager.scene, sceneManager.camera);
+  }
+}
+
+// Láthatóság törlése (debug funkcióhoz)
+function clearVisibilityState() {
+  try {
+    localStorage.removeItem(VISIBILITY_STORAGE_KEY);
+    console.log("🧹 Láthatóság állapot törölve");
+  } catch (error) {
+    console.warn("⚠️ Láthatóság törlési hiba:", error);
+  }
+}
 
 // CSG inicializálás (változatlan)
 function initializeCSG() {
@@ -116,10 +201,10 @@ function checkCSS2DAvailability() {
   }
 }
 
-// FŘISSÍTETT v1.13.0: Egyszerűsített inicializálás Pure PBR pipeline-nal
+// FŘISSÍTETT v1.13.1: Egyszerűsített inicializálás Pure PBR pipeline-nal + localStorage
 async function initialize() {
   try {
-    console.log("🚀 Inicializálás kezdete v1.13.0 - Pure PBR Simplified...");
+    console.log("🚀 Inicializálás kezdete v1.13.1 - Pure PBR + localStorage láthatóság...");
 
     // Könyvtárak ellenőrzése
     const csgAvailable = initializeCSG();
@@ -197,7 +282,7 @@ async function initialize() {
     });
     console.log(`✅ ${minigolfElements.length} elem betöltve`);
 
-    // KULCS v1.13.0: Pure PBR Mesh-ek létrehozása
+    // KULCS v1.13.1: Pure PBR Mesh-ek létrehozása
     console.log("🎨 Pure PBR Mesh-ek létrehozása...");
     const elements = elementManager.getAllElements();
     
@@ -212,7 +297,7 @@ async function initialize() {
     sceneManager.addAllMeshes(allMeshes);
     console.log("Mesh-ek hozzáadva a scene-hez");
 
-    // KULCS v1.13.0: ViewModeManager v5.0.0 inicializálása - színes az alapértelmezett
+    // KULCS v1.13.1: ViewModeManager v5.0.0 inicializálása - színes az alapértelmezett
     console.log("🌟 ViewModeManager v5.0.0 - színes PBR alapértelmezett...");
     
     // ELSŐ: PBR material-ok mentése (GeometryBuilder készítette őket)
@@ -277,16 +362,6 @@ async function initialize() {
       console.log("Post-Processing Manager nincs elérhető, folytatás nélküle");
     }
 
-    // Summary generálása
-    const summary = elementManager.generateSummary();
-    const summaryPanel = document.getElementById("summary-panel");
-    summaryGenerator.renderFullSummary(
-      summaryPanel,
-      summary,
-      elementManager.version
-    );
-    console.log("Summary generálva");
-
     // Event listener-ek beállítása
     if (typeof setupEventListeners === "function") {
       setupEventListeners({
@@ -299,7 +374,38 @@ async function initialize() {
       console.log("Event listener-ek beállítva");
     }
 
-    console.log("🎉 Inicializálás sikeres v1.13.0 - Pure PBR Simplified!");
+    // Summary generálása - már localStorage-aware
+    const summary = elementManager.generateSummary();
+    const summaryPanel = document.getElementById("summary-panel");
+    summaryGenerator.renderFullSummary(
+      summaryPanel,
+      summary,
+      elementManager.version
+    );
+    console.log("Summary generálva localStorage állapottal");
+
+    // ÚJ v1.13.1: Mentett láthatóság alkalmazása csak a 3D mesh-ekre
+    console.log("📂 localStorage állapot alkalmazása 3D mesh-ekre...");
+    const savedVisibility = loadVisibilityState();
+    if (Object.keys(savedVisibility).length > 0) {
+      setTimeout(() => {
+        // Csak a 3D mesh láthatóság, UI már helyes a summary generáláskor
+        allMeshes.forEach((mesh, elementId) => {
+          if (savedVisibility.hasOwnProperty(elementId)) {
+            mesh.visible = savedVisibility[elementId];
+            
+            // Blueprint wireframe frissítése
+            if (viewModeManager && viewModeManager.getCurrentMode() === "blueprint") {
+              wireframeManager.setElementWireframeVisibility(elementId, savedVisibility[elementId]);
+            }
+          }
+        });
+        sceneManager.renderer.render(sceneManager.scene, sceneManager.camera);
+        console.log("3D mesh láthatóság szinkronizálva localStorage-ból");
+      }, 100);
+    }
+
+    console.log("🎉 Inicializálás sikeres v1.13.1 - localStorage láthatóság támogatással!");
     
     // Teljes rendszer status
     logSystemStatus();
@@ -345,7 +451,7 @@ function logPBRStatistics(meshes) {
     }
   });
 
-  console.log("📊 PURE PBR STATISTICS v1.13.0:");
+  console.log("📊 PURE PBR STATISTICS v1.13.1:");
   console.log(`   Materials: ${pbrCount} Pure PBR (100%)`);
   console.log(`   Diffuse Maps: ${totalMaps.diffuse}`);
   console.log(`   Normal Maps: ${totalMaps.normal} ✨`);
@@ -357,7 +463,7 @@ function logPBRStatistics(meshes) {
 
 // Teljes rendszer status (frissített)
 function logSystemStatus() {
-  console.log("🎯 SYSTEM STATUS v1.13.0:");
+  console.log("🎯 SYSTEM STATUS v1.13.1:");
   console.log(`   TextureManager: ${textureManager.getStatus().version} (Pure PBR)`);
   console.log(`   GeometryBuilder: ${geometryBuilder.getPBRStatus().version} (Pure PBR)`);
   console.log(`   ViewModeManager: ${viewModeManager.getViewModeInfo().version} (Pure PBR)`);
@@ -365,6 +471,7 @@ function logSystemStatus() {
   console.log(`   HDR Environment: ${hdrEnvironmentManager.getStatus().isLoaded ? '✅' : '❌'}`);
   console.log(`   Post-Processing: ${postProcessingManager ? postProcessingManager.getStatus().version : '❌'}`);
   console.log(`   FXAA Anti-aliasing: ${postProcessingManager?.getStatus().fxaaEnabled ? '✅' : '❌'}`);
+  console.log(`   localStorage Láthatóság: ✅`);
   console.log(`   Legacy Support: ❌ (Pure PBR only)`);
 }
 
@@ -403,9 +510,49 @@ async function initializeFallback() {
   }
 }
 
-// Globális hozzáférés debug-hoz (frissített v1.13.0)
+// ÚJ v1.13.1: localStorage Láthatóság debug funkciók
+window.visibilityDebug = () => {
+  console.log("=== LÁTHATÓSÁG DEBUG v1.13.1 ===");
+  
+  const saved = loadVisibilityState();
+  console.log(`LocalStorage elemek: ${Object.keys(saved).length}`);
+  
+  if (allMeshes) {
+    let visibleCount = 0;
+    allMeshes.forEach((mesh, elementId) => {
+      if (mesh.visible) visibleCount++;
+    });
+    console.log(`Aktuálisan látható: ${visibleCount}/${allMeshes.size}`);
+    
+    // Eltérések keresése
+    const differences = [];
+    allMeshes.forEach((mesh, elementId) => {
+      if (saved.hasOwnProperty(elementId) && saved[elementId] !== mesh.visible) {
+        differences.push(`${elementId}: saved=${saved[elementId]} vs actual=${mesh.visible}`);
+      }
+    });
+    
+    if (differences.length > 0) {
+      console.log("Eltérések:", differences);
+    } else {
+      console.log("✅ Nincs eltérés localStorage és aktuális állapot között");
+    }
+  }
+  console.log("===============================");
+};
+
+window.clearVisibility = () => {
+  clearVisibilityState();
+  console.log("🧹 Láthatóság törölve, oldal újratöltése ajánlott");
+};
+
+// Globális hozzáférés localStorage funkciókhoz
+window.saveVisibilityState = saveVisibilityState;
+window.loadVisibilityState = loadVisibilityState;
+
+// Globális hozzáférés debug-hoz (frissített v1.13.1)
 window.debugInfo = () => {
-  console.log("=== DEBUG INFO v1.13.0 - Pure PBR ===");
+  console.log("=== DEBUG INFO v1.13.1 - Pure PBR + localStorage ===");
   console.log("Element Manager:", elementManager?.getAllElements().length + " elem");
   console.log("Scene Manager:", sceneManager?.getSceneInfo());
   console.log("Exploder:", exploder?.getState());
@@ -451,7 +598,7 @@ window.debugInfo = () => {
   console.log("==================");
 };
 
-// ÚJ v1.13.0: FXAA Anti-aliasing debug
+// ÚJ v1.13.1: FXAA Anti-aliasing debug
 window.fxaaDebug = () => {
   if (!postProcessingManager) {
     console.log("❌ PostProcessingManager nem elérhető");
@@ -472,6 +619,7 @@ window.fxaaDebug = () => {
   
   console.log("===============================");
 };
+
 window.normalMapsDebug = () => {
   if (!allMeshes) {
     console.log("❌ Nincs mesh adat");
@@ -521,7 +669,7 @@ window.lightingManager = () => lightingManager;
 window.hdrEnvironmentManager = () => hdrEnvironmentManager;
 window.postProcessingManager = () => postProcessingManager;
 
-// Egyedi elem láthatóság kapcsoló funkció (változatlan)
+// Egyedi elem láthatóság kapcsoló funkció - ÚJ: localStorage mentéssel
 window.toggleElementVisibility = function (elementId, isVisible) {
   console.log(`Elem láthatóság váltás: ${elementId} -> ${isVisible}`);
 
@@ -533,6 +681,9 @@ window.toggleElementVisibility = function (elementId, isVisible) {
       wireframeManager.setElementWireframeVisibility(elementId, isVisible);
     }
 
+    // ÚJ v1.13.1: Automatikus mentés localStorage-ba
+    saveVisibilityState();
+
     sceneManager.renderer.render(sceneManager.scene, sceneManager.camera);
   } else {
     console.warn(`Elem nem található: ${elementId}`);
@@ -542,7 +693,7 @@ window.toggleElementVisibility = function (elementId, isVisible) {
 // Inicializálás indítása az oldal betöltése után
 document.addEventListener("DOMContentLoaded", initialize);
 
-// Exportálás más modulok számára (frissített v1.13.0)
+// Exportálás más modulok számára (frissített v1.13.1)
 export {
   elementManager,
   sceneManager,
