@@ -1,13 +1,13 @@
 /**
  * Minigolf Pálya Viewer - Főalkalmazás
- * v1.10.0 - HDR Environment Integration
+ * v1.11.0 - HDR Environment Meadow Integration
  */
 
 // ES6 importok
 import * as THREE from "three";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 import { CSS2DRenderer, CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js"; // ÚJ: HDR loader
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js"; // HDR loader
 import * as ThreeMeshBVH from "three-mesh-bvh";
 import * as ThreeBVHCSG from "three-bvh-csg";
 
@@ -31,7 +31,7 @@ let textureManager;
 let wireframeManager;
 let materialManager;
 let lightingManager;
-let hdrEnvironmentManager; // ÚJ: HDR Environment Manager
+let hdrEnvironmentManager; // HDR Environment Manager
 let allMeshes;
 
 // CSG inicializálás
@@ -118,7 +118,7 @@ function checkCSS2DAvailability() {
 // Főalkalmazás inicializálása
 async function initialize() {
   try {
-    console.log("Inicializálás kezdete v1.10.0...");
+    console.log("Inicializálás kezdete v1.11.0 - Meadow HDR...");
 
     // Könyvtárak ellenőrzése
     const csgAvailable = initializeCSG();
@@ -198,28 +198,35 @@ async function initialize() {
     exploder.saveOriginalPositions(allMeshes);
     console.log("Eredeti pozíciók mentve");
 
-    // Alapértelmezett tervrajz nézet beállítása
-    viewModeManager.switchToBlueprint(
+    // MÓDOSÍTOTT: Alapértelmezett SZÍNES nézet beállítása
+    viewModeManager.switchToRealistic(
       allMeshes,
-      elementManager.getAllElements(),
-      true
+      elementManager.getAllElements()
     );
-    console.log("Tervrajz nézet beállítva alapértelmezettként");
+    console.log("Színes nézet beállítva alapértelmezettként");
 
-    // ÚJ: HDR Environment inicializálása
-    console.log("HDR Environment inicializálása...");
-    if (hdrEnvironmentManager.initialize()) {
-      // HDR betöltés megkísérlése
-      try {
-        await hdrEnvironmentManager.loadHDREnvironment();
-        // Minden mesh environment frissítése
-        hdrEnvironmentManager.updateAllMeshesEnvironment();
-        console.log("✅ HDR Environment sikeresen betöltve");
-      } catch (error) {
-        console.warn("HDR betöltés sikertelen, fallback használata:", error);
+    // ÚJ: HDR Environment inicializálása - JAVÍTOTT ASYNC
+    console.log("🌿 Meadow HDR Environment inicializálása...");
+    try {
+      const hdrInitialized = await hdrEnvironmentManager.initialize();
+      
+      if (hdrInitialized) {
+        console.log("✅ HDR Manager inicializálva, meadow HDR betöltése...");
+        
+        // HDR betöltés megkísérlése
+        try {
+          await hdrEnvironmentManager.loadHDREnvironment();
+          // Minden mesh environment frissítése
+          hdrEnvironmentManager.updateAllMeshesEnvironment();
+          console.log("🌟 Meadow HDR Environment sikeresen aktiválva!");
+        } catch (hdrError) {
+          console.warn("⚠️ Meadow HDR betöltés sikertelen, fallback használata:", hdrError);
+        }
+      } else {
+        console.warn("❌ HDR Environment Manager nem inicializálható");
       }
-    } else {
-      console.warn("HDR Environment nem elérhető");
+    } catch (error) {
+      console.error("HDR inicializálási hiba:", error);
     }
 
     // Summary generálása
@@ -244,7 +251,7 @@ async function initialize() {
       console.log("Event listener-ek beállítva");
     }
 
-    console.log("Inicializálás sikeres v1.10.0!");
+    console.log("🎉 Inicializálás sikeres v1.11.0 - Meadow HDR!");
   } catch (error) {
     console.error("Hiba az inicializálás során:", error);
   }
@@ -252,7 +259,7 @@ async function initialize() {
 
 // Globális hozzáférés debug-hoz
 window.debugInfo = () => {
-  console.log("=== DEBUG INFO v1.10.0 ===");
+  console.log("=== DEBUG INFO v1.11.0 ===");
   console.log(
     "Element Manager:",
     elementManager?.getAllElements().length + " elem"
@@ -311,7 +318,7 @@ window.textureManager = () => textureManager;
 window.wireframeManager = () => wireframeManager;
 window.materialManager = () => materialManager;
 window.lightingManager = () => lightingManager;
-window.hdrEnvironmentManager = () => hdrEnvironmentManager; // ÚJ: HDR Manager hozzáadása
+window.hdrEnvironmentManager = () => hdrEnvironmentManager; // HDR Manager hozzáadása
 
 // Egyedi elem láthatóság kapcsoló funkció
 window.toggleElementVisibility = function (elementId, isVisible) {
@@ -350,6 +357,6 @@ export {
   wireframeManager,
   materialManager,
   lightingManager,
-  hdrEnvironmentManager, // ÚJ: HDR Manager export
+  hdrEnvironmentManager, // HDR Manager export
   allMeshes,
 };
