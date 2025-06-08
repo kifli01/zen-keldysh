@@ -1,7 +1,7 @@
 /**
  * HDR Environment Manager
  * HDR környezeti világítás és reflexiók kezelése
- * v1.1.0 - Meadow HDR integráció
+ * v1.3.0 - Tiszta verzió fehér háttérrel
  */
 
 class HDREnvironmentManager {
@@ -14,12 +14,12 @@ class HDREnvironmentManager {
     this.isLoaded = false;
     this.currentHDRUrl = null;
 
-    console.log("HDREnvironmentManager v1.1.0 - Meadow HDR");
+    console.log("HDREnvironmentManager v1.3.0 - Tiszta verzió");
   }
 
   // Inicializálás
   async initialize() {
-    // PMREM Generator létrehozása (HDR processzing-hez)
+    // PMREM Generator létrehozása
     this.pmremGenerator = new THREE.PMREMGenerator(this.sceneManager.renderer);
     this.pmremGenerator.compileEquirectangularShader();
 
@@ -35,14 +35,14 @@ class HDREnvironmentManager {
     }
   }
 
-  // HDR környezet betöltése - MÓDOSÍTOTT meadow HDR-rel
+  // HDR környezet betöltése - fehér háttérrel
   async loadHDREnvironment(hdrUrl = 'textures/meadow.hdr') {
     if (!this.loader) {
       console.warn("HDR Loader nem elérhető");
       return false;
     }
 
-    console.log(`🌿 Meadow HDR környezet betöltése: ${hdrUrl}`);
+    console.log(`🌿 Meadow HDR betöltése fehér háttérrel: ${hdrUrl}`);
 
     try {
       return new Promise((resolve, reject) => {
@@ -54,105 +54,121 @@ class HDREnvironmentManager {
             // HDR textúra feldolgozása
             const envMap = this.pmremGenerator.fromEquirectangular(texture).texture;
             
-            // Scene environment beállítása - meadow specifikus
+            // Environment map beállítása (reflexiókhoz)
+            this.envMap = envMap;
             this.sceneManager.scene.environment = envMap;
-            this.sceneManager.scene.background = envMap;
             
-            // Meadow környezet optimalizált beállítások
-            this.sceneManager.scene.backgroundIntensity = 0.4; // Kicsit erősebb a rét miatt
-            this.sceneManager.scene.environmentIntensity = 1.2; // Erősebb reflexiók
+            // FEHÉR HÁTTÉR beállítása
+            this.sceneManager.scene.background = new THREE.Color(0xffffff);
+            
+            // Optimalizált beállítások - SCENE SZINTŰ ELTÁVOLÍTVA
+            // Nincs scene.environmentIntensity - csak mesh szintű
             
             // Cleanup
             texture.dispose();
             
-            this.envMap = envMap;
             this.isLoaded = true;
             this.currentHDRUrl = hdrUrl;
             
-            console.log("🌟 Meadow HDR Environment aktiválva - természetes rét környezet");
+            console.log("🌟 HDR Environment aktiválva - fehér háttérrel");
+            
+            // Alapértelmezett environment intenzitás beállítása
+            this.setEnvironmentIntensity(0.6);
+            
             resolve(true);
           },
           (progress) => {
             const percent = (progress.loaded / progress.total * 100).toFixed(1);
-            console.log(`📡 Meadow HDR betöltés: ${percent}%`);
+            console.log(`📡 HDR betöltés: ${percent}%`);
           },
           (error) => {
-            console.error("❌ Meadow HDR betöltési hiba:", error);
-            console.warn("🔄 Fallback környezet használata...");
-            // Fallback környezet
+            console.error("❌ HDR betöltési hiba:", error);
             this.createFallbackEnvironment();
             reject(error);
           }
         );
       });
     } catch (error) {
-      console.error("Meadow HDR betöltés hiba:", error);
+      console.error("HDR betöltés hiba:", error);
       this.createFallbackEnvironment();
       return false;
     }
   }
 
-  // Fallback környezet létrehozása (ha nincs HDR) - JAVÍTOTT
+  // Fallback környezet fehér háttérrel
   createFallbackEnvironment() {
-    console.log("🔄 Meadow-inspirált fallback környezet létrehozása...");
+    console.log("🔄 Fallback környezet fehér háttérrel...");
 
-    // Meadow-szerű zöld-kék gradient
-    const gradientTexture = this.createMeadowGradientTexture();
-    this.sceneManager.scene.background = gradientTexture;
+    // Fehér háttér
+    this.sceneManager.scene.background = new THREE.Color(0xffffff);
     
-    // Egyszerű environment map
+    // Alapvető environment
     const pmremGenerator = new THREE.PMREMGenerator(this.sceneManager.renderer);
     const envMap = pmremGenerator.fromScene(this.sceneManager.scene).texture;
     this.sceneManager.scene.environment = envMap;
     
-    // Meadow-szerű beállítások
-    this.sceneManager.scene.backgroundIntensity = 0.5;
-    this.sceneManager.scene.environmentIntensity = 0.8;
+    this.sceneManager.scene.backgroundIntensity = 1.0;
+    // Nincs scene.environmentIntensity - csak mesh szintű
     
     this.envMap = envMap;
     this.isLoaded = true;
     
-    console.log("✅ Meadow-szerű fallback környezet kész");
+    console.log("✅ Fallback környezet kész - fehér háttér");
   }
 
-  // MÓDOSÍTOTT: Meadow-szerű gradient textúra
-  createMeadowGradientTexture() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
+  // Környezet intenzitás beállítása - JAVÍTOTT: mesh szintű
+  setEnvironmentIntensity(intensity = 0.6) { // Alapértelmezett 0.6
+    const clampedIntensity = Math.max(0, Math.min(5, intensity));
     
-    const context = canvas.getContext('2d');
+    console.log(`🌟 Environment intenzitás beállítása: ${clampedIntensity}`);
     
-    // Meadow-szerű gradient (zöld rét + kék ég)
-    const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#87CEEB'); // Világos kék ég (fent)
-    gradient.addColorStop(0.3, '#98D8E8'); // Kékesebb átmenet
-    gradient.addColorStop(0.7, '#90EE90'); // Világos zöld
-    gradient.addColorStop(1, '#228B22'); // Sötétebb zöld rét (lent)
+    // Alkalmazás minden mesh-re
+    const meshes = this.sceneManager.getAllMeshes();
+    let updatedCount = 0;
     
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    meshes.forEach((mesh, elementId) => {
+      if (this.setMeshEnvironmentIntensity(mesh, clampedIntensity)) {
+        updatedCount++;
+      }
+    });
     
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.mapping = THREE.EquirectangularReflectionMapping;
+    console.log(`♻️ Environment intenzitás frissítve ${updatedCount} mesh-en: ${clampedIntensity}`);
     
-    return texture;
+    // Force render
+    this.sceneManager.renderer.render(this.sceneManager.scene, this.sceneManager.camera);
   }
 
-  // Környezet intenzitás beállítása - MEADOW optimalizált
-  setEnvironmentIntensity(intensity = 1.2) { // Alapértelmezett magasabb meadow-hoz
-    if (this.sceneManager.scene.environment) {
-      this.sceneManager.scene.environmentIntensity = Math.max(0, Math.min(3, intensity));
-      console.log(`🌟 Meadow Environment intenzitás: ${this.sceneManager.scene.environmentIntensity}`);
+  // ÚJ: Mesh environment intenzitás beállítása
+  setMeshEnvironmentIntensity(mesh, intensity) {
+    if (!mesh) return false;
+
+    let updated = false;
+
+    // Hagyományos mesh
+    if (mesh.material && mesh.material.isMeshStandardMaterial) {
+      mesh.material.envMapIntensity = intensity;
+      mesh.material.needsUpdate = true;
+      updated = true;
     }
+
+    // GROUP mesh - gyerekek frissítése
+    if (mesh.userData && mesh.userData.isGroup) {
+      mesh.children.forEach((childMesh) => {
+        if (childMesh.material && childMesh.material.isMeshStandardMaterial) {
+          childMesh.material.envMapIntensity = intensity;
+          childMesh.material.needsUpdate = true;
+          updated = true;
+        }
+      });
+    }
+
+    return updated;
   }
 
-  // Háttér intenzitás beállítása - MEADOW optimalizált
-  setBackgroundIntensity(intensity = 0.4) { // Magasabb alapértelmezett meadow-hoz
-    if (this.sceneManager.scene.background) {
-      this.sceneManager.scene.backgroundIntensity = Math.max(0, Math.min(2, intensity));
-      console.log(`🖼️ Meadow háttér intenzitás: ${this.sceneManager.scene.backgroundIntensity}`);
-    }
+  // Háttér szín beállítása
+  setBackgroundColor(color = 0xffffff) {
+    this.sceneManager.scene.background = new THREE.Color(color);
+    console.log(`🎨 Háttér szín: #${color.toString(16).padStart(6, '0')}`);
   }
 
   // Környezet forgatása
@@ -163,104 +179,69 @@ class HDREnvironmentManager {
     }
   }
 
-  // Összes mesh environment map frissítése
+  // Összes mesh environment map frissítése - JAVÍTOTT verzió
   updateAllMeshesEnvironment() {
     const meshes = this.sceneManager.getAllMeshes();
     let updatedCount = 0;
 
-    meshes.forEach((mesh) => {
+    console.log(`🔄 Environment map alkalmazása ${meshes.size} mesh-re...`);
+
+    meshes.forEach((mesh, elementId) => {
       if (this.updateMeshEnvironment(mesh)) {
         updatedCount++;
+        console.log(`✅ Environment alkalmazva: ${elementId}`);
       }
     });
 
-    console.log(`♻️ Meadow Environment frissítve ${updatedCount} mesh-en`);
+    console.log(`♻️ Environment frissítve ${updatedCount}/${meshes.size} mesh-en`);
+    
+    // Force render frissítés
+    this.sceneManager.renderer.render(this.sceneManager.scene, this.sceneManager.camera);
   }
 
-  // Egyedi mesh environment frissítése
+  // Egyedi mesh environment frissítése - BŐVÍTETT debugging-gel
   updateMeshEnvironment(mesh) {
-    if (!mesh || !this.envMap) return false;
+    if (!mesh || !this.envMap) {
+      console.warn("Mesh vagy envMap hiányzik:", mesh?.userData?.elementId);
+      return false;
+    }
+
+    let updated = false;
 
     // Hagyományos mesh
     if (mesh.material && mesh.material.isMeshStandardMaterial) {
       mesh.material.envMap = this.envMap;
+      mesh.material.envMapIntensity = mesh.material.envMapIntensity || 1.0;
       mesh.material.needsUpdate = true;
-      return true;
+      console.log(`🌟 Env map -> ${mesh.userData?.elementId}: metalness=${mesh.material.metalness}, envMapIntensity=${mesh.material.envMapIntensity}`);
+      updated = true;
     }
 
     // GROUP mesh - gyerekek frissítése
     if (mesh.userData && mesh.userData.isGroup) {
-      let updated = false;
-      mesh.children.forEach((childMesh) => {
+      mesh.children.forEach((childMesh, index) => {
         if (childMesh.material && childMesh.material.isMeshStandardMaterial) {
           childMesh.material.envMap = this.envMap;
+          childMesh.material.envMapIntensity = childMesh.material.envMapIntensity || 1.0;
           childMesh.material.needsUpdate = true;
+          console.log(`🌟 Env map -> ${mesh.userData?.elementId}_child_${index}: metalness=${childMesh.material.metalness}`);
           updated = true;
         }
       });
-      return updated;
     }
 
-    return false;
+    return updated;
   }
 
-  // Különböző HDR környezetek közötti váltás - MEADOW preset-tel
-  async switchEnvironment(environmentName) {
-    const environments = {
-      'meadow': 'textures/meadow.hdr',      // ÚJ: Alapértelmezett
-      'studio': 'textures/studio_hdri.hdr',
-      'outdoor': 'textures/outdoor_hdri.hdr', 
-      'indoor': 'textures/indoor_hdri.hdr',
-      'sunset': 'textures/sunset_hdri.hdr'
-    };
-
-    const hdrUrl = environments[environmentName];
-    if (!hdrUrl) {
-      console.warn(`Ismeretlen környezet: ${environmentName}`);
-      return false;
-    }
-
-    console.log(`🔄 Környezet váltás: ${environmentName}`);
-    return await this.loadHDREnvironment(hdrUrl);
-  }
-
-  // HDR előnézet képek generálása
-  generatePreviewImages() {
-    if (!this.envMap) return null;
-
-    const previewSize = 128;
-    const canvas = document.createElement('canvas');
-    canvas.width = previewSize;
-    canvas.height = previewSize;
-
-    // Mini renderer az előnézethez
-    const previewRenderer = new THREE.WebGLRenderer({ 
-      canvas: canvas,
-      preserveDrawingBuffer: true 
-    });
-    
-    const previewCamera = new THREE.PerspectiveCamera(90, 1, 0.1, 100);
-    const previewScene = new THREE.Scene();
-    previewScene.background = this.envMap;
-
-    previewRenderer.render(previewScene, previewCamera);
-    
-    const imageData = canvas.toDataURL();
-    previewRenderer.dispose();
-    
-    return imageData;
-  }
-
-  // Status információk - MEADOW specifikus
+  // Status információk
   getStatus() {
     return {
-      version: 'v1.1.0 - Meadow HDR',
+      version: 'v1.3.0 - Tiszta verzió',
       isLoaded: this.isLoaded,
       currentHDR: this.currentHDRUrl,
-      expectedHDR: 'textures/meadow.hdr',
       hasEnvironment: !!this.sceneManager.scene.environment,
       hasBackground: !!this.sceneManager.scene.background,
-      environmentIntensity: this.sceneManager.scene.environmentIntensity,
+      backgroundType: 'Fehér szín',
       backgroundIntensity: this.sceneManager.scene.backgroundIntensity,
       pmremAvailable: !!this.pmremGenerator,
       rgbeLoaderAvailable: !!this.loader,
@@ -269,12 +250,12 @@ class HDREnvironmentManager {
 
   // Debug információ
   logStatus() {
-    console.log("=== MEADOW HDR ENVIRONMENT STATUS ===");
+    console.log("=== HDR ENVIRONMENT STATUS ===");
     const status = this.getStatus();
     Object.entries(status).forEach(([key, value]) => {
       console.log(`${key}: ${value}`);
     });
-    console.log("====================================");
+    console.log("=============================");
   }
 
   // Cleanup
@@ -290,12 +271,12 @@ class HDREnvironmentManager {
     }
 
     this.sceneManager.scene.environment = null;
-    this.sceneManager.scene.background = new THREE.Color(0xf9f9f9);
+    this.sceneManager.scene.background = new THREE.Color(0xffffff);
 
     this.isLoaded = false;
     this.currentHDRUrl = null;
 
-    console.log("HDREnvironmentManager v1.1.0 cleanup kész");
+    console.log("HDREnvironmentManager v1.3.0 cleanup kész");
   }
 }
 
