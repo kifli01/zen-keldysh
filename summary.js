@@ -21,6 +21,9 @@ const summaryGenerator = {
     // Alapvető panel létrehozása
     container.innerHTML = `<h1>Minigolf Pálya - ${version}</h1>`;
 
+    // ÚJ v1.6.1: Toggle All funkció hozzáadása
+    container.innerHTML += this.createToggleAllSection();
+
     // Különböző szekciók létrehozása
     container.innerHTML += this.createTotalDimensionsSection(summaryData);
     container.innerHTML += this.createComponentsSection(summaryData);
@@ -31,8 +34,37 @@ const summaryGenerator = {
   },
 
   /**
-   * Teljes méretek szekció - VÁLTOZATLAN
+   * ÚJ v1.6.1: Toggle All szekció létrehozása
    */
+  createToggleAllSection: function () {
+    // localStorage alapján meghatározzuk az összes elem állapotát
+    let allVisible = true; // Alapértelmezett
+    if (window.loadVisibilityState) {
+      const savedVisibility = window.loadVisibilityState();
+      if (Object.keys(savedVisibility).length > 0) {
+        // Ha bármelyik elem rejtett, akkor nem "mind látható"
+        allVisible = Object.values(savedVisibility).every(visible => visible === true);
+      }
+    }
+
+    return `
+      <div class="summary-section" style="background-color: #f0f8ff; border: 2px solid #4a67eb;">
+          <div class="toggle-all-container" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-weight: 600; color: #262730;">Összes elem láthatóság:</span>
+                  <label class="visibility-toggle" title="Összes elem ki/be">
+                      <input type="checkbox" ${allVisible ? 'checked' : ''} 
+                             id="toggle-all-elements" 
+                             onchange="toggleAllElementsVisibility(this.checked)">
+                      <span class="toggle-slider"></span>
+                  </label>
+              </div>
+              <div style="font-size: 12px;" id="toggle-all-status">
+                  ${allVisible ? '✅ Minden látható' : '❌ Van rejtett elem'}
+              </div>
+          </div>
+      </div>`;
+  },
   createTotalDimensionsSection: function (summaryData) {
     const { totalDimensions, weights } = summaryData;
 
@@ -376,7 +408,81 @@ window.toggleElementDetails = function(elementId, button) {
 };
 
 /**
- * ÚJ v1.6.1: Komponens szintű láthatóság toggle (összes elem) + localStorage
+ * ÚJ v1.6.1: Összes elem láthatóság toggle + dinamikus állapot frissítés
+ */
+window.toggleAllElementsVisibility = function(isVisible) {
+  console.log(`Összes elem láthatóság: ${isVisible ? 'BE' : 'KI'}`);
+  
+  // Összes elem checkbox frissítése
+  const allElementCheckboxes = document.querySelectorAll('[data-element-id]');
+  allElementCheckboxes.forEach(checkbox => {
+    const elementId = checkbox.getAttribute('data-element-id');
+    
+    // Checkbox állapot frissítése
+    checkbox.checked = isVisible;
+    
+    // 3D elem láthatóság frissítése
+    if (window.toggleElementVisibility) {
+      // Kis késleltetés, hogy ne legyen túl sok egyidejű hívás
+      setTimeout(() => {
+        window.toggleElementVisibility(elementId, isVisible);
+      }, 10);
+    }
+  });
+
+  // Komponens checkbox-ok frissítése
+  const allComponentCheckboxes = document.querySelectorAll('[data-component-id]');
+  allComponentCheckboxes.forEach(checkbox => {
+    checkbox.checked = isVisible;
+  });
+
+  // Állapot szöveg frissítése
+  updateToggleAllStatus();
+
+  // localStorage mentés
+  if (window.saveVisibilityState) {
+    setTimeout(() => {
+      window.saveVisibilityState();
+    }, 100);
+  }
+
+  console.log(`✅ Összes elem (${allElementCheckboxes.length}) ${isVisible ? 'bekapcsolva' : 'kikapcsolva'}`);
+};
+
+/**
+ * ÚJ: Toggle All állapot szöveg dinamikus frissítése
+ */
+window.updateToggleAllStatus = function() {
+  // Jelenlegi állapot ellenőrzése
+  const allElementCheckboxes = document.querySelectorAll('[data-element-id]');
+  const visibleCount = Array.from(allElementCheckboxes).filter(cb => cb.checked).length;
+  const totalCount = allElementCheckboxes.length;
+  const allVisible = visibleCount === totalCount;
+
+  // Toggle All checkbox frissítése
+  const toggleAllCheckbox = document.getElementById('toggle-all-elements');
+  if (toggleAllCheckbox) {
+    toggleAllCheckbox.checked = allVisible;
+  }
+
+  // Státusz szöveg frissítése
+  const statusElement = document.getElementById('toggle-all-status');
+  if (statusElement) {
+    if (allVisible) {
+      statusElement.innerHTML = '✅ Minden látható';
+      statusElement.style.color = '#059669'; // Zöld
+    } else if (visibleCount === 0) {
+      statusElement.innerHTML = '❌ Minden rejtett';
+      statusElement.style.color = '#dc2626'; // Piros
+    } else {
+      statusElement.innerHTML = `⚪ ${visibleCount}/${totalCount} látható`;
+      statusElement.style.color = '#d97706'; // Narancs
+    }
+  }
+};
+
+/**
+ * ÚJ v1.6.1: Komponens szintű láthatóság toggle (összes elem) + localStorage + állapot frissítés
  */
 window.toggleComponentVisibility = function(componentId, isVisible) {
   console.log(`Komponens láthatóság: ${componentId} -> ${isVisible}`);
@@ -401,6 +507,13 @@ window.toggleComponentVisibility = function(componentId, isVisible) {
   // (a toggleElementVisibility már menti, de biztonsági mentés)
   if (window.saveVisibilityState) {
     window.saveVisibilityState();
+  }
+
+  // ÚJ: Toggle All állapot frissítése
+  if (window.updateToggleAllStatus) {
+    setTimeout(() => {
+      window.updateToggleAllStatus();
+    }, 50);
   }
   
   console.log(`✅ Komponens ${componentId}: ${elementTogles.length} elem ${isVisible ? 'bekapcsolva' : 'kikapcsolva'}`);

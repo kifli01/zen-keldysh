@@ -669,7 +669,7 @@ window.lightingManager = () => lightingManager;
 window.hdrEnvironmentManager = () => hdrEnvironmentManager;
 window.postProcessingManager = () => postProcessingManager;
 
-// Egyedi elem láthatóság kapcsoló funkció - ÚJ: localStorage mentéssel
+// Egyedi elem láthatóság kapcsoló funkció - ÚJ: localStorage mentéssel + állapot frissítés
 window.toggleElementVisibility = function (elementId, isVisible) {
   console.log(`Elem láthatóság váltás: ${elementId} -> ${isVisible}`);
 
@@ -683,6 +683,13 @@ window.toggleElementVisibility = function (elementId, isVisible) {
 
     // ÚJ v1.13.1: Automatikus mentés localStorage-ba
     saveVisibilityState();
+
+    // ÚJ: Toggle All állapot frissítése
+    if (window.updateToggleAllStatus) {
+      setTimeout(() => {
+        window.updateToggleAllStatus();
+      }, 10);
+    }
 
     sceneManager.renderer.render(sceneManager.scene, sceneManager.camera);
   } else {
