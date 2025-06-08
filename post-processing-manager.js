@@ -1,8 +1,4 @@
-/**
- * Post-Processing Manager
- * Bloom, SSAO és egyéb post-processing effektek kezelése
- * v1.0.0 - Bloom Effect alapok
- */
+// Post-Processing Manager - v1.1.0 - SSAO Support
 
 class PostProcessingManager {
   constructor(sceneManager) {
@@ -10,35 +6,62 @@ class PostProcessingManager {
     this.composer = null;
     this.renderPass = null;
     this.bloomPass = null;
+    this.ssaoPass = null;
     this.enabled = false;
+    this.ssaoEnabled = false;
+    
     this.bloomSettings = {
-      threshold: 0.8,    // Mettől kezdjen izzani
-      strength: 0.5,     // Izzás erőssége
-      radius: 0.4,       // Izzás kiterjedése
-      exposure: 1.0      // Expozíció
+      threshold: 0.8,
+      strength: 0.5,
+      radius: 0.4,
+      exposure: 1.0
+    };
+    
+    this.ssaoSettings = {
+      kernelRadius: 8,
+      minDistance: 0.005,
+      maxDistance: 0.1,
+      intensity: 1.0,
+      bias: 0.01
     };
 
-    console.log("PostProcessingManager v1.0.0 - Bloom Effect");
+    console.log("PostProcessingManager v1.1.0 - Bloom + SSAO Support");
   }
 
-  // Inicializálás - EffectComposer és Bloom setup
   async initialize() {
     try {
-      // EffectComposer és passes dinamikus import
       const { EffectComposer } = await import('three/examples/jsm/postprocessing/EffectComposer.js');
       const { RenderPass } = await import('three/examples/jsm/postprocessing/RenderPass.js');
       const { UnrealBloomPass } = await import('three/examples/jsm/postprocessing/UnrealBloomPass.js');
+      const { SSAOPass } = await import('three/examples/jsm/postprocessing/SSAOPass.js');
       
-      console.log("✅ Post-processing modulok betöltve");
+      console.log("✅ Post-processing modulok betöltve (Bloom + SSAO)");
       
-      // EffectComposer létrehozása
       this.composer = new EffectComposer(this.sceneManager.renderer);
       
-      // RenderPass - alap scene renderelés
       this.renderPass = new RenderPass(this.sceneManager.scene, this.sceneManager.camera);
       this.composer.addPass(this.renderPass);
       
-      // UnrealBloomPass - bloom effect
+      const ssaoResolution = new THREE.Vector2(
+        this.sceneManager.container.clientWidth,
+        this.sceneManager.container.clientHeight
+      );
+      
+      this.ssaoPass = new SSAOPass(
+        this.sceneManager.scene,
+        this.sceneManager.camera,
+        ssaoResolution.x,
+        ssaoResolution.y
+      );
+      
+      this.ssaoPass.kernelRadius = this.ssaoSettings.kernelRadius;
+      this.ssaoPass.minDistance = this.ssaoSettings.minDistance;
+      this.ssaoPass.maxDistance = this.ssaoSettings.maxDistance;
+      this.ssaoPass.intensity = this.ssaoSettings.intensity;
+      this.ssaoPass.bias = this.ssaoSettings.bias;
+      
+      this.composer.addPass(this.ssaoPass);
+      
       const bloomResolution = new THREE.Vector2(
         this.sceneManager.container.clientWidth,
         this.sceneManager.container.clientHeight
@@ -53,10 +76,9 @@ class PostProcessingManager {
       
       this.composer.addPass(this.bloomPass);
       
-      // Renderer exposure beállítása
       this.sceneManager.renderer.toneMappingExposure = this.bloomSettings.exposure;
       
-      console.log("🌟 Bloom Effect inicializálva:", this.bloomSettings);
+      console.log("🌟 Bloom + SSAO Effect inicializálva");
       return true;
       
     } catch (error) {
@@ -65,33 +87,35 @@ class PostProcessingManager {
     }
   }
 
-  // Bloom engedélyezése/kikapcsolása
   setBloomEnabled(enabled = true) {
     this.enabled = enabled;
     
     if (enabled && this.composer) {
       console.log("✅ Bloom Effect bekapcsolva");
-      // EffectComposer használata rendereléshez
       this.enableComposerRendering();
     } else {
       console.log("❌ Bloom Effect kikapcsolva");
-      // Vissza normál renderelésre
       this.disableComposerRendering();
     }
   }
 
-  // EffectComposer renderelés engedélyezése
+  setSSAOEnabled(enabled = true) {
+    this.ssaoEnabled = enabled;
+    
+    if (this.ssaoPass) {
+      this.ssaoPass.enabled = enabled;
+      console.log(`🌑 SSAO Effect ${enabled ? 'bekapcsolva' : 'kikapcsolva'}`);
+    }
+  }
+
   enableComposerRendering() {
     if (!this.composer) return;
     
-    // Animation loop override
     this.originalAnimationLoop = this.sceneManager.animationId;
     this.sceneManager.stopAnimationLoop();
     
     const animate = () => {
       this.sceneManager.animationId = requestAnimationFrame(animate);
-      
-      // EffectComposer renderelés bloom-mal
       this.composer.render();
     };
     
@@ -99,45 +123,12 @@ class PostProcessingManager {
     console.log("🎬 EffectComposer renderelés aktív");
   }
 
-  // Normál renderelés visszaállítása
   disableComposerRendering() {
     this.sceneManager.stopAnimationLoop();
     this.sceneManager.startAnimationLoop();
     console.log("🎬 Normál renderelés visszaállítva");
   }
 
-  // Bloom beállítások módosítása
-  setBloomSettings(settings = {}) {
-    if (!this.bloomPass) {
-      console.warn("Bloom pass nincs inicializálva");
-      return;
-    }
-
-    // Beállítások frissítése
-    if (settings.threshold !== undefined) {
-      this.bloomSettings.threshold = Math.max(0, Math.min(2, settings.threshold));
-      this.bloomPass.threshold = this.bloomSettings.threshold;
-    }
-    
-    if (settings.strength !== undefined) {
-      this.bloomSettings.strength = Math.max(0, Math.min(3, settings.strength));
-      this.bloomPass.strength = this.bloomSettings.strength;
-    }
-    
-    if (settings.radius !== undefined) {
-      this.bloomSettings.radius = Math.max(0, Math.min(1, settings.radius));
-      this.bloomPass.radius = this.bloomSettings.radius;
-    }
-    
-    if (settings.exposure !== undefined) {
-      this.bloomSettings.exposure = Math.max(0.1, Math.min(3, settings.exposure));
-      this.sceneManager.renderer.toneMappingExposure = this.bloomSettings.exposure;
-    }
-    
-    console.log("🌟 Bloom beállítások frissítve:", this.bloomSettings);
-  }
-
-  // Előre definiált bloom preset-ek
   setBloomPreset(presetName) {
     const presets = {
       'subtle': {
@@ -152,12 +143,6 @@ class PostProcessingManager {
         radius: 0.4,
         exposure: 1.0
       },
-      'dramatic': {
-        threshold: 0.5,
-        strength: 1.0,
-        radius: 0.6,
-        exposure: 1.2
-      },
       'metallic': {
         threshold: 0.7,
         strength: 0.8,
@@ -167,48 +152,58 @@ class PostProcessingManager {
     };
     
     const preset = presets[presetName];
-    if (preset) {
-      this.setBloomSettings(preset);
+    if (preset && this.bloomPass) {
+      this.bloomSettings = { ...preset };
+      this.bloomPass.threshold = preset.threshold;
+      this.bloomPass.strength = preset.strength;
+      this.bloomPass.radius = preset.radius;
+      this.sceneManager.renderer.toneMappingExposure = preset.exposure;
       console.log(`🎨 Bloom preset alkalmazva: ${presetName}`);
-    } else {
-      console.warn(`Ismeretlen bloom preset: ${presetName}`);
     }
   }
 
-  // Ablak átméretezés kezelése
-  handleResize() {
-    if (this.composer) {
-      const width = this.sceneManager.container.clientWidth;
-      const height = this.sceneManager.container.clientHeight;
-      
-      this.composer.setSize(width, height);
-      console.log(`📐 Post-processing resize: ${width}x${height}`);
+  setSSAOPreset(presetName) {
+    const presets = {
+      'subtle': {
+        kernelRadius: 8,
+        minDistance: 0.005,
+        maxDistance: 0.1,
+        intensity: 0.8,
+        bias: 0.01
+      },
+      'architectural': {
+        kernelRadius: 10,
+        minDistance: 0.003,
+        maxDistance: 0.08,
+        intensity: 1.0,
+        bias: 0.008
+      }
+    };
+    
+    const preset = presets[presetName];
+    if (preset && this.ssaoPass) {
+      this.ssaoSettings = { ...preset };
+      this.ssaoPass.kernelRadius = preset.kernelRadius;
+      this.ssaoPass.minDistance = preset.minDistance;
+      this.ssaoPass.maxDistance = preset.maxDistance;
+      this.ssaoPass.intensity = preset.intensity;
+      this.ssaoPass.bias = preset.bias;
+      console.log(`🏗️ SSAO preset alkalmazva: ${presetName}`);
     }
   }
 
-  // Status információk
   getStatus() {
     return {
-      version: 'v1.0.0 - Bloom Effect',
+      version: 'v1.1.0 - Bloom + SSAO',
       enabled: this.enabled,
+      bloomEnabled: this.enabled,
+      ssaoEnabled: this.ssaoEnabled,
       hasComposer: !!this.composer,
       hasBloomPass: !!this.bloomPass,
-      bloomSettings: { ...this.bloomSettings },
-      renderingMode: this.enabled ? 'EffectComposer' : 'Normal'
+      hasSSAOPass: !!this.ssaoPass
     };
   }
 
-  // Debug információ
-  logStatus() {
-    console.log("=== POST-PROCESSING STATUS ===");
-    const status = this.getStatus();
-    Object.entries(status).forEach(([key, value]) => {
-      console.log(`${key}:`, value);
-    });
-    console.log("=============================");
-  }
-
-  // Cleanup
   destroy() {
     if (this.composer) {
       this.composer.dispose();
@@ -222,5 +217,4 @@ class PostProcessingManager {
   }
 }
 
-// Globális hozzáférhetőség
 window.PostProcessingManager = PostProcessingManager;

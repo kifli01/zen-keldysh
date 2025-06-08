@@ -144,8 +144,12 @@ async function initialize() {
     // ÚJ: HDR Environment Manager létrehozása
     hdrEnvironmentManager = new HDREnvironmentManager(sceneManager, textureManager);
     
-    // ÚJ: Post-Processing Manager létrehozása
-    postProcessingManager = new PostProcessingManager(sceneManager);
+    // ÚJ: Post-Processing Manager létrehozása (ha elérhető)
+    if (typeof PostProcessingManager !== 'undefined') {
+      postProcessingManager = new PostProcessingManager(sceneManager);
+    } else {
+      console.warn("PostProcessingManager nem elérhető");
+    }
     
     // ÚJ: Specializált manager objektumok elérhetővé tétele
     wireframeManager = viewModeManager.getWireframeManager();
@@ -234,20 +238,29 @@ async function initialize() {
     }
 
     // ÚJ: Post-Processing (Bloom) inicializálása
-    console.log("✨ Post-Processing (Bloom) inicializálása...");
-    try {
-      const postProcessingInitialized = await postProcessingManager.initialize();
-      
-      if (postProcessingInitialized) {
-        // Bloom bekapcsolása 'subtle' preset-tel (nem túl erős)
-        postProcessingManager.setBloomPreset('subtle');
-        postProcessingManager.setBloomEnabled(true);
-        console.log("🌟 Bloom Effect aktiválva - subtle preset!");
-      } else {
-        console.warn("❌ Post-Processing nem inicializálható");
+    if (postProcessingManager) {
+      console.log("✨ Post-Processing (Bloom) inicializálása...");
+      try {
+        const postProcessingInitialized = await postProcessingManager.initialize();
+        
+        if (postProcessingInitialized) {
+          // Bloom bekapcsolása 'subtle' preset-tel (nem túl erős)
+          postProcessingManager.setBloomPreset('subtle');
+          postProcessingManager.setBloomEnabled(true);
+          
+          // ÚJ: SSAO bekapcsolása 'architectural' preset-tel
+          postProcessingManager.setSSAOPreset('architectural');
+          postProcessingManager.setSSAOEnabled(true);
+          
+          console.log("🌟 Bloom + SSAO Effect aktiválva!");
+        } else {
+          console.warn("❌ Post-Processing nem inicializálható");
+        }
+      } catch (error) {
+        console.error("Post-Processing inicializálási hiba:", error);
       }
-    } catch (error) {
-      console.error("Post-Processing inicializálási hiba:", error);
+    } else {
+      console.log("Post-Processing Manager nincs elérhető, folytatás nélküle");
     }
 
     // Summary generálása
