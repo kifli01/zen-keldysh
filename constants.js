@@ -1,7 +1,7 @@
 /**
  * Minigolf Constants
  * Közös konstansok és alapértékek a minigolf pálya elemekhez
- * v1.6.0 - PBR tulajdonságok hozzáadva
+ * v1.7.0 - Normal Maps és teljes PBR pipeline hozzáadva
  */
 
 // Geometria típusok
@@ -20,87 +20,175 @@ const ELEMENT_TYPES = {
   FRAME: "frame",
   LEG: "leg",
   WALL: "wall",
-  BALL: "ball", // Új típus a labdához
+  BALL: "ball",
   PART: "part",
 };
 
-// Anyag definíciók (PBR properties hozzáadva)
+// ÚJ v1.7.0: Anyag definíciók teljes PBR pipeline-nal
 const MATERIALS = {
   PINE_PLYWOOD: {
     name: "Lucfenyő rétegelt lemez",
     density: 0.5, // g/cm³
     color: 0xdccfb7,
     shininess: 10,
-    // Textúra beállítások:
+    
+    // LEGACY textúra (fallback):
     imagePath: 'textures/wood-3.jpg',
-    baseColor: 0xdccfb7, // Világosabb fa szín
+    baseColor: 0xdccfb7,
     repeat: { x: 2, y: 2 },
     useShade: true,
+    
+    // ÚJ: PBR Texture Pipeline
+    diffusePath: 'textures/Wood017_1K-JPG_Color.jpg',
+    normalPath: 'textures/Wood017_1K-JPG_NormalGL.jpg',
+    roughnessPath: 'textures/Wood017_1K-JPG_Roughness.jpg',
+    // aoPath: nincs - Wood017 csomag nem tartalmazza
+    
     // PBR tulajdonságok:
     roughnessBase: 0.8, // Fa - matt felület
     metalnessBase: 0.0, // Nem fém
     envMapIntensity: 0.3,
+    normalScale: 0.6, // Normal map intenzitás
+    
+    // Textúra beállítások:
+    pbrRepeat: { x: 1, y: 1 }, // PBR textúrák ismétlése
+    enablePBR: true, // PBR pipeline használata
   },
+  
   PINE_SOLID: {
     name: "Lucfenyő tömörfa",
     density: 0.45, // g/cm³
     color: 0xdccfb7,
     shininess: 10,
-    // Textúra beállítások:
+    
+    // LEGACY textúra (fallback):
     imagePath: 'textures/wood-3.jpg',
     baseColor: 0xdccfb7,
     repeat: { x: 2, y: 2 },
     useShade: true,
+    
+    // ÚJ: PBR Texture Pipeline (azonos Wood017)
+    diffusePath: 'textures/Wood017_1K-JPG_Color.jpg',
+    normalPath: 'textures/Wood017_1K-JPG_NormalGL.jpg',
+    roughnessPath: 'textures/Wood017_1K-JPG_Roughness.jpg',
+    
     // PBR tulajdonságok:
     roughnessBase: 0.9, // Tömörfa - még mattabb
     metalnessBase: 0.0,
     envMapIntensity: 0.2,
+    normalScale: 0.7, // Kicsit erősebb normal a tömörfánál
+    
+    pbrRepeat: { x: 1.5, y: 1.5 }, // Kicsit sűrűbb ismétlés
+    enablePBR: true,
   },
+  
   ARTIFICIAL_GRASS: {
     name: "LazyLawn Meadow Twist műfű",
     density: 0.2, // g/cm³
     color: 0xa5bc49,
     shininess: 2,
-    // Textúra beállítások:
+    
+    // LEGACY textúra (fallback):
     imagePath: 'textures/turf-1.jpg',
     baseColor: 0xa5bc49,
     repeat: { x: 8, y: 8 },
     useShade: true,
+    
+    // ÚJ: PBR Texture Pipeline - TELJES CSOMAG! 🌱
+    diffusePath: 'textures/Grass008_1K-JPG_Color.jpg',
+    normalPath: 'textures/Grass008_1K-JPG_NormalGL.jpg',
+    roughnessPath: 'textures/Grass008_1K-JPG_Roughness.jpg',
+    aoPath: 'textures/Grass008_1K-JPG_AmbientOcclusion.jpg', // ✅ VAN AO!
+    
     // PBR tulajdonságok:
     roughnessBase: 0.95, // Műfű - nagyon matt
     metalnessBase: 0.0,
     envMapIntensity: 0.1,
+    normalScale: 0.8, // Erős fűszál normal
+    aoIntensity: 0.7, // AO map erősség
+    
+    pbrRepeat: { x: 4, y: 4 }, // Természetes fű ismétlés
+    enablePBR: true,
   },
+  
   WHITE_PLASTIC: {
     name: "Fehér műanyag",
     density: 0.9, // g/cm³
     color: 0xffffff,
     shininess: 30,
-    // Textúra beállítások:
+    
+    // LEGACY textúra (fallback):
     imagePath: null, // Nincs textúra
     baseColor: 0xffffff,
     repeat: { x: 1, y: 1 },
     useShade: false, // Fix shininess
+    
+    // ÚJ: PBR Texture Pipeline
+    diffusePath: 'textures/Plastic013A_1K-JPG_Color.jpg',
+    normalPath: 'textures/Plastic013A_1K-JPG_NormalGL.jpg',
+    roughnessPath: 'textures/Plastic013A_1K-JPG_Roughness.jpg',
+    
     // PBR tulajdonságok:
     roughnessBase: 0.1, // Műanyag - sima felület
     metalnessBase: 0.0,
     envMapIntensity: 0.8,
+    normalScale: 0.3, // Enyhe normal a sima műanyagon
+    
+    pbrRepeat: { x: 1, y: 1 }, // Egységes felület
+    enablePBR: true,
   },
+  
   GALVANIZED_STEEL: {
     name: "Galvanizált acél",
     density: 7.8, // g/cm³
     color: 0xffffff,
     shininess: 60,
-    // Textúra beállítások:
+    
+    // LEGACY textúra (fallback):
     imagePath: 'textures/steel.jpg',
     baseColor: 0xffffff,
     repeat: { x: 1, y: 1 },
     useShade: true,
+    
+    // ÚJ: PBR Texture Pipeline - TELJES FÉMCSOMAG! 🔩
+    diffusePath: 'textures/Metal011_1K-JPG_Color.jpg',
+    normalPath: 'textures/Metal011_1K-JPG_NormalGL.jpg',
+    roughnessPath: 'textures/Metal011_1K-JPG_Roughness.jpg',
+    metalnessPath: 'textures/Metal011_1K-JPG_Metalness.jpg', // ✅ METALNESS MAP!
+    
     // PBR tulajdonságok:
     roughnessBase: 0.3, // Fém - közepesen sima
     metalnessBase: 0.9, // Nagyon fémes
     envMapIntensity: 1.5, // Erős reflexió
+    normalScale: 0.5, // Finom fém textúra
+    metalnessIntensity: 1.0, // Metalness map erősség
+    
+    pbrRepeat: { x: 1, y: 1 }, // Egységes fém felület
+    enablePBR: true,
   },
+};
+
+// ÚJ v1.7.0: PBR Pipeline beállítások
+const PBR_PIPELINE = {
+  enabled: true, // Globális PBR pipeline
+  fallbackToLegacy: true, // Ha PBR textúra nincs, legacy használata
+  
+  // Texture betöltési beállítások
+  textureFormat: 'jpg', // jpg vagy png
+  mipmaps: true, // Automatic mipmap generation
+  anisotropy: 4, // Anisotropic filtering
+  
+  // Normal map beállítások
+  normalFormat: 'OpenGL', // OpenGL vagy DirectX
+  normalFlipY: false, // Y csatorna invertálása
+  
+  // Performance beállítások
+  maxTextureSize: 1024, // 1K textúrák (1024x1024)
+  enableCompression: false, // GPU texture compression
+  
+  // Debug beállítások
+  logTextureLoading: true, // Textúra betöltés naplózása
+  showMissingTextures: true, // Hiányzó textúrák jelzése
 };
 
 // Alapértelmezett megjelenítési beállítások
@@ -119,7 +207,7 @@ const DEFAULT_TRANSFORM = {
   scale: { x: 1, y: 1, z: 1 },
 };
 
-// Minigolf pálya alapvető méretek
+// Minigolf pálya alapvető méretek (VÁLTOZATLAN)
 const COURSE_DIMENSIONS = {
   length: 250, // cm
   width: 80, // cm
@@ -128,7 +216,6 @@ const COURSE_DIMENSIONS = {
   holeRadius: 5.4, // átmérő: 10.8 cm
   holePositionX: 50, // A lyuk pozíciója a pálya végétől (cm)
   frontWidth: 2, // 2cm első takaró léc
-  // frontHeight: 16 - 6 - 0.9, // sideHeight - sideVerticalShift - topPlateThickness
   frameWidth: 6, // 6 cm széles lécek
   frameHeight: 4, // 4 cm magas lécek
   sideWidth: 5, // 5 cm széles oldallécek
@@ -145,8 +232,7 @@ COURSE_DIMENSIONS.frontHeight =
   COURSE_DIMENSIONS.sideHeight -
   COURSE_DIMENSIONS.sideVerticalShift -
   COURSE_DIMENSIONS.turfThickness + 
-  COURSE_DIMENSIONS.topPlateThickness / 2
-  ;
+  COURSE_DIMENSIONS.topPlateThickness / 2;
 
 // Lyuk pozíciók (COURSE_DIMENSIONS után definiálva)
 const HOLE_POSITION = {
@@ -163,47 +249,50 @@ const HOLE_POSITION = {
   }
 };
 
-// ÚJ: CSG beállítások
+// CSG beállítások (VÁLTOZATLAN)
 const CSG_CONFIG = {
-  enabled: true, // CSG műveletek engedélyezése
-  useWorker: false, // Web Worker használata (jelenleg nem támogatott)
-  maxOperations: 50, // Maximális batch műveletek száma
-  cacheSize: 100, // Geometria cache méret
-  enableProfiling: false, // Performance profiling
+  enabled: true,
+  useWorker: false,
+  maxOperations: 50,
+  cacheSize: 100,
+  enableProfiling: false,
 };
 
-// ÚJ: CSG művelet típusok
 const CSG_OPERATIONS = {
   SUBTRACT: "subtract",
   UNION: "union",
   INTERSECT: "intersect",
 };
 
-// ÚJ: CSG Performance beállítások
 const CSG_PERFORMANCE = {
-  enableCache: true, // Geometria cache engedélyezése
-  enableProfiling: false, // Performance mérés (debug módban)
-  warnThreshold: 100, // ms - figyelmeztetés ha lassú a művelet
-  maxCacheAge: 300000, // 5 perc - cache lejárati idő
-  batchSize: 10, // Batch műveletek mérete
+  enableCache: true,
+  enableProfiling: false,
+  warnThreshold: 100,
+  maxCacheAge: 300000,
+  batchSize: 10,
 };
 
-// ÚJ: CSG Debug beállítások
 const CSG_DEBUG = {
-  logOperations: false, // CSG műveletek naplózása
-  showTimings: false, // Időmérések megjelenítése
-  validateGeometry: false, // Geometria validálás
-  wireframeResults: false, // Eredmények wireframe módban
+  logOperations: false,
+  showTimings: false,
+  validateGeometry: false,
+  wireframeResults: false,
 };
 
-// ÚJ: PBR Render beállítások (THREE objektum nélkül)
+// PBR Render beállítások (FRISSÍTETT v1.7.0)
 const PBR_CONFIG = {
   enabled: true, // PBR renderelés engedélyezése
-  useHDR: false, // HDR environment mapping (még nincs implementálva)
+  useHDR: true, // HDR environment mapping ✅ BEKAPCSOLVA
   toneMapping: 4, // THREE.ACESFilmicToneMapping = 4
   toneMappingExposure: 1.0, // Expozíció
   physicallyCorrectLights: true, // Fizikailag helyes világítás
   outputEncoding: 3001, // THREE.sRGBEncoding = 3001
   shadowMapSize: 2048, // Shadow map felbontás
   shadowMapType: 2, // THREE.PCFSoftShadowMap = 2
+  
+  // ÚJ: Normal Maps specifikus beállítások
+  normalMaps: true, // Normal map támogatás
+  roughnessMaps: true, // Roughness map támogatás
+  metalnessMaps: true, // Metalness map támogatás
+  ambientOcclusionMaps: true, // AO map támogatás
 };

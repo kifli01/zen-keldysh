@@ -1,6 +1,6 @@
 /**
  * Minigolf Pálya Viewer - Főalkalmazás
- * v1.11.0 - HDR Environment Meadow Integration
+ * v1.12.0 - Async Normal Maps Integration
  */
 
 // ES6 importok
@@ -27,15 +27,15 @@ let exploder;
 let viewModeManager;
 let csgManager;
 let textureManager;
-// ÚJ: Refaktorált manager objektumok elérhetősége
+// Refaktorált manager objektumok elérhetősége
 let wireframeManager;
 let materialManager;
 let lightingManager;
-let hdrEnvironmentManager; // HDR Environment Manager
-let postProcessingManager; // ÚJ: Post-Processing Manager
+let hdrEnvironmentManager;
+let postProcessingManager;
 let allMeshes;
 
-// CSG inicializálás
+// CSG inicializálás (változatlan)
 function initializeCSG() {
   try {
     // Könyvtárak hozzáférhetősége ellenőrzése
@@ -85,7 +85,7 @@ function initializeCSG() {
   }
 }
 
-// Shader elérhetőség ellenőrzése
+// Shader elérhetőség ellenőrzése (változatlan)
 function checkShaderAvailability() {
   const shaders = {
     toonVertex: document.getElementById("toonVertexShader"),
@@ -105,7 +105,7 @@ function checkShaderAvailability() {
   }
 }
 
-// CSS2DRenderer elérhetőség ellenőrzése
+// CSS2DRenderer elérhetőség ellenőrzése (változatlan)
 function checkCSS2DAvailability() {
   if (window.CSS2DRenderer && window.CSS2DObject) {
     console.log("✅ CSS2DRenderer elérhető");
@@ -116,42 +116,49 @@ function checkCSS2DAvailability() {
   }
 }
 
-// Főalkalmazás inicializálása
+// ÚJ v1.12.0: Főalkalmazás inicializálása async normal maps-ekkel
 async function initialize() {
   try {
-    console.log("Inicializálás kezdete v1.11.0 - Meadow HDR...");
+    console.log("🚀 Inicializálás kezdete v1.12.0 - Normal Maps Integration...");
 
     // Könyvtárak ellenőrzése
     const csgAvailable = initializeCSG();
     const shadersAvailable = checkShaderAvailability();
     const css2dAvailable = checkCSS2DAvailability();
 
-    // Alapvető manager objektumok létrehozása
+    // ÚJ v1.12.0: TextureManager első inicializálása
+    console.log("🎨 TextureManager inicializálása...");
     textureManager = new TextureManager();
     textureManager.initialize();
-    console.log("✅ TextureManager inicializálva");
+    console.log("✅ TextureManager v1.6.0 inicializálva");
 
+    // Alapvető manager objektumok létrehozása
     elementManager = new ElementManager();
     sceneManager = new SceneManager(
       document.getElementById("viewer-container")
     );
+    
+    // ÚJ v1.12.0: GeometryBuilder + TextureManager integráció
+    console.log("🔧 GeometryBuilder + TextureManager integráció...");
     geometryBuilder = new GeometryBuilder();
+    geometryBuilder.setTextureManager(textureManager); // ← ÚJ!
+    
     exploder = new Exploder();
     
-    // ÚJ: Refaktorált ViewModeManager három manager-rel
+    // Refaktorált ViewModeManager
     viewModeManager = new ViewModeManager(sceneManager, geometryBuilder, textureManager);
 
-    // ÚJ: HDR Environment Manager létrehozása
+    // HDR Environment Manager létrehozása
     hdrEnvironmentManager = new HDREnvironmentManager(sceneManager, textureManager);
     
-    // ÚJ: Post-Processing Manager létrehozása (ha elérhető)
+    // Post-Processing Manager létrehozása (ha elérhető)
     if (typeof PostProcessingManager !== 'undefined') {
       postProcessingManager = new PostProcessingManager(sceneManager);
     } else {
       console.warn("PostProcessingManager nem elérhető");
     }
     
-    // ÚJ: Specializált manager objektumok elérhetővé tétele
+    // Specializált manager objektumok elérhetővé tétele
     wireframeManager = viewModeManager.getWireframeManager();
     materialManager = viewModeManager.getMaterialManager();
     lightingManager = viewModeManager.getLightingManager();
@@ -183,16 +190,23 @@ async function initialize() {
     console.log("Scene setup kész");
 
     // Elemek betöltése
+    console.log("📦 Minigolf elemek betöltése...");
     minigolfElements = await window.loadModels();
     minigolfElements.forEach((element) => {
       elementManager.addElement(element);
     });
-    console.log(`${minigolfElements.length} elem betöltve`);
+    console.log(`✅ ${minigolfElements.length} elem betöltve`);
 
-    // Mesh-ek létrehozása
+    // ÚJ v1.12.0: Async Mesh-ek létrehozása Normal Maps-ekkel
+    console.log("🎨 Async PBR Mesh-ek létrehozása Normal Maps-ekkel...");
     const elements = elementManager.getAllElements();
-    allMeshes = geometryBuilder.createAllMeshes(elements);
-    console.log(`${allMeshes.size} mesh létrehozva`);
+    
+    // KRITIKUS: Async hívás!
+    allMeshes = await geometryBuilder.createAllMeshes(elements);
+    console.log(`✅ ${allMeshes.size} PBR mesh létrehozva Normal Maps-ekkel`);
+
+    // ÚJ v1.12.0: PBR Statistics logging
+    logPBRStatistics(allMeshes);
 
     // Mesh-ek hozzáadása a scene-hez
     sceneManager.addAllMeshes(allMeshes);
@@ -206,14 +220,15 @@ async function initialize() {
     exploder.saveOriginalPositions(allMeshes);
     console.log("Eredeti pozíciók mentve");
 
-    // MÓDOSÍTOTT: Alapértelmezett SZÍNES nézet beállítása
+    // ALAPÉRTELMEZETT: Színes nézet beállítása (PBR Normal Maps-ekkel)
+    console.log("🌟 Színes PBR nézet aktiválása Normal Maps-ekkel...");
     viewModeManager.switchToRealistic(
       allMeshes,
       elementManager.getAllElements()
     );
-    console.log("Színes nézet beállítva alapértelmezettként");
+    console.log("✅ Színes PBR nézet beállítva alapértelmezettként");
 
-    // ÚJ: HDR Environment inicializálása - JAVÍTOTT ASYNC
+    // HDR Environment inicializálása
     console.log("🌿 Meadow HDR Environment inicializálása...");
     try {
       const hdrInitialized = await hdrEnvironmentManager.initialize();
@@ -221,12 +236,11 @@ async function initialize() {
       if (hdrInitialized) {
         console.log("✅ HDR Manager inicializálva, meadow HDR betöltése...");
         
-        // HDR betöltés megkísérlése
         try {
           await hdrEnvironmentManager.loadHDREnvironment();
-          // Minden mesh environment frissítése
+          // Minden mesh environment frissítése (most már Normal Maps-ekkel!)
           hdrEnvironmentManager.updateAllMeshesEnvironment();
-          console.log("🌟 Meadow HDR Environment sikeresen aktiválva!");
+          console.log("🌟 Meadow HDR Environment + Normal Maps aktiválva!");
         } catch (hdrError) {
           console.warn("⚠️ Meadow HDR betöltés sikertelen, fallback használata:", hdrError);
         }
@@ -237,22 +251,22 @@ async function initialize() {
       console.error("HDR inicializálási hiba:", error);
     }
 
-    // ÚJ: Post-Processing (Bloom) inicializálása
+    // Post-Processing (Bloom + SSAO) inicializálása
     if (postProcessingManager) {
-      console.log("✨ Post-Processing (Bloom) inicializálása...");
+      console.log("✨ Post-Processing (Bloom + SSAO) inicializálása...");
       try {
         const postProcessingInitialized = await postProcessingManager.initialize();
         
         if (postProcessingInitialized) {
-          // Bloom bekapcsolása 'subtle' preset-tel (nem túl erős)
+          // Bloom bekapcsolása 'subtle' preset-tel
           postProcessingManager.setBloomPreset('subtle');
           postProcessingManager.setBloomEnabled(true);
           
-          // ÚJ: SSAO bekapcsolása 'architectural' preset-tel
+          // SSAO bekapcsolása 'architectural' preset-tel
           postProcessingManager.setSSAOPreset('architectural');
           postProcessingManager.setSSAOEnabled(true);
           
-          console.log("🌟 Bloom + SSAO Effect aktiválva!");
+          console.log("🌟 Bloom + SSAO Effect aktiválva Normal Maps-ekkel!");
         } else {
           console.warn("❌ Post-Processing nem inicializálható");
         }
@@ -273,7 +287,7 @@ async function initialize() {
     );
     console.log("Summary generálva");
 
-    // Event listener-ek beállítása (külső modulból)
+    // Event listener-ek beállítása
     if (typeof setupEventListeners === "function") {
       setupEventListeners({
         exploder,
@@ -285,19 +299,108 @@ async function initialize() {
       console.log("Event listener-ek beállítva");
     }
 
-    console.log("🎉 Inicializálás sikeres v1.11.0 - Meadow HDR!");
+    console.log("🎉 Inicializálás sikeres v1.12.0 - Normal Maps Integration!");
+    
+    // ÚJ v1.12.0: Teljes rendszer status
+    logSystemStatus();
+    
   } catch (error) {
-    console.error("Hiba az inicializálás során:", error);
+    console.error("❌ Hiba az inicializálás során:", error);
+    
+    // ÚJ v1.12.0: Error recovery - fallback inicializálás Normal Maps nélkül
+    console.log("🔄 Error recovery - fallback inicializálás...");
+    await initializeFallback();
   }
 }
 
-// Globális hozzáférés debug-hoz
+// ÚJ v1.12.0: PBR Statistics logging
+function logPBRStatistics(meshes) {
+  let pbrCount = 0;
+  let legacyCount = 0;
+  let totalMaps = {
+    diffuse: 0,
+    normal: 0,
+    roughness: 0,
+    metalness: 0,
+    ao: 0
+  };
+
+  meshes.forEach((mesh, elementId) => {
+    if (mesh.userData.materialType === 'PBR') {
+      pbrCount++;
+      
+      // Map statistics
+      if (mesh.userData.hasDiffuseMap) totalMaps.diffuse++;
+      if (mesh.userData.hasNormalMap) totalMaps.normal++;
+      if (mesh.userData.hasRoughnessMap) totalMaps.roughness++;
+      if (mesh.userData.hasMetalnessMap) totalMaps.metalness++;
+      if (mesh.userData.hasAOMap) totalMaps.ao++;
+      
+      // GROUP gyerekek számítása
+      if (mesh.userData.isGroup) {
+        mesh.children.forEach(child => {
+          if (child.userData.hasNormalMap) totalMaps.normal++;
+          if (child.userData.hasRoughnessMap) totalMaps.roughness++;
+          if (child.userData.hasMetalnessMap) totalMaps.metalness++;
+          if (child.userData.hasAOMap) totalMaps.ao++;
+        });
+      }
+    } else {
+      legacyCount++;
+    }
+  });
+
+  console.log("📊 PBR STATISTICS v1.12.0:");
+  console.log(`   Materials: ${pbrCount} PBR, ${legacyCount} Legacy`);
+  console.log(`   Diffuse Maps: ${totalMaps.diffuse}`);
+  console.log(`   Normal Maps: ${totalMaps.normal} ✨`);
+  console.log(`   Roughness Maps: ${totalMaps.roughness}`);
+  console.log(`   Metalness Maps: ${totalMaps.metalness}`);
+  console.log(`   AO Maps: ${totalMaps.ao}`);
+  console.log(`   Total Texture Maps: ${Object.values(totalMaps).reduce((a, b) => a + b, 0)}`);
+}
+
+// ÚJ v1.12.0: Teljes rendszer status
+function logSystemStatus() {
+  console.log("🎯 SYSTEM STATUS v1.12.0:");
+  console.log(`   TextureManager: ${textureManager.getStatus().version}`);
+  console.log(`   GeometryBuilder: ${geometryBuilder.getPBRStatus().version}`);
+  console.log(`   Material Cache: ${geometryBuilder.getMaterialCacheStats().cacheSize} items`);
+  console.log(`   HDR Environment: ${hdrEnvironmentManager.getStatus().isLoaded ? '✅' : '❌'}`);
+  console.log(`   Post-Processing: ${postProcessingManager ? '✅' : '❌'}`);
+}
+
+// ÚJ v1.12.0: Fallback inicializálás Normal Maps hibák esetén
+async function initializeFallback() {
+  try {
+    console.log("🔄 Fallback inicializálás Normal Maps nélkül...");
+    
+    // Egyszerű mesh-ek létrehozása legacy módban
+    const elements = elementManager.getAllElements();
+    
+    // Disable PBR minden material-ban
+    elements.forEach(element => {
+      if (element.material && element.material.enablePBR) {
+        element.material.enablePBR = false;
+        console.log(`🔄 PBR disabled: ${element.id}`);
+      }
+    });
+    
+    // Fallback mesh creation
+    allMeshes = await geometryBuilder.createAllMeshes(elements);
+    sceneManager.addAllMeshes(allMeshes);
+    
+    console.log("✅ Fallback inicializálás sikeres");
+    
+  } catch (fallbackError) {
+    console.error("❌ Fallback inicializálás is sikertelen:", fallbackError);
+  }
+}
+
+// Globális hozzáférés debug-hoz (bővített v1.12.0)
 window.debugInfo = () => {
-  console.log("=== DEBUG INFO v1.11.0 ===");
-  console.log(
-    "Element Manager:",
-    elementManager?.getAllElements().length + " elem"
-  );
+  console.log("=== DEBUG INFO v1.12.0 ===");
+  console.log("Element Manager:", elementManager?.getAllElements().length + " elem");
   console.log("Scene Manager:", sceneManager?.getSceneInfo());
   console.log("Exploder:", exploder?.getState());
   console.log("View Mode Manager:", viewModeManager?.getViewModeInfo());
@@ -309,7 +412,7 @@ window.debugInfo = () => {
     console.log("CSG Manager:", csgManager.getDebugInfo());
   }
   
-  // ÚJ: Refaktorált manager debug info
+  // Refaktorált manager debug info
   if (wireframeManager) {
     console.log("Wireframe Manager:", wireframeManager.getWireframeInfo());
   }
@@ -325,8 +428,15 @@ window.debugInfo = () => {
   if (postProcessingManager) {
     console.log("Post-Processing Manager:", postProcessingManager.getStatus());
   }
+  
+  // ÚJ v1.12.0: PBR Debug info
   if (textureManager) {
     console.log("Texture Manager:", textureManager.getStatus());
+    textureManager.listLoadedTextures();
+  }
+  if (geometryBuilder) {
+    console.log("Geometry Builder:", geometryBuilder.getPBRStatus());
+    console.log("Material Cache:", geometryBuilder.getMaterialCacheStats());
   }
   
   console.log("Shaders:", checkShaderAvailability());
@@ -334,7 +444,33 @@ window.debugInfo = () => {
   console.log("==================");
 };
 
-// ÚJ: Részletes ViewMode debug
+// ÚJ v1.12.0: Normal Maps specifikus debug
+window.normalMapsDebug = () => {
+  if (!allMeshes) {
+    console.log("❌ Nincs mesh adat");
+    return;
+  }
+  
+  console.log("=== NORMAL MAPS DEBUG ===");
+  
+  allMeshes.forEach((mesh, elementId) => {
+    if (mesh.userData.hasNormalMap) {
+      console.log(`✅ ${elementId}: Normal Map aktív`);
+      
+      // Material részletek
+      if (mesh.material && mesh.material.normalMap) {
+        const normalMap = mesh.material.normalMap;
+        console.log(`   Textúra: ${normalMap.image?.currentSrc || 'ismeretlen'}`);
+        console.log(`   Méret: ${normalMap.image?.width}x${normalMap.image?.height}`);
+        console.log(`   Normal Scale: ${mesh.material.normalScale.x}`);
+      }
+    }
+  });
+  
+  console.log("========================");
+};
+
+// Részletes ViewMode debug (változatlan)
 window.viewModeDebug = () => {
   if (viewModeManager) {
     viewModeManager.logStatus();
@@ -343,7 +479,7 @@ window.viewModeDebug = () => {
   }
 };
 
-// Globális manager elérhetőség
+// Globális manager elérhetőség (változatlan)
 window.elementManager = () => elementManager;
 window.sceneManager = () => sceneManager;
 window.csgManager = () => csgManager;
@@ -351,28 +487,25 @@ window.viewModeManager = () => viewModeManager;
 window.exploder = () => exploder;
 window.textureManager = () => textureManager;
 
-// ÚJ: Refaktorált manager elérhetőség
+// Refaktorált manager elérhetőség
 window.wireframeManager = () => wireframeManager;
 window.materialManager = () => materialManager;
 window.lightingManager = () => lightingManager;
-window.hdrEnvironmentManager = () => hdrEnvironmentManager; // HDR Manager hozzáadása
-window.postProcessingManager = () => postProcessingManager; // ÚJ: Post-Processing Manager
+window.hdrEnvironmentManager = () => hdrEnvironmentManager;
+window.postProcessingManager = () => postProcessingManager;
 
-// Egyedi elem láthatóság kapcsoló funkció
+// Egyedi elem láthatóság kapcsoló funkció (változatlan)
 window.toggleElementVisibility = function (elementId, isVisible) {
   console.log(`Elem láthatóság váltás: ${elementId} -> ${isVisible}`);
 
-  // Elem keresése ID szerint
   const mesh = allMeshes.get(elementId);
   if (mesh) {
     mesh.visible = isVisible;
 
-    // ÚJ: Refaktorált wireframe kezelés
     if (viewModeManager.getCurrentMode() === "blueprint") {
       wireframeManager.setElementWireframeVisibility(elementId, isVisible);
     }
 
-    // Render frissítés
     sceneManager.renderer.render(sceneManager.scene, sceneManager.camera);
   } else {
     console.warn(`Elem nem található: ${elementId}`);
@@ -382,7 +515,7 @@ window.toggleElementVisibility = function (elementId, isVisible) {
 // Inicializálás indítása az oldal betöltése után
 document.addEventListener("DOMContentLoaded", initialize);
 
-// Exportálás más modulok számára
+// Exportálás más modulok számára (bővített v1.12.0)
 export {
   elementManager,
   sceneManager,
@@ -390,11 +523,11 @@ export {
   exploder,
   viewModeManager,
   csgManager,
-  textureManager,
-  // ÚJ: Refaktorált manager exportok
+  textureManager, // TextureManager export
+  // Refaktorált manager exportok
   wireframeManager,
   materialManager,
   lightingManager,
-  hdrEnvironmentManager, // HDR Manager export
+  hdrEnvironmentManager,
   allMeshes,
 };

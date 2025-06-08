@@ -1,7 +1,7 @@
 /**
  * Material Manager
  * Anyagok kezelése PBR támogatással (blueprint/realistic)
- * v1.5.0 - PBR Materials támogatás
+ * v1.5.0 - PBR Materials támogatás + Null Protection
  */
 
 class MaterialManager {
@@ -11,9 +11,9 @@ class MaterialManager {
     this.blueprintMaterial = null;
     this.groupMaterial = null;
     this.initialized = false;
-    this.usePBR = true; // ÚJ: PBR mód váltó
+    this.usePBR = true; // PBR mód váltó
 
-    console.log("MaterialManager v1.5.0 - PBR támogatással");
+    console.log("MaterialManager v1.5.0 - PBR támogatással + Null Protection");
   }
 
   // Inicializálás
@@ -28,7 +28,7 @@ class MaterialManager {
     this.initialized = true;
   }
 
-  // ÚJ: PBR mód váltás
+  // PBR mód váltás
   setPBRMode(enabled) {
     const oldMode = this.usePBR;
     this.usePBR = enabled;
@@ -134,31 +134,40 @@ class MaterialManager {
     return this.blueprintMaterial; // Fehér minden máshoz
   }
 
-  // ÚJ: Realistic anyag kiválasztása PBR támogatással
-  getRealisticMaterial(elementMaterial, shade = 5) {
+  // Realistic anyag kiválasztása PBR támogatással
+  async getRealisticMaterial(elementMaterial, shade = 5) {
     try {
-      // PBR anyag lekérése
-      return this.textureManager.getMaterialWithShade(elementMaterial, shade, this.usePBR);
+      // PBR anyag lekérése async módon
+      if (this.textureManager) {
+        return await this.textureManager.getMaterialWithShade(elementMaterial, shade, this.usePBR);
+      } else {
+        console.warn("TextureManager nem elérhető, fallback material");
+        return this.createFallbackMaterial(elementMaterial, shade);
+      }
     } catch (error) {
-      console.warn(`PBR anyag lekérési hiba (${elementMaterial}, shade: ${shade}):`, error);
+      console.warn(`PBR anyag lekérési hiba (${elementMaterial.name}, shade: ${shade}):`, error);
       
       // Fallback: alapértelmezett anyagok
-      const realisticMaterials = this.textureManager.getRealisticMaterials();
-      switch (elementMaterial) {
-        case MATERIALS.PINE_PLYWOOD:
-          return realisticMaterials.plate;
-        case MATERIALS.PINE_SOLID:
-          return realisticMaterials.frame;
-        case MATERIALS.ARTIFICIAL_GRASS:
-          return realisticMaterials.covering;
-        case MATERIALS.WHITE_PLASTIC:
-          return realisticMaterials.ball;
-        case MATERIALS.GALVANIZED_STEEL:
-          return realisticMaterials.galvanized;
-        default:
-          return realisticMaterials.frame;
-      }
+      return this.createFallbackMaterial(elementMaterial, shade);
     }
+  }
+
+  // Fallback material létrehozása
+  createFallbackMaterial(elementMaterial, shade = 5) {
+    const normalizedShade = Math.max(1, Math.min(10, shade));
+    const brightness = 0.3 + (normalizedShade - 1) * (1.2 / 9);
+    const roughness = (elementMaterial.roughnessBase || 0.5) + (10 - normalizedShade) * 0.05;
+    const metalness = elementMaterial.metalnessBase || 0.0;
+    
+    const baseColor = new THREE.Color(elementMaterial.baseColor || elementMaterial.color || 0x808080);
+    baseColor.multiplyScalar(brightness);
+    
+    return new THREE.MeshStandardMaterial({
+      color: baseColor.getHex(),
+      roughness: Math.max(0, Math.min(1, roughness)),
+      metalness: Math.max(0, Math.min(1, metalness)),
+      envMapIntensity: elementMaterial.envMapIntensity || 1.0,
+    });
   }
 
   // Blueprint anyagok alkalmazása
@@ -187,37 +196,44 @@ class MaterialManager {
     console.log(`🎨 Blueprint anyagok alkalmazva: ${changedCount} elem`);
   }
 
-  // ÚJ: Realistic anyagok alkalmazása PBR támogatással
-  applyRealisticMaterials(meshes, elements) {
+  // Realistic anyagok alkalmazása PBR támogatással (ASYNC)
+  async applyRealisticMaterials(meshes, elements) {
     let changedCount = 0;
     let pbrCount = 0;
 
-    elements.forEach((element) => {
+    console.log("🎨 Async realistic materials alkalmazása...");
+
+    for (const element of elements) {
       const mesh = meshes.get(element.id);
-      if (!mesh) return;
+      if (!mesh) continue;
 
-      const shade = element.shade || 5;
-      const material = this.getRealisticMaterial(element.material, shade);
-      
-      // PBR számláló
-      if (material && material.isMeshStandardMaterial) {
-        pbrCount++;
-      }
+      try {
+        const shade = element.shade || 5;
+        const material = await this.getRealisticMaterial(element.material, shade);
+        
+        // PBR számláló
+        if (material && material.isMeshStandardMaterial) {
+          pbrCount++;
+        }
 
-      if (mesh.userData && mesh.userData.isGroup) {
-        // GROUP gyerekek
-        mesh.children.forEach((childMesh) => {
-          if (childMesh.material) {
-            childMesh.material = material;
-            changedCount++;
-          }
-        });
-      } else if (mesh.material) {
-        // Hagyományos elem
-        mesh.material = material;
-        changedCount++;
+        if (mesh.userData && mesh.userData.isGroup) {
+          // GROUP gyerekek
+          mesh.children.forEach((childMesh) => {
+            if (childMesh.material) {
+              childMesh.material = material;
+              changedCount++;
+            }
+          });
+        } else if (mesh.material) {
+          // Hagyományos elem
+          mesh.material = material;
+          changedCount++;
+        }
+      } catch (error) {
+        console.error(`Material alkalmazási hiba (${element.id}):`, error);
+        // Folytatás a következő elemmel
       }
-    });
+    }
 
     console.log(`🎨 Realistic anyagok alkalmazva: ${changedCount} elem (PBR: ${pbrCount}/${changedCount})`);
   }
@@ -241,18 +257,24 @@ class MaterialManager {
     return false;
   }
 
-  // ÚJ: Anyag információk lekérése PBR adatokkal
+  // Anyag információk lekérése PBR adatokkal (BIZTONSÁGOSAN)
   getMaterialInfo() {
-    const realisticMaterials = this.textureManager.getRealisticMaterials();
+    const realisticMaterials = this.textureManager ? this.textureManager.getRealisticMaterials() : null;
     let pbrMaterialCount = 0;
     let phongMaterialCount = 0;
 
+    // BIZTONSÁGOS material ellenőrzés
     if (realisticMaterials) {
       Object.values(realisticMaterials).forEach((material) => {
-        if (material.isMeshStandardMaterial) {
-          pbrMaterialCount++;
-        } else if (material.isMeshPhongMaterial) {
-          phongMaterialCount++;
+        // NULL CHECK!
+        if (material) {
+          if (material.isMeshStandardMaterial) {
+            pbrMaterialCount++;
+          } else if (material.isMeshPhongMaterial) {
+            phongMaterialCount++;
+          }
+        } else {
+          console.warn("⚠️ Null material found in realisticMaterials");
         }
       });
     }
@@ -270,7 +292,7 @@ class MaterialManager {
     };
   }
 
-  // ÚJ: PBR anyag tulajdonságok módosítása
+  // PBR anyag tulajdonságok módosítása
   updatePBRProperties(mesh, properties = {}) {
     if (!mesh || !mesh.material || !mesh.material.isMeshStandardMaterial) {
       return false;
@@ -312,7 +334,7 @@ class MaterialManager {
     this.originalMaterials.clear();
 
     this.initialized = false;
-    console.log("MaterialManager v1.5.0 PBR cleanup kész");
+    console.log("MaterialManager v1.5.0 cleanup kész");
   }
 }
 
