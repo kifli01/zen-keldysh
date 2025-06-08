@@ -358,18 +358,18 @@ async function initialize() {
           sceneManager.renderer.toneMappingExposure = 1.5;
           
           // Bloom beállítások finomhangolása
-          postProcessingManager.bloomPass.threshold = 0.5; // Alacsonyabb küszöb
+          postProcessingManager.bloomPass.threshold = 2.5; // Alacsonyabb küszöb
           postProcessingManager.bloomPass.strength = 0.05; // Erősebb bloom
           
           // Fények erősítése
           sceneManager.scene.traverse(function(object) {
-            if (object.isLight) {
-              object.color.setHex(0xd5d9db); // Tiszta fehér
-            }
+            // if (object.isLight) {
+            //   object.color.setHex(0xd5d9db); // Tiszta fehér
+            // }
             if (object.isLight && object.isAmbientLight) {
-              object.intensity = 4.2; // Ambient világosabb
+              object.intensity = 3.5; // Ambient világosabb
             } else if (object.isLight) {
-              object.intensity *= 4.2; // Többi fény erősebb
+              object.intensity *= 3.2; // Többi fény erősebb
             }
           });
           
