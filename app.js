@@ -32,6 +32,7 @@ let wireframeManager;
 let materialManager;
 let lightingManager;
 let hdrEnvironmentManager; // HDR Environment Manager
+let postProcessingManager; // ÚJ: Post-Processing Manager
 let allMeshes;
 
 // CSG inicializálás
@@ -143,6 +144,9 @@ async function initialize() {
     // ÚJ: HDR Environment Manager létrehozása
     hdrEnvironmentManager = new HDREnvironmentManager(sceneManager, textureManager);
     
+    // ÚJ: Post-Processing Manager létrehozása
+    postProcessingManager = new PostProcessingManager(sceneManager);
+    
     // ÚJ: Specializált manager objektumok elérhetővé tétele
     wireframeManager = viewModeManager.getWireframeManager();
     materialManager = viewModeManager.getMaterialManager();
@@ -229,6 +233,23 @@ async function initialize() {
       console.error("HDR inicializálási hiba:", error);
     }
 
+    // ÚJ: Post-Processing (Bloom) inicializálása
+    console.log("✨ Post-Processing (Bloom) inicializálása...");
+    try {
+      const postProcessingInitialized = await postProcessingManager.initialize();
+      
+      if (postProcessingInitialized) {
+        // Bloom bekapcsolása 'subtle' preset-tel (nem túl erős)
+        postProcessingManager.setBloomPreset('subtle');
+        postProcessingManager.setBloomEnabled(true);
+        console.log("🌟 Bloom Effect aktiválva - subtle preset!");
+      } else {
+        console.warn("❌ Post-Processing nem inicializálható");
+      }
+    } catch (error) {
+      console.error("Post-Processing inicializálási hiba:", error);
+    }
+
     // Summary generálása
     const summary = elementManager.generateSummary();
     const summaryPanel = document.getElementById("summary-panel");
@@ -288,6 +309,9 @@ window.debugInfo = () => {
   if (hdrEnvironmentManager) {
     console.log("HDR Environment Manager:", hdrEnvironmentManager.getStatus());
   }
+  if (postProcessingManager) {
+    console.log("Post-Processing Manager:", postProcessingManager.getStatus());
+  }
   if (textureManager) {
     console.log("Texture Manager:", textureManager.getStatus());
   }
@@ -319,6 +343,7 @@ window.wireframeManager = () => wireframeManager;
 window.materialManager = () => materialManager;
 window.lightingManager = () => lightingManager;
 window.hdrEnvironmentManager = () => hdrEnvironmentManager; // HDR Manager hozzáadása
+window.postProcessingManager = () => postProcessingManager; // ÚJ: Post-Processing Manager
 
 // Egyedi elem láthatóság kapcsoló funkció
 window.toggleElementVisibility = function (elementId, isVisible) {

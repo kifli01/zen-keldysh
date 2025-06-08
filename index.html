@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Minigolf Pálya Viewer - v1.9.0</title>
+    <title>Minigolf Pálya Viewer - v1.12.0 Bloom</title>
 
     <!-- ES6 modules támogatás -->
     <script
@@ -15,12 +15,13 @@
     <script src="texture-manager.js"></script>
     <script src="hole-generator.js"></script>
     <script src="csg-manager.js"></script>
-    <!-- ÚJ: Refaktorált manager fájlok -->
+    <!-- Refaktorált manager fájlok -->
     <script src="csg-wireframe-helper.js"></script>
     <script src="wireframe-manager.js"></script>
     <script src="material-manager.js"></script>
     <script src="lighting-manager.js"></script>
-    <script src="hdr-environment-manager.js"></script> <!-- ÚJ: HDR Manager -->
+    <script src="hdr-environment-manager.js"></script>
+    <script src="post-processing-manager.js"></script> <!-- ÚJ: Post-Processing -->
     <!-- Folytatás eredeti fájlokkal -->
     <script src="element-manager.js"></script>
     <script src="parts.js"></script>
@@ -107,6 +108,9 @@
           "three/examples/jsm/exporters/GLTFExporter.js": "https://unpkg.com/three@0.158.0/examples/jsm/exporters/GLTFExporter.js",
           "three/examples/jsm/renderers/CSS2DRenderer.js": "https://unpkg.com/three@0.158.0/examples/jsm/renderers/CSS2DRenderer.js",
           "three/examples/jsm/loaders/RGBELoader.js": "https://unpkg.com/three@0.158.0/examples/jsm/loaders/RGBELoader.js",
+          "three/examples/jsm/postprocessing/EffectComposer.js": "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/EffectComposer.js",
+          "three/examples/jsm/postprocessing/RenderPass.js": "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/RenderPass.js",
+          "three/examples/jsm/postprocessing/UnrealBloomPass.js": "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/UnrealBloomPass.js",
           "three-mesh-bvh": "https://unpkg.com/three-mesh-bvh@0.7.6/build/index.module.js",
           "three-bvh-csg": "https://unpkg.com/three-bvh-csg@0.0.17/build/index.module.js"
         }
