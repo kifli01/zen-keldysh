@@ -1,7 +1,7 @@
 /**
  * Minigolf Constants
  * Közös konstansok és alapértékek a minigolf pálya elemekhez
- * v1.7.0 - Normal Maps és teljes PBR pipeline hozzáadva
+ * v1.8.0 - Dynamic Normal Scale rendszer hozzáadva
  */
 
 // Geometria típusok
@@ -38,17 +38,22 @@ const MATERIALS = {
     repeat: { x: 2, y: 2 },
     useShade: true,
     
-    // ÚJ: PBR Texture Pipeline
+    // PBR Texture Pipeline
     diffusePath: 'textures/Wood017_1K-JPG_Color.jpg',
     normalPath: 'textures/Wood017_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Wood017_1K-JPG_Roughness.jpg',
-    // aoPath: nincs - Wood017 csomag nem tartalmazza
     
     // PBR tulajdonságok:
     roughnessBase: 0.8, // Fa - matt felület
     metalnessBase: 0.0, // Nem fém
     envMapIntensity: 0.3,
-    normalScale: 0.6, // Normal map intenzitás
+    
+    // ÚJ v1.8.0: Dynamic Normal Scale
+    normalScale: 0.6, // Alapértelmezett érték
+    normalScaleRange: {
+      min: 0.3,  // Shade 10 - fényes, kevés textúra
+      max: 0.9   // Shade 1 - matt, erős textúra
+    },
     
     // Textúra beállítások:
     pbrRepeat: { x: 1, y: 1 }, // PBR textúrák ismétlése
@@ -67,7 +72,7 @@ const MATERIALS = {
     repeat: { x: 2, y: 2 },
     useShade: true,
     
-    // ÚJ: PBR Texture Pipeline (azonos Wood017)
+    // PBR Texture Pipeline (azonos Wood017)
     diffusePath: 'textures/Wood017_1K-JPG_Color.jpg',
     normalPath: 'textures/Wood017_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Wood017_1K-JPG_Roughness.jpg',
@@ -76,7 +81,13 @@ const MATERIALS = {
     roughnessBase: 0.9, // Tömörfa - még mattabb
     metalnessBase: 0.0,
     envMapIntensity: 0.2,
-    normalScale: 0.7, // Kicsit erősebb normal a tömörfánál
+    
+    // ÚJ v1.8.0: Dynamic Normal Scale - erősebb tömörfánál
+    normalScale: 0.7, // Alapértelmezett érték
+    normalScaleRange: {
+      min: 0.4,  // Shade 10 - fényes, simább
+      max: 1.1   // Shade 1 - matt, durva fafelület
+    },
     
     pbrRepeat: { x: 1.5, y: 1.5 }, // Kicsit sűrűbb ismétlés
     enablePBR: true,
@@ -94,7 +105,7 @@ const MATERIALS = {
     repeat: { x: 8, y: 8 },
     useShade: true,
     
-    // ÚJ: PBR Texture Pipeline - TELJES CSOMAG! 🌱
+    // PBR Texture Pipeline - TELJES CSOMAG! 🌱
     diffusePath: 'textures/Grass008_1K-JPG_Color.jpg',
     normalPath: 'textures/Grass008_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Grass008_1K-JPG_Roughness.jpg',
@@ -104,7 +115,13 @@ const MATERIALS = {
     roughnessBase: 0.95, // Műfű - nagyon matt
     metalnessBase: 0.0,
     envMapIntensity: 0.1,
-    normalScale: 0.8, // Erős fűszál normal
+    
+    // ÚJ v1.8.0: Dynamic Normal Scale - természetes fű variáció
+    normalScale: 0.8, // Alapértelmezett érték
+    normalScaleRange: {
+      min: 0.5,  // Shade 10 - kopott fű, kevés textúra
+      max: 1.2   // Shade 1 - friss fű, erős fűszál relief
+    },
     aoIntensity: 0.7, // AO map erősség
     
     pbrRepeat: { x: 4, y: 4 }, // Természetes fű ismétlés
@@ -123,7 +140,7 @@ const MATERIALS = {
     repeat: { x: 1, y: 1 },
     useShade: false, // Fix shininess
     
-    // ÚJ: PBR Texture Pipeline
+    // PBR Texture Pipeline
     diffusePath: 'textures/Plastic013A_1K-JPG_Color.jpg',
     normalPath: 'textures/Plastic013A_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Plastic013A_1K-JPG_Roughness.jpg',
@@ -132,7 +149,13 @@ const MATERIALS = {
     roughnessBase: 0.1, // Műanyag - sima felület
     metalnessBase: 0.0,
     envMapIntensity: 0.8,
-    normalScale: 0.3, // Enyhe normal a sima műanyagon
+    
+    // ÚJ v1.8.0: Dynamic Normal Scale - műanyag felület variáció
+    normalScale: 0.3, // Alapértelmezett érték (gyenge normal)
+    normalScaleRange: {
+      min: 0.1,  // Shade 10 - tükörfényes, sima
+      max: 0.6   // Shade 1 - matt műanyag, textúrált
+    },
     
     pbrRepeat: { x: 1, y: 1 }, // Egységes felület
     enablePBR: true,
@@ -150,7 +173,7 @@ const MATERIALS = {
     repeat: { x: 1, y: 1 },
     useShade: true,
     
-    // ÚJ: PBR Texture Pipeline - TELJES FÉMCSOMAG! 🔩
+    // PBR Texture Pipeline - TELJES FÉMCSOMAG! 🔩
     diffusePath: 'textures/Metal011_1K-JPG_Color.jpg',
     normalPath: 'textures/Metal011_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Metal011_1K-JPG_Roughness.jpg',
@@ -160,7 +183,13 @@ const MATERIALS = {
     roughnessBase: 0.3, // Fém - közepesen sima
     metalnessBase: 0.9, // Nagyon fémes
     envMapIntensity: 1.5, // Erős reflexió
-    normalScale: 0.5, // Finom fém textúra
+    
+    // ÚJ v1.8.0: Dynamic Normal Scale - fém felület finishing
+    normalScale: 0.5, // Alapértelmezett érték
+    normalScaleRange: {
+      min: 0.2,  // Shade 10 - polírozott fém, sima
+      max: 0.8   // Shade 1 - durva fém, karcolások
+    },
     metalnessIntensity: 1.0, // Metalness map erősség
     
     pbrRepeat: { x: 1, y: 1 }, // Egységes fém felület

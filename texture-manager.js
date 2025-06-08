@@ -253,18 +253,31 @@ class TextureManager {
         textureSet.ao.repeat.set(repeat.x, repeat.y);
       }
 
+      // ÚJ v1.8.0: Dynamic Normal Scale számítás
+      let finalNormalScale = materialDef.normalScale || 1.0;
+      
+      if (materialDef.normalScaleRange && textureSet.normal) {
+        // Shade alapú normal scale interpoláció
+        // Shade 1 = max normal (matt, durva)
+        // Shade 10 = min normal (fényes, sima)
+        const shadeProgress = (normalizedShade - 1) / 9; // 0-1 között
+        const normalProgress = 1 - shadeProgress; // Fordított logika
+        
+        finalNormalScale = materialDef.normalScaleRange.min + 
+          (materialDef.normalScaleRange.max - materialDef.normalScaleRange.min) * normalProgress;
+        
+        console.log(`🎛️ Dynamic Normal Scale: ${materialName}, shade: ${normalizedShade}, scale: ${finalNormalScale.toFixed(2)}`);
+      }
+
       // PBR Material létrehozása
       const material = new THREE.MeshStandardMaterial({
         // Alapvető tulajdonságok
         color: baseColor.getHex(),
         map: textureSet.diffuse,
         
-        // Normal Map
+        // ÚJ v1.8.0: Dynamic Normal Map
         normalMap: textureSet.normal,
-        normalScale: new THREE.Vector2(
-          materialDef.normalScale || 1.0,
-          materialDef.normalScale || 1.0
-        ),
+        normalScale: new THREE.Vector2(finalNormalScale, finalNormalScale),
         
         // Roughness Map
         roughnessMap: textureSet.roughness,
