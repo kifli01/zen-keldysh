@@ -246,22 +246,27 @@ async function initialize() {
       console.error("HDR inicializálási hiba:", error);
     }
 
-    // Post-Processing (Bloom + SSAO) inicializálása
+    // Post-Processing (FXAA + Bloom + SSAO) inicializálása
     if (postProcessingManager) {
-      console.log("✨ Post-Processing (Bloom + SSAO) inicializálása...");
+      console.log("✨ Post-Processing (FXAA + Bloom + SSAO) inicializálása...");
       try {
         const postProcessingInitialized = await postProcessingManager.initialize();
         
         if (postProcessingInitialized) {
-          // Bloom bekapcsolása 'subtle' preset-tel
+          // ELSŐ: FXAA Anti-aliasing aktiválása (alapvető minőségjavítás)
+          postProcessingManager.setFXAAEnabled(true);
+          postProcessingManager.setFXAAPreset('default');
+          console.log("🎯 FXAA Anti-aliasing aktiválva!");
+          
+          // MÁSODIK: Bloom bekapcsolása 'subtle' preset-tel
           postProcessingManager.setBloomPreset('subtle');
           postProcessingManager.setBloomEnabled(true);
           
-          // SSAO bekapcsolása 'architectural' preset-tel
+          // HARMADIK: SSAO bekapcsolása 'architectural' preset-tel
           postProcessingManager.setSSAOPreset('architectural');
           postProcessingManager.setSSAOEnabled(true);
           
-          console.log("🌟 Bloom + SSAO Effect aktiválva!");
+          console.log("🌟 Teljes Post-Processing Pipeline aktiválva: FXAA + Bloom + SSAO!");
         } else {
           console.warn("❌ Post-Processing nem inicializálható");
         }
@@ -358,7 +363,8 @@ function logSystemStatus() {
   console.log(`   ViewModeManager: ${viewModeManager.getViewModeInfo().version} (Pure PBR)`);
   console.log(`   MaterialManager: ${materialManager.getMaterialInfo().version} (Pure PBR)`);
   console.log(`   HDR Environment: ${hdrEnvironmentManager.getStatus().isLoaded ? '✅' : '❌'}`);
-  console.log(`   Post-Processing: ${postProcessingManager ? '✅' : '❌'}`);
+  console.log(`   Post-Processing: ${postProcessingManager ? postProcessingManager.getStatus().version : '❌'}`);
+  console.log(`   FXAA Anti-aliasing: ${postProcessingManager?.getStatus().fxaaEnabled ? '✅' : '❌'}`);
   console.log(`   Legacy Support: ❌ (Pure PBR only)`);
 }
 
@@ -427,6 +433,10 @@ window.debugInfo = () => {
   }
   if (postProcessingManager) {
     console.log("Post-Processing Manager:", postProcessingManager.getStatus());
+    
+    // ÚJ: FXAA Anti-aliasing debug info
+    const antiAliasingInfo = postProcessingManager.getAntiAliasingInfo();
+    console.log("FXAA Anti-aliasing:", antiAliasingInfo);
   }
   
   // Pure PBR Debug info
@@ -441,7 +451,27 @@ window.debugInfo = () => {
   console.log("==================");
 };
 
-// Normal Maps specifikus debug (változatlan)
+// ÚJ v1.13.0: FXAA Anti-aliasing debug
+window.fxaaDebug = () => {
+  if (!postProcessingManager) {
+    console.log("❌ PostProcessingManager nem elérhető");
+    return;
+  }
+  
+  console.log("=== FXAA ANTI-ALIASING DEBUG ===");
+  
+  const status = postProcessingManager.getStatus();
+  const aaInfo = postProcessingManager.getAntiAliasingInfo();
+  
+  console.log(`FXAA Enabled: ${status.fxaaEnabled}`);
+  console.log(`FXAA Pass Available: ${status.hasFXAAPass}`);
+  console.log(`Renderer Anti-aliasing: ${aaInfo.rendererAntialias}`);
+  console.log(`Pixel Ratio: ${aaInfo.pixelRatio} (device: ${window.devicePixelRatio})`);
+  console.log(`FXAA Resolution:`, aaInfo.resolution);
+  console.log(`FXAA Settings:`, aaInfo.fxaaSettings);
+  
+  console.log("===============================");
+};
 window.normalMapsDebug = () => {
   if (!allMeshes) {
     console.log("❌ Nincs mesh adat");

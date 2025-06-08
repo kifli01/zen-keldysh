@@ -1,7 +1,7 @@
 /**
  * Scene Manager
  * THREE.js scene, kamera, fények és kontrolok kezelése
- * v1.3.0 - PBR világítás és tone mapping
+ * v1.4.0 - Enhanced Anti-aliasing Support
  */
 
 class SceneManager {
@@ -57,12 +57,12 @@ class SceneManager {
     this.createCamera();
     this.createRenderer();
     this.createCSS2DRenderer();
-    this.createPBRLights(); // ÚJ: PBR világítás
+    this.createPBRLights(); // PBR világítás
     this.createCoordinateSystem();
     this.setupEventListeners();
     this.startAnimationLoop();
 
-    console.log("Scene Manager v1.3.0 initialized - PBR lighting");
+    console.log("Scene Manager v1.4.0 initialized - Enhanced Anti-aliasing");
   }
 
   // Scene létrehozása
@@ -85,35 +85,72 @@ class SceneManager {
     this.camera.lookAt(0, 0, 0);
   }
 
-  // ÚJ: PBR kompatibilis renderer létrehozása
+  // ENHANCED v1.4.0: Fejlett Anti-aliasing renderer létrehozása
   createRenderer() {
-    this.renderer = new THREE.WebGLRenderer({ 
-      antialias: true,
-      powerPreference: "high-performance" // GPU gyorsítás
-    });
+    // Enhanced anti-aliasing beállítások
+    const rendererOptions = {
+      antialias: true,                    // Alapvető MSAA
+      powerPreference: "high-performance", // GPU gyorsítás
+      alpha: false,                       // Átlátszóság kikapcsolása (gyorsabb)
+      premultipliedAlpha: false,          // Színkezelés optimalizálása
+      preserveDrawingBuffer: false,       // Memory optimalizálás
+      logarithmicDepthBuffer: false,      // Depth precision (általában false)
+      precision: "highp",                 // Shader precision (high performance)
+      stencil: true,                      // Stencil buffer (post-processing-hez)
+      depth: true,                        // Depth buffer
+    };
+
+    this.renderer = new THREE.WebGLRenderer(rendererOptions);
     
     this.renderer.setSize(
       this.container.clientWidth,
       this.container.clientHeight
     );
     
-    // ÚJ: PBR beállítások (hardcoded hogy ne függjön konstansoktól)
+    // ENHANCED: Pixel ratio optimalizálás anti-aliasing-hez
+    // Maximum 2x pixel ratio (4K+ monitorokhoz optimalizált)
+    const pixelRatio = Math.min(window.devicePixelRatio, 2);
+    this.renderer.setPixelRatio(pixelRatio);
+    console.log(`🎨 Pixel ratio beállítva: ${pixelRatio} (device: ${window.devicePixelRatio})`);
+    
+    // ENHANCED: Multi-sample anti-aliasing beállítások
+    const gl = this.renderer.getContext();
+    if (gl) {
+      // MSAA samples ellenőrzése
+      const maxSamples = gl.getParameter(gl.MAX_SAMPLES);
+      console.log(`🎯 Maximum MSAA samples: ${maxSamples}`);
+      
+      // Anti-aliasing context információ
+      const contextAttributes = gl.getContextAttributes();
+      console.log(`✅ WebGL anti-aliasing: ${contextAttributes.antialias}`);
+    }
+    
+    // PBR beállítások (változatlan)
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.physicallyCorrectLights = true;
     
-    // ÚJ: Tone mapping és color management
+    // ENHANCED: Tone mapping és color management javítása
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.0;
+    this.renderer.toneMappingExposure = 1.2; // Kicsit világosabb (1.0 helyett)
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     
-    // ÚJ: Fejlett renderelési beállítások
+    // ENHANCED: Renderelési optimalizálások anti-aliasing-hez
     this.renderer.gammaFactor = 2.2;
     this.renderer.useLegacyLights = false; // Modern világítás
+    
+    // ENHANCED: Viewport és scissor optimalizálás
+    this.renderer.autoClear = true;
+    this.renderer.autoClearColor = true;
+    this.renderer.autoClearDepth = true;
+    this.renderer.autoClearStencil = true;
 
-    console.log("✅ PBR Renderer létrehozva:", {
+    console.log("✅ Enhanced Anti-aliasing Renderer létrehozva:", {
+      antialias: rendererOptions.antialias,
+      pixelRatio: pixelRatio,
+      precision: rendererOptions.precision,
       toneMapping: this.renderer.toneMapping,
-      physicallyCorrectLights: this.renderer.physicallyCorrectLights,
+      toneMappingExposure: this.renderer.toneMappingExposure,
       outputEncoding: this.renderer.outputEncoding
     });
 
@@ -139,7 +176,7 @@ class SceneManager {
     }
   }
 
-  // ÚJ: PBR kompatibilis világítás létrehozása
+  // PBR kompatibilis világítás létrehozása
   createPBRLights() {
     // 1. Erős ambient light - globális megvilágítás
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
@@ -173,7 +210,7 @@ class SceneManager {
     rimLight.position.set(50, 100, -200);
     this.scene.add(rimLight);
 
-    // 5. ÚJ: Point light a labda közelében - lokális fény
+    // 5. Point light a labda közelében - lokális fény
     const ballLight = new THREE.PointLight(0xffffff, 0.5, 50);
     ballLight.position.set(-100, 20, -30);
     this.scene.add(ballLight);
@@ -340,19 +377,28 @@ class SceneManager {
     return this.coordinateSystemVisible;
   }
 
-  // ÚJ: PBR render beállítások módosítása
-  updatePBRSettings(settings = {}) {
-    if (settings.toneMapping !== undefined) {
-      this.renderer.toneMapping = settings.toneMapping;
-    }
-    if (settings.toneMappingExposure !== undefined) {
-      this.renderer.toneMappingExposure = settings.toneMappingExposure;
-    }
-    if (settings.physicallyCorrectLights !== undefined) {
-      this.renderer.physicallyCorrectLights = settings.physicallyCorrectLights;
+  // ENHANCED v1.4.0: Anti-aliasing render beállítások módosítása
+  updateAntiAliasingSettings(settings = {}) {
+    // Pixel ratio frissítése
+    if (settings.pixelRatio !== undefined) {
+      const newPixelRatio = Math.min(settings.pixelRatio, 2);
+      this.renderer.setPixelRatio(newPixelRatio);
+      console.log(`🎨 Pixel ratio frissítve: ${newPixelRatio}`);
     }
     
-    console.log("PBR beállítások frissítve:", settings);
+    // Tone mapping exposure frissítése
+    if (settings.toneMappingExposure !== undefined) {
+      this.renderer.toneMappingExposure = settings.toneMappingExposure;
+      console.log(`🌞 Tone mapping exposure: ${settings.toneMappingExposure}`);
+    }
+    
+    // Tone mapping típus frissítése
+    if (settings.toneMapping !== undefined) {
+      this.renderer.toneMapping = settings.toneMapping;
+      console.log(`🎭 Tone mapping: ${settings.toneMapping}`);
+    }
+    
+    console.log("Anti-aliasing beállítások frissítve:", settings);
   }
 
   // Event listener-ek beállítása
@@ -450,7 +496,7 @@ class SceneManager {
     this.camera.lookAt(target);
   }
 
-  // ÚJ: Kamera pozíció váltása előre definiált nézetekre
+  // Kamera pozíció váltása előre definiált nézetekre
   setViewPreset(viewName, animate = false) {
     const preset = this.viewPresets[viewName];
     if (!preset) {
@@ -490,7 +536,7 @@ class SceneManager {
     this.camera.lookAt(preset.target.x, preset.target.y, preset.target.z);
   }
 
-  // ÚJ: Kamera animáció egy pozícióba
+  // Kamera animáció egy pozícióba
   animateCameraToPosition(targetPosition, targetLookAt, duration = 800) {
     const startPosition = this.camera.position.clone();
     const startLookAt = new THREE.Vector3(0, 0, 0); // Jelenlegi célpont
@@ -529,7 +575,7 @@ class SceneManager {
     animate();
   }
 
-  // ÚJ: Gyors nézet váltó gombok funkciói
+  // Gyors nézet váltó gombok funkciói
   setTopView() {
     this.setViewPreset("top");
   }
@@ -618,7 +664,7 @@ class SceneManager {
     }
   }
 
-  // Ablak átméretezés kezelése
+  // Ablak átméretezés kezelése - ENHANCED anti-aliasing
   handleResize() {
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
@@ -631,6 +677,12 @@ class SceneManager {
     if (this.css2DRenderer) {
       this.css2DRenderer.setSize(width, height);
     }
+
+    // ENHANCED: Pixel ratio újrabeállítása resize esetén
+    const pixelRatio = Math.min(window.devicePixelRatio, 2);
+    this.renderer.setPixelRatio(pixelRatio);
+    
+    console.log(`🖥️ Resize: ${width}x${height}, pixel ratio: ${pixelRatio}`);
   }
 
   // Elem keresése pozíció alapján (raycast)
@@ -671,8 +723,12 @@ class SceneManager {
     });
   }
 
-  // ÚJ: Debug info PBR adatokkal
+  // ENHANCED v1.4.0: Debug info anti-aliasing adatokkal
   getSceneInfo() {
+    // WebGL context információ
+    const gl = this.renderer.getContext();
+    const contextAttributes = gl ? gl.getContextAttributes() : {};
+    
     return {
       meshCount: this.meshes.size,
       sceneChildren: this.scene.children.length,
@@ -680,6 +736,14 @@ class SceneManager {
       scenePosition: this.scene.position,
       sceneRotation: this.scene.rotation,
       coordinateSystemVisible: this.coordinateSystemVisible,
+      // Enhanced anti-aliasing info
+      antiAliasing: {
+        enabled: contextAttributes.antialias || false,
+        pixelRatio: this.renderer.getPixelRatio(),
+        devicePixelRatio: window.devicePixelRatio,
+        maxSamples: gl ? gl.getParameter(gl.MAX_SAMPLES) : 'unknown',
+        contextAttributes: contextAttributes,
+      },
       // PBR info
       pbrSettings: {
         toneMapping: this.renderer.toneMapping,
@@ -687,7 +751,7 @@ class SceneManager {
         physicallyCorrectLights: this.renderer.physicallyCorrectLights,
         outputEncoding: this.renderer.outputEncoding,
       },
-      version: "1.3.0",
+      version: "1.4.0",
     };
   }
 
@@ -711,6 +775,6 @@ class SceneManager {
       this.renderer.dispose();
     }
 
-    console.log("Scene Manager v1.3.0 destroyed");
+    console.log("Scene Manager v1.4.0 destroyed");
   }
 }

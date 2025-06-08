@@ -17,10 +17,10 @@ class WireframeManager {
   // Wireframe anyag létrehozása
   createWireframeMaterial() {
     return new THREE.LineBasicMaterial({
-      color: 0x333333,
-      linewidth: 2,
-      transparent: true,
-      opacity: 0.8,
+      color: 0x000000,        // ← Fekete (0x333333 helyett)
+      linewidth: 3,           // ← Vastagabb vonal
+      transparent: false,     // ← Nem átlátszó
+      opacity: 1.0,          // ← Teljes fedés
     });
   }
 
