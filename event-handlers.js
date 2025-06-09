@@ -1,7 +1,7 @@
 /**
  * Event Handlers
  * UI interakciók kezelése
- * v1.14.0 - Summary Panel Toggle hozzáadva
+ * v1.15.0 - Explode slider támogatás hozzáadva
  */
 
 // Event listener-ek beállítása
@@ -18,12 +18,47 @@ function setupEventListeners({
     explodeBtn.addEventListener("click", function () {
       exploder.toggle(allMeshes, elementManager.getAllElements());
 
+      // Slider szinkronizálása
+      const explodeSlider = document.getElementById("explode-slider");
+      if (explodeSlider) {
+        explodeSlider.value = exploder.getState().isExploded ? 1000 : 0;
+      }
+
+      // Gomb ikon frissítése
       if (exploder.getState().isExploded) {
         explodeBtn.className = "icon-box";
       } else {
         explodeBtn.className = "icon-layers";
       }
     });
+  }
+
+  // ÚJ v1.15.0: Explode slider kezelése
+  const explodeSlider = document.getElementById("explode-slider");
+  if (explodeSlider) {
+    explodeSlider.addEventListener("input", function () {
+      const sliderValue = parseInt(this.value); // 0-1000
+      const percentage = (sliderValue / 1000) * 100; // 0-100%
+
+      // Exploder szint beállítása
+      exploder.setExplodeLevel(percentage, allMeshes, elementManager.getAllElements());
+
+      // Toggle gomb szinkronizálása
+      const explodeBtn = document.getElementById("toggle-explode");
+      if (explodeBtn) {
+        if (percentage > 0) {
+          explodeBtn.className = "icon-box";
+        } else {
+          explodeBtn.className = "icon-layers";
+        }
+      }
+
+      console.log(`🎚️ Slider: ${sliderValue}/1000 (${percentage.toFixed(1)}%)`);
+    });
+
+    // Slider kezdeti értékének beállítása az exploder állapot alapján
+    const currentLevel = exploder.getExplodeLevel();
+    explodeSlider.value = (currentLevel / 100) * 1000;
   }
 
   // Nézet váltás gomb
@@ -67,9 +102,18 @@ function setupEventListeners({
     resetBtn.addEventListener("click", function () {
       // Exploded állapot visszaállítása
       if (exploder.getState().isExploded) {
-        exploder.reset(allMeshes);
+        exploder.reset(allMeshes, elementManager.getAllElements());
+        
+        // UI elemek szinkronizálása
         const explodeBtn = document.getElementById("toggle-explode");
-        explodeBtn.className = "icon-layers";
+        const explodeSlider = document.getElementById("explode-slider");
+        
+        if (explodeBtn) {
+          explodeBtn.className = "icon-layers";
+        }
+        if (explodeSlider) {
+          explodeSlider.value = 0;
+        }
       }
 
       // Nézet visszaállítása (kamera pozíció)
@@ -144,13 +188,14 @@ function setupEventListeners({
     });
   }
 
-  console.log("✅ Event listener-ek beállítva v1.14.0 - Summary Panel Toggle");
+  console.log("✅ Event listener-ek beállítva v1.15.0 - Explode slider támogatással");
 }
 
 // Summary Panel Toggle funkcionalitás
 function toggleSummaryPanel() {
   const summaryPanel = document.getElementById("summary-panel");
   const toggleBtn = document.getElementById("toggle-summary-panel");
+  const rightSlider = document.getElementById("right-slider");
   
   if (!summaryPanel || !toggleBtn) {
     console.warn("Summary panel elemek nem találhatóak");
@@ -163,6 +208,11 @@ function toggleSummaryPanel() {
     // Panel elrejtése
     summaryPanel.classList.remove("visible");
     summaryPanel.classList.add("hidden");
+    
+    // Slider visszacsúsztatása
+    if (rightSlider) {
+      rightSlider.style.right = "20px";
+    }
     
     // Ikon váltás
     const icon = toggleBtn.querySelector('i[data-lucide]');
@@ -178,6 +228,11 @@ function toggleSummaryPanel() {
     // Panel megjelenítése
     summaryPanel.classList.remove("hidden");
     summaryPanel.classList.add("visible");
+    
+    // Slider bentebb csúsztatása
+    if (rightSlider) {
+      rightSlider.style.right = "470px"; // 450px panel + 20px
+    }
     
     // Ikon váltás
     const icon = toggleBtn.querySelector('i[data-lucide]');
@@ -203,6 +258,8 @@ async function exportGLTF(
   try {
     // Ha szétszedett állapotban van, átmenetileg állítsuk vissza
     const wasExploded = exploder.getState().isExploded;
+    const currentLevel = exploder.getExplodeLevel();
+    
     if (wasExploded) {
       exploder.setPositionImmediate(
         allMeshes,
@@ -225,11 +282,7 @@ async function exportGLTF(
 
     // Ha szétszedett állapotban volt, állítsuk vissza
     if (wasExploded) {
-      exploder.setPositionImmediate(
-        allMeshes,
-        elementManager.getAllElements(),
-        true
-      );
+      exploder.setExplodeLevel(currentLevel, allMeshes, elementManager.getAllElements());
     }
 
     console.log(`Export sikeres: ${filename}`);

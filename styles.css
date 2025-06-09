@@ -153,6 +153,30 @@ body {
     } 
 }
 
+/* ÚJ v1.15.0: Jobb oldali vertikális slider */
+#right-slider {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  z-index: 999;
+  transition: right 0.3s ease;
+}
+
+/* Slider pozíció summary panel nyitásakor */
+#summary-panel.visible ~ #right-slider {
+  right: 470px; /* 450px panel + 20px */
+}
+
+.vertical-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  appearance: slider-vertical;
+  width: 20px;
+  height: 300px;
+  cursor: pointer;
+}
+
 /* Responsive toolbar */
 @media (max-width: 1200px) {
   .toolbar-label {
@@ -195,6 +219,11 @@ body {
   .toolbar-right button {
     min-width: 35px;
     height: 35px;
+  }
+
+  /* Slider elrejtése mobil nézetben */
+  #right-slider {
+    display: none;
   }
 }
 
@@ -326,10 +355,6 @@ body {
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid #f1f5f9;
-}
-
-.elements-list {
-  /* Elemek konténer */
 }
 
 .element-count {

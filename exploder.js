@@ -1,13 +1,14 @@
 /**
  * Exploder
  * Robbantott nézet kezelése - elemek szétszedése és visszaállítása
- * v1.1.0 - Wireframe layer támogatás
+ * v1.2.0 - Fokozatos robbantás slider támogatással
  */
 
 class Exploder {
   constructor() {
     this.originalPositions = new Map();
     this.isExploded = false;
+    this.currentExplodeLevel = 0; // ÚJ: 0-100% közötti érték
     this.animationDuration = 500; // ms
     this.viewModeManager = null; // ViewModeManager referencia
   }
@@ -28,16 +29,22 @@ class Exploder {
     });
   }
 
-  // Robbantott pozíciók beállítása
-  explode(meshes, elements) {
-    if (this.isExploded) return;
-    window.modelIsExploded = true;
+  // ÚJ v1.2.0: Fokozatos robbantás beállítása (0-100%)
+  setExplodeLevel(percentage, meshes, elements) {
+    // Percentage normalizálása 0-100 között
+    const normalizedPercentage = Math.max(0, Math.min(100, percentage));
+    this.currentExplodeLevel = normalizedPercentage;
+
+    // Exploded állapot frissítése
+    this.isExploded = normalizedPercentage > 0;
+    window.modelIsExploded = this.isExploded;
 
     // Ha még nem mentettük az eredeti pozíciókat
     if (this.originalPositions.size === 0) {
       this.saveOriginalPositions(meshes);
     }
 
+    // Minden elem pozíciójának kiszámítása és beállítása
     elements.forEach((element) => {
       const mesh = meshes.get(element.id);
       if (!mesh || !element.explode) return;
@@ -45,39 +52,39 @@ class Exploder {
       const originalPos = this.originalPositions.get(element.id);
       const explodeOffset = element.explode.offset;
 
-      // Új pozíció = eredeti + offset
+      // Interpolált pozíció = eredeti + (offset * percentage/100)
+      const factor = normalizedPercentage / 100;
       const newPosition = {
-        x: originalPos.x + explodeOffset.x,
-        y: originalPos.y + explodeOffset.y,
-        z: originalPos.z + explodeOffset.z,
+        x: originalPos.x + (explodeOffset.x * factor),
+        y: originalPos.y + (explodeOffset.y * factor),
+        z: originalPos.z + (explodeOffset.z * factor),
       };
 
       this.animateToPosition(mesh, newPosition);
     });
 
-    this.isExploded = true;
+    console.log(`🎚️ Explode level: ${normalizedPercentage}%`);
   }
 
-  // Eredeti pozíciókra visszaállítás
-  reset(meshes) {
-    if (!this.isExploded) return;
-
-    window.modelIsExploded = false;
-
-    this.originalPositions.forEach((originalPos, elementId) => {
-      const mesh = meshes.get(elementId);
-      if (!mesh) return;
-
-      this.animateToPosition(mesh, originalPos);
-    });
-
-    this.isExploded = false;
+  // ÚJ v1.2.0: Aktuális explode level lekérése
+  getExplodeLevel() {
+    return this.currentExplodeLevel;
   }
 
-  // Toggle - váltás robbantott és eredeti között
+  // Robbantott pozíciók beállítása (eredeti funkció - most 100%-ra állít)
+  explode(meshes, elements) {
+    this.setExplodeLevel(100, meshes, elements);
+  }
+
+  // Eredeti pozíciókra visszaállítás (eredeti funkció - most 0%-ra állít)
+  reset(meshes, elements) {
+    this.setExplodeLevel(0, meshes, elements);
+  }
+
+  // Toggle - váltás robbantott és eredeti között (eredeti funkció)
   toggle(meshes, elements) {
-    if (this.isExploded) {
-      this.reset(meshes);
+    if (this.currentExplodeLevel > 0) {
+      this.reset(meshes, elements);
     } else {
       this.explode(meshes, elements);
     }
@@ -127,29 +134,33 @@ class Exploder {
     animate();
   }
 
-  // MÓDOSÍTOTT: Azonnali pozíció beállítás - wireframe layer támogatással
+  // MÓDOSÍTOTT: Azonnali pozíció beállítás - explode level figyelembevételével
   setPositionImmediate(meshes, elements, exploded = false) {
+    // Exploded paraméter alapján explode level beállítása
+    const targetLevel = exploded ? 100 : 0;
+    
     elements.forEach((element) => {
       const mesh = meshes.get(element.id);
       if (!mesh) return;
 
+      const originalPos =
+        this.originalPositions.get(element.id) || element.transform.position;
+
       if (exploded && element.explode) {
-        const originalPos =
-          this.originalPositions.get(element.id) || element.transform.position;
         const explodeOffset = element.explode.offset;
+        const factor = targetLevel / 100;
 
         mesh.position.set(
-          originalPos.x + explodeOffset.x,
-          originalPos.y + explodeOffset.y,
-          originalPos.z + explodeOffset.z
+          originalPos.x + (explodeOffset.x * factor),
+          originalPos.y + (explodeOffset.y * factor),
+          originalPos.z + (explodeOffset.z * factor)
         );
       } else {
-        const originalPos =
-          this.originalPositions.get(element.id) || element.transform.position;
         mesh.position.set(originalPos.x, originalPos.y, originalPos.z);
       }
     });
 
+    this.currentExplodeLevel = targetLevel;
     this.isExploded = exploded;
 
     // ÚJ: Wireframe pozíciók frissítése blueprint módban
@@ -208,10 +219,11 @@ class Exploder {
     });
   }
 
-  // Aktuális állapot lekérdezése
+  // MÓDOSÍTOTT: Aktuális állapot lekérdezése - explode level-lel
   getState() {
     return {
       isExploded: this.isExploded,
+      explodeLevel: this.currentExplodeLevel, // ÚJ
       hasOriginalPositions: this.originalPositions.size > 0,
       elementCount: this.originalPositions.size,
     };
@@ -242,5 +254,6 @@ class Exploder {
     window.modelIsExploded = false;
     this.originalPositions.clear();
     this.isExploded = false;
+    this.currentExplodeLevel = 0; // ÚJ
   }
 }
