@@ -1,7 +1,7 @@
 /**
  * Scene Manager
  * THREE.js scene, kamera, fények és kontrolok kezelése
- * v1.5.0 - Kamera LookAt és Zoom módosítás
+ * v1.6.0 - OrbitControls integráció (kulcsrakész megoldás)
  */
 
 class SceneManager {
@@ -12,13 +12,17 @@ class SceneManager {
     this.renderer = null;
     this.meshes = new Map();
 
+    // ÚJ v1.6.0: OrbitControls támogatás
+    this.orbitControls = null;
+    this.useOrbitControls = true; // VISSZA: OrbitControls aktiválása
+
     // Koordináta rendszer
     this.coordinateSystem = null;
     this.coordinateSystemVisible = false;
     this.css2DRenderer = null;
     this.coordinateLabels = [];
     
-    console.log("SceneManager konstruktor - koordináta rendszer állapot:", this.coordinateSystemVisible);
+    console.log("SceneManager konstruktor - OrbitControls integráció");
 
     // Kontroll változók
     this.controls = {
@@ -27,18 +31,22 @@ class SceneManager {
       previousMousePosition: { x: 0, y: 0 },
     };
 
-    // ÚJ v1.5.0: Kamera beállítások optimalizálása
-    this.defaultZoomDistance = 240; // Alapértelmezett zoom távolság
+    // ÚJ v1.5.1: Mouse pozíció követése zoom-hoz
+    this.lastMousePosition = { x: 0, y: 0 };
+
+    // v1.5.4: Egyszerűsített beállítások (cameraLookAtOffset eltávolítva)
+    this.defaultZoomDistance = 240;
     
-    // Kamera pozíció számítása a defaultZoomDistance alapján (konzisztencia)
+    // Kamera pozíció számítása
     const direction = new THREE.Vector3(-200, 60, 120).normalize();
+    
     this.defaultCameraPosition = {
       x: direction.x * this.defaultZoomDistance,
       y: direction.y * this.defaultZoomDistance,
       z: direction.z * this.defaultZoomDistance
     };
 
-    // Előre definiált nézetek - ÚJ lookAt offset-tel
+    // Előre definiált nézetek - egyszerűsített target (0,0,0)
     this.viewPresets = {
       default: {
         direction: this.defaultCameraPosition,
@@ -46,7 +54,7 @@ class SceneManager {
       },
       top: { 
         direction: { x: 0, y: 1, z: 0 }, 
-        target: { x: 0, y: 0, z: 0 },
+        target: { x: 0, y: 0, z: 0 } 
       },
       bottom: {
         direction: { x: 0, y: -1, z: 0 },
@@ -75,17 +83,25 @@ class SceneManager {
   }
 
   // Scene inicializálása
-  setup() {
+  async setup() {
     this.createScene();
     this.createCamera();
     this.createRenderer();
     this.createCSS2DRenderer();
     this.createPBRLights();
     this.createCoordinateSystem();
-    this.setupEventListeners();
+    
+    // ÚJ v1.6.0: OrbitControls inicializálása
+    await this.initializeOrbitControls();
+    
+    if (!this.useOrbitControls) {
+      // Fallback: Eredeti event listener-ek
+      this.setupEventListeners();
+    }
+    
     this.startAnimationLoop();
 
-    console.log("Scene Manager v1.5.0 initialized - Optimalizált kamera és zoom");
+    console.log("Scene Manager v1.6.2 initialized - OrbitControls tisztítva (scene manipuláció letiltva)");
   }
 
   // Scene létrehozása
@@ -94,7 +110,7 @@ class SceneManager {
     this.scene.background = new THREE.Color(0xf9f9f9);
   }
 
-  // ÚJ v1.5.0: Optimalizált kamera létrehozása
+  // v1.5.0: Optimalizált kamera létrehozása
   createCamera() {
     const aspect = this.container.clientWidth / this.container.clientHeight;
     this.camera = new THREE.PerspectiveCamera(55, aspect, 0.1, 1000);
@@ -106,10 +122,10 @@ class SceneManager {
       this.defaultCameraPosition.z
     );
 
-    // ÚJ v1.5.0: Kamera lejjebb néz, így a pálya feljebb tűnik
+    // v1.5.4: Egyszerűsített kamera lookAt
     this.camera.lookAt(0, 0, 0);
     
-    console.log(`📷 Kamera beállítva - pozíció: (${this.defaultCameraPosition.x}, ${this.defaultCameraPosition.y}, ${this.defaultCameraPosition.z})`);
+    console.log(`📷 Kamera beállítva - pozíció: (${this.defaultCameraPosition.x}, ${this.defaultCameraPosition.y}, ${this.defaultCameraPosition.z}), lookAt: (0,0,0)`);
   }
 
   // ENHANCED v1.4.0: Fejlett Anti-aliasing renderer létrehozása
@@ -216,7 +232,91 @@ class SceneManager {
     console.log("✅ PBR világítás létrehozva: 5 fényforrás");
   }
 
-  // Koordináta rendszer létrehozása
+  // ÚJ v1.6.3: OrbitControls inicializálása - RÉSZLETES DEBUG
+  async initializeOrbitControls() {
+    console.log("🔍 OrbitControls inicializálás kezdése...");
+    
+    try {
+      // Dinamikus import OrbitControls-hoz
+      const module = await import('three/examples/jsm/controls/OrbitControls.js');
+      console.log("✅ OrbitControls modul betöltve:", module);
+      
+      const { OrbitControls } = module;
+      console.log("✅ OrbitControls konstruktor:", OrbitControls);
+      
+      this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
+      console.log("✅ OrbitControls példány létrehozva:", this.orbitControls);
+      
+      // KRITIKUS: Target beállítása a pálya közepére
+      this.orbitControls.target.set(0, 0, 0);
+      console.log("🎯 Target beállítva:", this.orbitControls.target);
+      
+      // Professzionális beállítások
+      this.orbitControls.enableDamping = true;
+      this.orbitControls.dampingFactor = 0.05;
+      this.orbitControls.screenSpacePanning = false;
+      
+      // SPECIÁLIS ZOOM BEÁLLÍTÁSOK
+      this.orbitControls.minDistance = 60;
+      this.orbitControls.maxDistance = 500;
+      this.orbitControls.enableZoom = true;
+      this.orbitControls.zoomSpeed = 1.0;
+      this.orbitControls.zoomToCursor = true; // ÚJ: Zoom kurzorhoz!
+      this.orbitControls.mouseButtons = {
+        LEFT: THREE.MOUSE.ROTATE,
+        MIDDLE: THREE.MOUSE.DOLLY,
+        RIGHT: THREE.MOUSE.PAN
+      };
+      console.log("🔍 SPECIÁLIS zoom beállítások:", {
+        min: this.orbitControls.minDistance,
+        max: this.orbitControls.maxDistance,
+        enabled: this.orbitControls.enableZoom,
+        zoomToCursor: this.orbitControls.zoomToCursor
+      });
+      
+      // Forgatás beállítások
+      this.orbitControls.enableRotate = true;
+      this.orbitControls.rotateSpeed = 0.5;
+      this.orbitControls.autoRotate = false;
+      console.log("🔄 Forgatás beállítások:", {
+        enabled: this.orbitControls.enableRotate,
+        speed: this.orbitControls.rotateSpeed
+      });
+      
+      // Pan beállítások
+      this.orbitControls.enablePan = true;
+      this.orbitControls.panSpeed = 0.8;
+      this.orbitControls.keyPanSpeed = 7.0;
+      console.log("👆 Pan beállítások:", {
+        enabled: this.orbitControls.enablePan,
+        speed: this.orbitControls.panSpeed
+      });
+      
+      // Függőleges forgatás korlátok
+      this.orbitControls.maxPolarAngle = Math.PI;
+      this.orbitControls.minPolarAngle = 0;
+      
+      // KRITIKUS: Frissítés és aktiválás
+      this.orbitControls.update();
+      this.useOrbitControls = true;
+      
+      console.log("✅ OrbitControls TELJES inicializálás sikeres!");
+      console.log("🎮 Kontrollok:", {
+        zoom: this.orbitControls.enableZoom,
+        rotate: this.orbitControls.enableRotate,
+        pan: this.orbitControls.enablePan
+      });
+      
+      // Teszt esemény listener
+      this.orbitControls.addEventListener('change', () => {
+        console.log("🎯 OrbitControls változás észlelve");
+      });
+      
+    } catch (error) {
+      console.error("❌ OrbitControls inicializálás HIBA:", error);
+      this.useOrbitControls = false;
+    }
+  }
   createCoordinateSystem() {
     this.coordinateSystem = new THREE.Group();
     this.coordinateLabels = [];
@@ -367,8 +467,14 @@ class SceneManager {
     return this.coordinateSystemVisible;
   }
 
-  // Event listener-ek beállítása
+  // Event listener-ek beállítása - CSAK ha nincs OrbitControls
   setupEventListeners() {
+    if (this.useOrbitControls) {
+      console.log("🎯 OrbitControls aktív - saját event listener-ek LETILTVA");
+      return; // KRITIKUS: Ne állítsunk be saját listener-eket!
+    }
+
+    console.log("⚠️ Fallback event listener-ek beállítása (OrbitControls nélkül)...");
     // Keyboard events
     document.addEventListener("keydown", (e) => {
       if (e.code === "Space") {
@@ -395,6 +501,11 @@ class SceneManager {
     });
 
     document.addEventListener("mousemove", (e) => {
+      // ÚJ v1.5.1: Mouse pozíció frissítése zoom-hoz
+      if (e.target === this.renderer.domElement) {
+        this.lastMousePosition = { x: e.offsetX, y: e.offsetY };
+      }
+
       if (!this.controls.isDragging) return;
 
       const deltaMove = {
@@ -411,7 +522,7 @@ class SceneManager {
       this.controls.previousMousePosition = { x: e.offsetX, y: e.offsetY };
     });
 
-    // Zoom (wheel)
+    // FALLBACK: Eredeti wheel zoom (ha nincs OrbitControls)
     this.renderer.domElement.addEventListener("wheel", (e) => {
       e.preventDefault();
       this.zoomCamera(e.deltaY);
@@ -423,47 +534,64 @@ class SceneManager {
     });
   }
 
-  // Scene forgatása
+  // Scene forgatása - LETILTVA OrbitControls esetén
   rotateScene(deltaMove) {
+    if (this.useOrbitControls) {
+      console.log("⚠️ Scene forgatás letiltva - OrbitControls aktív");
+      return;
+    }
+    
     const rotationSpeed = 0.01;
     this.scene.rotation.y += deltaMove.x * rotationSpeed;
     this.scene.rotation.x += deltaMove.y * rotationSpeed;
   }
 
-  // Scene mozgatása
+  // Scene mozgatása - LETILTVA OrbitControls esetén
   panScene(deltaMove) {
+    if (this.useOrbitControls) {
+      console.log("⚠️ Scene pan letiltva - OrbitControls aktív");
+      return;
+    }
+    
     const panSpeed = 0.5;
     this.scene.position.x += deltaMove.x * panSpeed;
     this.scene.position.y += -deltaMove.y * panSpeed;
   }
 
-  // ÚJ v1.5.0: Optimalizált zoom funkció
+  // ÚJ v1.6.0: OrbitControls zoom (programmatic)
   zoomCamera(deltaY) {
-    const zoomSpeed = 0.08; // Finomabb zoom
-    const zoomFactor = 1 + deltaY * zoomSpeed * 0.01;
+    if (this.useOrbitControls && this.orbitControls) {
+      // OrbitControls zoom
+      const zoomSpeed = 0.1;
+      const direction = this.camera.position.clone().sub(this.orbitControls.target);
+      const newDistance = direction.length() * (1 + deltaY * zoomSpeed * 0.01);
+      const clampedDistance = Math.max(this.orbitControls.minDistance, Math.min(this.orbitControls.maxDistance, newDistance));
+      
+      direction.normalize();
+      this.camera.position.copy(
+        this.orbitControls.target.clone().add(direction.multiplyScalar(clampedDistance))
+      );
+      
+      this.orbitControls.update();
+      console.log(`🎯 OrbitControls zoom: ${clampedDistance.toFixed(1)}`);
+    } else {
+      // Fallback zoom
+      const target = new THREE.Vector3(0, 0, 0);
+      const direction = this.camera.position.clone().sub(target);
+      const newDistance = direction.length() * (1 + deltaY * 0.08 * 0.01);
+      const clampedDistance = Math.max(60, Math.min(500, newDistance));
 
-    // ÚJ: Target az offset pontja
-    const target = new THREE.Vector3(0, 0, 0);
-    const direction = this.camera.position.clone().sub(target);
-    const newDistance = direction.length() * zoomFactor;
-
-    // ÚJ: Zoom távolság korlátok optimalizálása
-    const clampedDistance = Math.max(60, Math.min(500, newDistance)); // Szélesebb tartomány
-
-    direction.normalize();
-    this.camera.position.copy(
-      target.clone().add(direction.multiplyScalar(clampedDistance))
-    );
-
-    this.camera.lookAt(target);
-    
-    // Debug zoom távolság
-    if (Math.abs(deltaY) > 0) {
-      console.log(`🔍 Zoom távolság: ${clampedDistance.toFixed(1)}`);
+      direction.normalize();
+      this.camera.position.copy(
+        target.clone().add(direction.multiplyScalar(clampedDistance))
+      );
+      this.camera.lookAt(target);
+      
+      console.log(`🔍 Fallback zoom: ${clampedDistance.toFixed(1)}`);
     }
   }
 
-  // Kamera pozíció váltása előre definiált nézetekre
+  // Kamera pozíció váltása előre definiált nézetekre - FRISSÍTETT OrbitControls támogatással
   setViewPreset(viewName, animate = false) {
     const preset = this.viewPresets[viewName];
     if (!preset) {
@@ -471,40 +599,62 @@ class SceneManager {
       return;
     }
 
-    // Scene pozíció és forgatás nullázása
-    this.scene.position.set(0, 0, 0);
-    this.scene.rotation.set(0, 0, 0);
-
-    // ÚJ v1.5.0: Alapértelmezett zoom távolság használata
-    let newPosition;
-
-    if (viewName === "default") {
-      newPosition = new THREE.Vector3(
-        preset.direction.x,
-        preset.direction.y,
-        preset.direction.z
-      );
+    if (this.useOrbitControls && this.orbitControls) {
+      // OrbitControls esetén: target és camera pozíció beállítása
+      this.orbitControls.target.set(preset.target.x, preset.target.y, preset.target.z);
+      
+      let newPosition;
+      if (viewName === "default") {
+        newPosition = new THREE.Vector3(
+          preset.direction.x,
+          preset.direction.y,
+          preset.direction.z
+        );
+      } else {
+        const direction = new THREE.Vector3(
+          preset.direction.x,
+          preset.direction.y,
+          preset.direction.z
+        ).normalize();
+        newPosition = direction.multiplyScalar(this.defaultZoomDistance);
+      }
+      
+      this.camera.position.set(newPosition.x, newPosition.y, newPosition.z);
+      this.orbitControls.update();
+      
+      console.log(`📷 OrbitControls nézet váltás: ${viewName} - target: (${preset.target.x}, ${preset.target.y}, ${preset.target.z})`);
     } else {
-      const direction = new THREE.Vector3(
-        preset.direction.x,
-        preset.direction.y,
-        preset.direction.z
-      ).normalize();
+      // Eredeti logika fallback esetén
+      this.scene.position.set(0, 0, 0);
+      this.scene.rotation.set(0, 0, 0);
 
-      // ÚJ: Alapértelmezett zoom távolság használata nézet váltásnál
-      newPosition = direction.multiplyScalar(this.defaultZoomDistance);
+      let newPosition;
+      if (viewName === "default") {
+        newPosition = new THREE.Vector3(
+          preset.direction.x,
+          preset.direction.y,
+          preset.direction.z
+        );
+      } else {
+        const direction = new THREE.Vector3(
+          preset.direction.x,
+          preset.direction.y,
+          preset.direction.z
+        ).normalize();
+        newPosition = direction.multiplyScalar(this.defaultZoomDistance);
+      }
+
+      this.camera.position.set(newPosition.x, newPosition.y, newPosition.z);
+      this.camera.lookAt(preset.target.x, preset.target.y, preset.target.z);
+      
+      console.log(`📷 Fallback nézet váltás: ${viewName} - target: (${preset.target.x}, ${preset.target.y}, ${preset.target.z})`);
     }
-
-    this.camera.position.set(newPosition.x, newPosition.y, newPosition.z);
-    this.camera.lookAt(preset.target.x, preset.target.y, preset.target.z);
-    
-    console.log(`📷 Nézet váltás: ${viewName}`);
   }
 
   // Kamera animáció egy pozícióba
   animateCameraToPosition(targetPosition, targetLookAt, duration = 800) {
     const startPosition = this.camera.position.clone();
-    const startLookAt = new THREE.Vector3(0, 0, 0);
+    const startLookAt = new THREE.Vector3(0, 0, 0); // Egyszerűsített target
 
     const startTime = Date.now();
 
@@ -598,16 +748,22 @@ class SceneManager {
     return this.meshes;
   }
 
-  // ÚJ v1.5.0: Optimalizált nézet visszaállítása
+  // v1.5.0: Optimalizált nézet visszaállítása
   resetView() {
     this.setViewPreset("default");
     console.log("🏠 Nézet visszaállítva alaphelyzetbe");
   }
 
-  // Animáció loop
+  // Animáció loop - FRISSÍTETT OrbitControls támogatással
   startAnimationLoop() {
     const animate = () => {
       this.animationId = requestAnimationFrame(animate);
+      
+      // ÚJ v1.6.0: OrbitControls frissítése
+      if (this.useOrbitControls && this.orbitControls) {
+        this.orbitControls.update();
+      }
+      
       this.renderer.render(this.scene, this.camera);
       
       if (this.css2DRenderer) {
@@ -682,9 +838,11 @@ class SceneManager {
     });
   }
 
-  // ÚJ v1.5.0: Zoom és kamera beállítások módosítása futásidőben
+  // v1.5.0: Zoom és kamera beállítások módosítása futásidőben
   setCameraSettings(settings = {}) {
-    if (settings.lookAtOffset !== undefined) {      
+    if (settings.lookAtOffset !== undefined) {
+      this.cameraLookAtOffset = settings.lookAtOffset;
+      
       // View presets frissítése
       Object.keys(this.viewPresets).forEach(viewName => {
         this.viewPresets[viewName].target.y = settings.lookAtOffset;
@@ -698,7 +856,7 @@ class SceneManager {
     if (settings.defaultZoomDistance !== undefined) {
       this.defaultZoomDistance = settings.defaultZoomDistance;
       
-      // ÚJ v1.5.1: defaultCameraPosition újraszámolása konzisztencia miatt
+      // v1.5.1: defaultCameraPosition újraszámolása konzisztencia miatt
       const direction = new THREE.Vector3(-200, 120, 180).normalize();
       this.defaultCameraPosition = {
         x: direction.x * this.defaultZoomDistance,
@@ -727,8 +885,10 @@ class SceneManager {
       cameraPosition: this.camera.position,
       scenePosition: this.scene.position,
       sceneRotation: this.scene.rotation,
-      defaultZoomDistance: this.defaultZoomDistance, // ÚJ v1.5.0
+      cameraLookAtOffset: this.cameraLookAtOffset,
+      defaultZoomDistance: this.defaultZoomDistance,
       coordinateSystemVisible: this.coordinateSystemVisible,
+      lastMousePosition: this.lastMousePosition, // ÚJ v1.5.1
       antiAliasing: {
         enabled: contextAttributes.antialias || false,
         pixelRatio: this.renderer.getPixelRatio(),
@@ -742,7 +902,7 @@ class SceneManager {
         physicallyCorrectLights: this.renderer.physicallyCorrectLights,
         outputEncoding: this.renderer.outputEncoding,
       },
-      version: "1.5.1",
+      version: "1.6.0",
     };
   }
 
@@ -763,6 +923,6 @@ class SceneManager {
       this.renderer.dispose();
     }
 
-    console.log("Scene Manager v1.5.0 destroyed");
+    console.log("Scene Manager v1.5.1 destroyed");
   }
 }
