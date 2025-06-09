@@ -46,7 +46,7 @@ class ViewModeManager {
   }
 
   // Váltás tervrajz nézetbe
-  switchToBlueprint(meshes, elements, force = false) {
+  async switchToBlueprint(meshes, elements, force = false) {
     if (this.currentMode === "blueprint" && !force) return;
 
     console.log("🔄 Váltás tervrajz nézetbe...");
@@ -72,13 +72,13 @@ class ViewModeManager {
     // Világítás beállítása
     this.lightingManager.setBlueprintLighting();
     this.lightingManager.setBackgroundForMode("blueprint");
-
+    await window.setBlueprintPostProcesing();
     this.currentMode = "blueprint";
     console.log(`✅ Tervrajz nézet aktív (wireframe: ${this.wireframeManager.wireframeLayer.size} elem, exploded: ${isExploded})`);
   }
 
   // Váltás színes nézetbe - EGYSZERŰSÍTETT RESTORE PATTERN
-  switchToRealistic(meshes, elements) {
+  async switchToRealistic(meshes, elements) {
     if (this.currentMode === "realistic" && !this.firstInitialization) return;
 
     console.log("🔄 Váltás színes nézetbe...");
@@ -105,6 +105,7 @@ class ViewModeManager {
     this.lightingManager.setRealisticLighting();
     this.lightingManager.setBackgroundForMode("realistic");
 
+    await window.window.setRealisticPostProcesing()
     this.currentMode = "realistic";
     this.firstInitialization = false;
     console.log("✅ Színes PBR nézet aktív");

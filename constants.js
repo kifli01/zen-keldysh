@@ -29,8 +29,8 @@ const MATERIALS = {
   PINE_PLYWOOD: {
     name: "Lucfenyő rétegelt lemez",
     density: 0.5, // g/cm³
-    color: 0xF2E4C9,
-    baseColor: 0xF2E4C9,
+    color: 0xb6c4de,
+    baseColor: 0xb6c4de,
     shininess: 10,
     
     // LEGACY textúra (fallback)
@@ -45,16 +45,16 @@ const MATERIALS = {
     
     // Color Tinting Control
     enableColorTinting: true,
-    colorTintStrength: 2.0,
+    colorTintStrength: 1.1,
     
     // PBR tulajdonságok
-    roughnessBase: 0.8,
+    roughnessBase: 0.5,
     metalnessBase: 0.0,
     envMapIntensity: 0.3,
     
     // Dynamic Normal Scale
-    normalScale: 0.6,
-    normalScaleRange: { min: 0.3, max: 0.9 },
+    normalScale: 10.6,
+    normalScaleRange: { min: 10.3, max: 10.9 },
     
     // Textúra beállítások
     pbrRepeat: { x: 1, y: 1 },
@@ -64,9 +64,9 @@ const MATERIALS = {
   PINE_SOLID: {
     name: "Lucfenyő tömörfa",
     density: 0.45, // g/cm³
-    color: 0xEADCC1,
-    baseColor: 0xEADCC1,
-    shininess: 10,
+    color: 0xb6c4de,
+    baseColor: 0xb6c4de,
+    shininess: 0,
     
     // LEGACY textúra (fallback)
     imagePath: 'textures/wood-3.jpg',
@@ -80,12 +80,12 @@ const MATERIALS = {
     
     // Color Tinting Control
     enableColorTinting: true,
-    colorTintStrength: 1.8,
+    colorTintStrength: 1.2,
     
     // PBR tulajdonságok
     roughnessBase: 0.9,
     metalnessBase: 0.0,
-    envMapIntensity: 0.2,
+    envMapIntensity: 0.1,
     
     // Dynamic Normal Scale
     normalScale: 0.7,
@@ -99,8 +99,8 @@ const MATERIALS = {
   ARTIFICIAL_GRASS: {
     name: "LazyLawn Meadow Twist műfű",
     density: 0.2, // g/cm³
-    color: 0x4A7C59,
-    baseColor: 0x4A7C59,
+    color: 0x6e93fa,
+    baseColor: 0x6e93fa,
     shininess: 2,
     
     // LEGACY textúra (fallback)
@@ -116,7 +116,7 @@ const MATERIALS = {
     
     // Color Tinting Control
     enableColorTinting: true,
-    colorTintStrength: 1.6,
+    colorTintStrength: 1.2,
     
     // PBR tulajdonságok
     roughnessBase: 0.95,
@@ -137,7 +137,7 @@ const MATERIALS = {
     name: "Fehér műanyag",
     density: 0.9, // g/cm³
     color: 0xffffff,
-    baseColor: 0xffffff,
+    baseColor: 0x8c846d,
     shininess: 30,
     
     // LEGACY textúra (fallback)
@@ -152,10 +152,10 @@ const MATERIALS = {
     
     // Color Tinting Control
     enableColorTinting: true,
-    colorTintStrength: 1.0,
+    colorTintStrength: 1.5,
     
     // PBR tulajdonságok
-    roughnessBase: 0.1,
+    roughnessBase: 1.0,
     metalnessBase: 0.0,
     envMapIntensity: 0.8,
     
@@ -171,8 +171,8 @@ const MATERIALS = {
   GALVANIZED_STEEL: {
     name: "Galvanizált acél",
     density: 7.8, // g/cm³
-    color: 0xC0C0C0,
-    baseColor: 0xC0C0C0,
+    color: 0xffffff,
+    baseColor: 0xc2c0c0,
     shininess: 60,
     
     // LEGACY textúra (fallback)
@@ -181,19 +181,19 @@ const MATERIALS = {
     useShade: true,
     
     // PBR Texture Pipeline
-    diffusePath: 'textures/Metal011_1K-JPG_Color.jpg',
+    // diffusePath: 'textures/Metal011_1K-JPG_Color.jpg',
     normalPath: 'textures/Metal011_1K-JPG_NormalGL.jpg',
     roughnessPath: 'textures/Metal011_1K-JPG_Roughness.jpg',
     metalnessPath: 'textures/Metal011_1K-JPG_Metalness.jpg',
     
     // Color Tinting Control
     enableColorTinting: true,
-    colorTintStrength: 1.4,
+    colorTintStrength: 1.5,
     
     // PBR tulajdonságok
-    roughnessBase: 0.2,
+    roughnessBase: 0.3,
     metalnessBase: 0.95,
-    envMapIntensity: 2.0,
+    envMapIntensity: 1.0,
     
     // Dynamic Normal Scale
     normalScale: 0.5,

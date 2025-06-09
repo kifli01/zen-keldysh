@@ -115,6 +115,8 @@
           "three/examples/jsm/postprocessing/RenderPass.js": "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/RenderPass.js",
           "three/examples/jsm/postprocessing/UnrealBloomPass.js": "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/UnrealBloomPass.js",
           "three/examples/jsm/postprocessing/SSAOPass.js": "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/SSAOPass.js",
+          "three/examples/jsm/postprocessing/ShaderPass.js": "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/ShaderPass.js",
+          "three/examples/jsm/shaders/FXAAShader.js": "https://unpkg.com/three@0.158.0/examples/jsm/shaders/FXAAShader.js",
           "three-mesh-bvh": "https://unpkg.com/three-mesh-bvh@0.7.6/build/index.module.js",
           "three-bvh-csg": "https://unpkg.com/three-bvh-csg@0.0.17/build/index.module.js"
         }
@@ -171,15 +173,15 @@
           <div class="toolbar-separator"></div>
           
           <div class="toolbar-group">
-            <button id="toggle-coordinates" title="Koordináta rendszer"><i data-lucide="axis-3d"></i></button>
+            <button id="toggle-coordinates" title="Koordináta rendszer" class="icon-axis-3d"></button>
           </div>
         </div>
 
         <!-- Jobb oldal: Fő műveletek -->
         <div class="toolbar-right">
           <div class="toolbar-group">
-            <button id="toggle-view-mode" title="Nézet váltás"><i data-lucide="palette"></i></button>
-            <button id="toggle-explode" title="Szétszedés"><i data-lucide="box"></i></button>
+            <button id="toggle-view-mode" title="Nézet váltás"></button>
+            <button id="toggle-explode" title="Szétszedés" class="icon-layers"></button>
           </div>
           
           <div class="toolbar-separator"></div>
@@ -188,29 +190,6 @@
             <button id="toggle-summary-panel" title="Specifikációs panel"><i data-lucide="panel-right"></i></button>
           </div>
         </div>
-      </div>
-
-      <!-- EREDETI KONTROLL CONTAINER-EK - REJTVE, DE MEGMARADNAK -->
-      <div id="controls" style="display: none;">
-        <button id="toggle-explode-hidden">Szétszedés</button>
-        <button id="toggle-view-mode-hidden">Színes</button>
-        <button id="export-gltf">GLTF Export</button>
-      </div>
-
-      <div id="view-controls" style="display: none;">
-        <div class="view-label">Nézetek:</div>
-        <button id="view-top-hidden">Felül</button>
-        <button id="view-bottom-hidden">Alul</button>
-        <button id="view-front-hidden">Elöl</button>
-        <button id="view-back-hidden">Hátul</button>
-        <button id="view-left-hidden">Bal</button>
-        <button id="view-right-hidden">Jobb</button>
-        <hr />
-        <button id="zoom-in-hidden">Zoom +</button>
-        <button id="zoom-out-hidden">Zoom -</button>
-        <hr />
-        <button id="toggle-coordinates-hidden">Koordináták</button>
-        <button id="reset-view-hidden">Alaphelyzet</button>
       </div>
     </div>
 

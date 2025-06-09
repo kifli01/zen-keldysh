@@ -31,6 +31,7 @@ class Exploder {
   // Robbantott pozíciók beállítása
   explode(meshes, elements) {
     if (this.isExploded) return;
+    window.modelIsExploded = true;
 
     // Ha még nem mentettük az eredeti pozíciókat
     if (this.originalPositions.size === 0) {
@@ -60,6 +61,8 @@ class Exploder {
   // Eredeti pozíciókra visszaállítás
   reset(meshes) {
     if (!this.isExploded) return;
+
+    window.modelIsExploded = false;
 
     this.originalPositions.forEach((originalPos, elementId) => {
       const mesh = meshes.get(elementId);
@@ -236,6 +239,7 @@ class Exploder {
 
   // Cleanup
   destroy() {
+    window.modelIsExploded = false;
     this.originalPositions.clear();
     this.isExploded = false;
   }

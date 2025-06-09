@@ -18,40 +18,23 @@ function setupEventListeners({
     explodeBtn.addEventListener("click", function () {
       exploder.toggle(allMeshes, elementManager.getAllElements());
 
-      // Gomb ikon frissítése
-      const icon = this.querySelector('i[data-lucide]');
-      if (icon) {
-        if (exploder.getState().isExploded) {
-          icon.setAttribute('data-lucide', 'boxes');
-        } else {
-          icon.setAttribute('data-lucide', 'box');
-        }
-        // Lucide újrarenderelés
-        if (typeof lucide !== 'undefined') {
-          lucide.createIcons();
-        }
+      if (exploder.getState().isExploded) {
+        explodeBtn.className = "icon-box";
+      } else {
+        explodeBtn.className = "icon-layers";
       }
     });
   }
 
   // Nézet váltás gomb
   const viewModeBtn = document.getElementById("toggle-view-mode");
+  viewModeBtn.className = viewModeManager.getCurrentMode() === "realistic" ? 'icon-codepen' : 'icon-palette'
+
   if (viewModeBtn) {
     viewModeBtn.addEventListener("click", function () {
+      console.log("--- MYDEBUG", "viewModeBtn ", viewModeManager.getCurrentMode())
       viewModeManager.toggle(allMeshes, elementManager.getAllElements());
-
-      // Gomb ikon frissítése
-      const icon = this.querySelector('i[data-lucide]');
-      if (icon) {
-        const newIcon = viewModeManager.getCurrentMode() === "realistic" 
-          ? "ruler-dimension-line" 
-          : "palette";
-        icon.setAttribute('data-lucide', newIcon);
-        // Lucide újrarenderelés
-        if (typeof lucide !== 'undefined') {
-          lucide.createIcons();
-        }
-      }
+      viewModeBtn.className = viewModeManager.getCurrentMode() === "blueprint" ? 'icon-codepen' : 'icon-palette'
     });
   }
 
@@ -60,9 +43,7 @@ function setupEventListeners({
   if (coordBtn) {
     coordBtn.addEventListener("click", function () {
       const isVisible = sceneManager.toggleCoordinateSystem();
-
-      // Gomb szöveg frissítése
-      this.textContent = "📐";
+      coordBtn.className = isVisible ? "icon-eye-closed" : "icon-axis-3d";
     });
   }
 
@@ -88,15 +69,7 @@ function setupEventListeners({
       if (exploder.getState().isExploded) {
         exploder.reset(allMeshes);
         const explodeBtn = document.getElementById("toggle-explode");
-        if (explodeBtn) {
-          const icon = explodeBtn.querySelector('i[data-lucide]');
-          if (icon) {
-            icon.setAttribute('data-lucide', 'box');
-            if (typeof lucide !== 'undefined') {
-              lucide.createIcons();
-            }
-          }
-        }
+        explodeBtn.className = "icon-layers";
       }
 
       // Nézet visszaállítása (kamera pozíció)

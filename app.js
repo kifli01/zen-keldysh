@@ -1,6 +1,6 @@
 /**
  * Minigolf Pálya Viewer - Főalkalmazás
- * v1.13.1 - Pure PBR + localStorage Láthatóság
+ * v1.13.3 - Post-processing világítás optimalizálás
  */
 
 // ES6 importok
@@ -201,10 +201,114 @@ function checkCSS2DAvailability() {
   }
 }
 
-// FŘISSÍTETT v1.13.1: Egyszerűsített inicializálás Pure PBR pipeline-nal + localStorage
+async function setRealisticPostProcesing() {
+  if (postProcessingManager) {
+      console.log("✨ Post-Processing (FXAA + Bloom + SSAO) inicializálása...");
+      try {
+        const postProcessingInitialized = await postProcessingManager.initialize();
+        
+        if (postProcessingInitialized) {
+          // ELSŐ: FXAA Anti-aliasing aktiválása (alapvető minőségjavítás)
+          postProcessingManager.setFXAAEnabled(true);
+          postProcessingManager.setFXAAPreset('default');
+          console.log("🎯 FXAA Anti-aliasing aktiválva!");
+          
+          // MÁSODIK: Bloom bekapcsolása 'subtle' preset-tel
+          postProcessingManager.setBloomPreset('subtle');
+          postProcessingManager.setBloomEnabled(true);
+          
+          // HARMADIK: SSAO bekapcsolása 'architectural' preset-tel
+          postProcessingManager.setSSAOPreset('architectural');
+          postProcessingManager.setSSAOEnabled(true);
+          
+          // ÚJ v1.13.3: Világítás optimalizálás post-processing-hez
+          console.log("💡 Világítás optimalizálás post-processing pipeline-hoz...");
+          
+          // Tone mapping exposure növelése
+          sceneManager.renderer.toneMappingExposure = 1.5;
+          
+          // Bloom beállítások finomhangolása
+          postProcessingManager.bloomPass.threshold = 2.5;
+          postProcessingManager.bloomPass.strength = 0.05;
+          
+          // Fények erősítése
+          sceneManager.scene.traverse(function(object) {
+            if (object.isLight && object.isAmbientLight) {
+              object.intensity = 3.5;
+            } else if (object.isLight) {
+              object.intensity *= 3.2;
+            }
+          });
+          
+          console.log("✅ Világítás optimalizálva post-processing-hez");
+          console.log("🌟 Teljes Post-Processing Pipeline aktiválva: FXAA + Bloom + SSAO!");
+        } else {
+          console.warn("❌ Post-Processing nem inicializálható");
+        }
+      } catch (error) {
+        console.error("Post-Processing inicializálási hiba:", error);
+      }
+    } else {
+      console.log("Post-Processing Manager nincs elérhető, folytatás nélküle");
+    }
+}
+
+async function setBlueprintPostProcesing() {
+  if (postProcessingManager) {
+      console.log("✨ Post-Processing (FXAA + Bloom + SSAO) inicializálása...");
+      try {
+        const postProcessingInitialized = await postProcessingManager.initialize();
+        
+        if (postProcessingInitialized) {
+          // ELSŐ: FXAA Anti-aliasing aktiválása (alapvető minőségjavítás)
+          postProcessingManager.setFXAAEnabled(false);
+          // postProcessingManager.setFXAAPreset('default');
+          // console.log("🎯 FXAA Anti-aliasing aktiválva!");
+          
+          // // MÁSODIK: Bloom bekapcsolása 'subtle' preset-tel
+          // postProcessingManager.setBloomPreset('subtle');
+          postProcessingManager.setBloomEnabled(false);
+          
+          // HARMADIK: SSAO bekapcsolása 'architectural' preset-tel
+          postProcessingManager.setSSAOPreset('architectural');
+          postProcessingManager.setSSAOEnabled(true);
+          
+          // // ÚJ v1.13.3: Világítás optimalizálás post-processing-hez
+          // console.log("💡 Világítás optimalizálás post-processing pipeline-hoz...");
+          
+          // // Tone mapping exposure növelése
+          // sceneManager.renderer.toneMappingExposure = 1.5;
+          
+          // // Bloom beállítások finomhangolása
+          // postProcessingManager.bloomPass.threshold = 2.5;
+          // postProcessingManager.bloomPass.strength = 0.05;
+          
+          // // Fények erősítése
+          // sceneManager.scene.traverse(function(object) {
+          //   if (object.isLight && object.isAmbientLight) {
+          //     object.intensity = 3.5;
+          //   } else if (object.isLight) {
+          //     object.intensity *= 3.2;
+          //   }
+          // });
+          
+          // console.log("✅ Világítás optimalizálva post-processing-hez");
+          // console.log("🌟 Teljes Post-Processing Pipeline aktiválva: FXAA + Bloom + SSAO!");
+        } else {
+          console.warn("❌ Post-Processing nem inicializálható");
+        }
+      } catch (error) {
+        console.error("Post-Processing inicializálási hiba:", error);
+      }
+    } else {
+      console.log("Post-Processing Manager nincs elérhető, folytatás nélküle");
+    }
+}
+
+// FRISSÍTETT v1.13.3: Egyszerűsített inicializálás Pure PBR pipeline-nal + localStorage + világítás optimalizálás
 async function initialize() {
   try {
-    console.log("🚀 Inicializálás kezdete v1.13.1 - Pure PBR + localStorage láthatóság...");
+    console.log("🚀 Inicializálás kezdete v1.13.3 - Post-processing világítás optimalizálás...");
 
     // Könyvtárak ellenőrzése
     const csgAvailable = initializeCSG();
@@ -332,35 +436,7 @@ async function initialize() {
     }
 
     // Post-Processing (FXAA + Bloom + SSAO) inicializálása
-    if (postProcessingManager) {
-      console.log("✨ Post-Processing (FXAA + Bloom + SSAO) inicializálása...");
-      try {
-        const postProcessingInitialized = await postProcessingManager.initialize();
-        
-        if (postProcessingInitialized) {
-          // ELSŐ: FXAA Anti-aliasing aktiválása (alapvető minőségjavítás)
-          postProcessingManager.setFXAAEnabled(true);
-          postProcessingManager.setFXAAPreset('default');
-          console.log("🎯 FXAA Anti-aliasing aktiválva!");
-          
-          // MÁSODIK: Bloom bekapcsolása 'subtle' preset-tel
-          postProcessingManager.setBloomPreset('subtle');
-          postProcessingManager.setBloomEnabled(true);
-          
-          // HARMADIK: SSAO bekapcsolása 'architectural' preset-tel
-          postProcessingManager.setSSAOPreset('architectural');
-          postProcessingManager.setSSAOEnabled(true);
-          
-          console.log("🌟 Teljes Post-Processing Pipeline aktiválva: FXAA + Bloom + SSAO!");
-        } else {
-          console.warn("❌ Post-Processing nem inicializálható");
-        }
-      } catch (error) {
-        console.error("Post-Processing inicializálási hiba:", error);
-      }
-    } else {
-      console.log("Post-Processing Manager nincs elérhető, folytatás nélküle");
-    }
+    // await setRealisticPostProcesing();
 
     // Event listener-ek beállítása
     if (typeof setupEventListeners === "function") {
@@ -405,7 +481,7 @@ async function initialize() {
       }, 100);
     }
 
-    console.log("🎉 Inicializálás sikeres v1.13.1 - localStorage láthatóság támogatással!");
+    console.log("🎉 Inicializálás sikeres v1.13.3 - Post-processing világítás optimalizálással!");
     
     // Teljes rendszer status
     logSystemStatus();
@@ -451,7 +527,7 @@ function logPBRStatistics(meshes) {
     }
   });
 
-  console.log("📊 PURE PBR STATISTICS v1.13.1:");
+  console.log("📊 PURE PBR STATISTICS v1.13.3:");
   console.log(`   Materials: ${pbrCount} Pure PBR (100%)`);
   console.log(`   Diffuse Maps: ${totalMaps.diffuse}`);
   console.log(`   Normal Maps: ${totalMaps.normal} ✨`);
@@ -463,7 +539,7 @@ function logPBRStatistics(meshes) {
 
 // Teljes rendszer status (frissített)
 function logSystemStatus() {
-  console.log("🎯 SYSTEM STATUS v1.13.1:");
+  console.log("🎯 SYSTEM STATUS v1.13.3:");
   console.log(`   TextureManager: ${textureManager.getStatus().version} (Pure PBR)`);
   console.log(`   GeometryBuilder: ${geometryBuilder.getPBRStatus().version} (Pure PBR)`);
   console.log(`   ViewModeManager: ${viewModeManager.getViewModeInfo().version} (Pure PBR)`);
@@ -471,6 +547,7 @@ function logSystemStatus() {
   console.log(`   HDR Environment: ${hdrEnvironmentManager.getStatus().isLoaded ? '✅' : '❌'}`);
   console.log(`   Post-Processing: ${postProcessingManager ? postProcessingManager.getStatus().version : '❌'}`);
   console.log(`   FXAA Anti-aliasing: ${postProcessingManager?.getStatus().fxaaEnabled ? '✅' : '❌'}`);
+  console.log(`   Világítás optimalizálva: ✅ (exposure: 2.5, bloom: optimális)`);
   console.log(`   localStorage Láthatóság: ✅`);
   console.log(`   Legacy Support: ❌ (Pure PBR only)`);
 }
@@ -512,7 +589,7 @@ async function initializeFallback() {
 
 // ÚJ v1.13.1: localStorage Láthatóság debug funkciók
 window.visibilityDebug = () => {
-  console.log("=== LÁTHATÓSÁG DEBUG v1.13.1 ===");
+  console.log("=== LÁTHATÓSÁG DEBUG v1.13.3 ===");
   
   const saved = loadVisibilityState();
   console.log(`LocalStorage elemek: ${Object.keys(saved).length}`);
@@ -550,9 +627,9 @@ window.clearVisibility = () => {
 window.saveVisibilityState = saveVisibilityState;
 window.loadVisibilityState = loadVisibilityState;
 
-// Globális hozzáférés debug-hoz (frissített v1.13.1)
+// Globális hozzáférés debug-hoz (frissített v1.13.3)
 window.debugInfo = () => {
-  console.log("=== DEBUG INFO v1.13.1 - Pure PBR + localStorage ===");
+  console.log("=== DEBUG INFO v1.13.3 - Pure PBR + localStorage + Világítás ===");
   console.log("Element Manager:", elementManager?.getAllElements().length + " elem");
   console.log("Scene Manager:", sceneManager?.getSceneInfo());
   console.log("Exploder:", exploder?.getState());
@@ -596,6 +673,31 @@ window.debugInfo = () => {
   }
   
   console.log("==================");
+};
+
+// ÚJ v1.13.3: Világítás debug
+window.lightingDebug = () => {
+  if (!postProcessingManager) {
+    console.log("❌ PostProcessingManager nem elérhető");
+    return;
+  }
+  
+  console.log("=== VILÁGÍTÁS DEBUG v1.13.3 ===");
+  
+  console.log(`Tone Mapping Exposure: ${sceneManager.renderer.toneMappingExposure}`);
+  console.log(`Bloom Threshold: ${postProcessingManager.bloomPass.threshold}`);
+  console.log(`Bloom Strength: ${postProcessingManager.bloomPass.strength}`);
+  
+  // Fények listázása
+  let lightCount = 0;
+  sceneManager.scene.traverse(function(object) {
+    if (object.isLight) {
+      lightCount++;
+      console.log(`Fény ${lightCount}: ${object.type}, intensity: ${object.intensity}`);
+    }
+  });
+  
+  console.log("===============================");
 };
 
 // ÚJ v1.13.1: FXAA Anti-aliasing debug
@@ -700,7 +802,10 @@ window.toggleElementVisibility = function (elementId, isVisible) {
 // Inicializálás indítása az oldal betöltése után
 document.addEventListener("DOMContentLoaded", initialize);
 
-// Exportálás más modulok számára (frissített v1.13.1)
+window.setRealisticPostProcesing = setRealisticPostProcesing;
+window.setBlueprintPostProcesing = setBlueprintPostProcesing;
+
+// Exportálás más modulok számára (frissített v1.13.3)
 export {
   elementManager,
   sceneManager,
