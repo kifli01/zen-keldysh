@@ -11,6 +11,7 @@ class PostProcessingManager {
     this.enabled = false;
     this.ssaoEnabled = false;
     this.fxaaEnabled = true; // ÚJ: FXAA alapértelmezetten BE
+    this.initialized = false;
     
     this.bloomSettings = {
       threshold: 0.8,
@@ -39,6 +40,11 @@ class PostProcessingManager {
   }
 
   async initialize() {
+    if (this.initialized) {
+      console.log("🌟 Post-Processing Pipeline már inicializáva van");
+      return true;
+    }
+    
     try {
       const { EffectComposer } = await import('three/examples/jsm/postprocessing/EffectComposer.js');
       const { RenderPass } = await import('three/examples/jsm/postprocessing/RenderPass.js');
@@ -109,7 +115,7 @@ class PostProcessingManager {
       
       console.log("🌟 Post-Processing Pipeline kész: Render → SSAO → Bloom → FXAA");
       console.log(`🎯 FXAA Anti-aliasing: ${this.fxaaEnabled ? 'ENABLED' : 'DISABLED'}`);
-      
+      this.initialized = true;
       return true;
       
     } catch (error) {

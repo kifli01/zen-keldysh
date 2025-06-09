@@ -201,6 +201,110 @@ function checkCSS2DAvailability() {
   }
 }
 
+async function setRealisticPostProcesing() {
+  if (postProcessingManager) {
+      console.log("✨ Post-Processing (FXAA + Bloom + SSAO) inicializálása...");
+      try {
+        const postProcessingInitialized = await postProcessingManager.initialize();
+        
+        if (postProcessingInitialized) {
+          // ELSŐ: FXAA Anti-aliasing aktiválása (alapvető minőségjavítás)
+          postProcessingManager.setFXAAEnabled(true);
+          postProcessingManager.setFXAAPreset('default');
+          console.log("🎯 FXAA Anti-aliasing aktiválva!");
+          
+          // MÁSODIK: Bloom bekapcsolása 'subtle' preset-tel
+          postProcessingManager.setBloomPreset('subtle');
+          postProcessingManager.setBloomEnabled(true);
+          
+          // HARMADIK: SSAO bekapcsolása 'architectural' preset-tel
+          postProcessingManager.setSSAOPreset('architectural');
+          postProcessingManager.setSSAOEnabled(true);
+          
+          // ÚJ v1.13.3: Világítás optimalizálás post-processing-hez
+          console.log("💡 Világítás optimalizálás post-processing pipeline-hoz...");
+          
+          // Tone mapping exposure növelése
+          sceneManager.renderer.toneMappingExposure = 1.5;
+          
+          // Bloom beállítások finomhangolása
+          postProcessingManager.bloomPass.threshold = 2.5;
+          postProcessingManager.bloomPass.strength = 0.05;
+          
+          // Fények erősítése
+          sceneManager.scene.traverse(function(object) {
+            if (object.isLight && object.isAmbientLight) {
+              object.intensity = 3.5;
+            } else if (object.isLight) {
+              object.intensity *= 3.2;
+            }
+          });
+          
+          console.log("✅ Világítás optimalizálva post-processing-hez");
+          console.log("🌟 Teljes Post-Processing Pipeline aktiválva: FXAA + Bloom + SSAO!");
+        } else {
+          console.warn("❌ Post-Processing nem inicializálható");
+        }
+      } catch (error) {
+        console.error("Post-Processing inicializálási hiba:", error);
+      }
+    } else {
+      console.log("Post-Processing Manager nincs elérhető, folytatás nélküle");
+    }
+}
+
+async function setBlueprintPostProcesing() {
+  if (postProcessingManager) {
+      console.log("✨ Post-Processing (FXAA + Bloom + SSAO) inicializálása...");
+      try {
+        const postProcessingInitialized = await postProcessingManager.initialize();
+        
+        if (postProcessingInitialized) {
+          // ELSŐ: FXAA Anti-aliasing aktiválása (alapvető minőségjavítás)
+          postProcessingManager.setFXAAEnabled(false);
+          // postProcessingManager.setFXAAPreset('default');
+          // console.log("🎯 FXAA Anti-aliasing aktiválva!");
+          
+          // // MÁSODIK: Bloom bekapcsolása 'subtle' preset-tel
+          // postProcessingManager.setBloomPreset('subtle');
+          postProcessingManager.setBloomEnabled(false);
+          
+          // HARMADIK: SSAO bekapcsolása 'architectural' preset-tel
+          postProcessingManager.setSSAOPreset('architectural');
+          postProcessingManager.setSSAOEnabled(true);
+          
+          // // ÚJ v1.13.3: Világítás optimalizálás post-processing-hez
+          // console.log("💡 Világítás optimalizálás post-processing pipeline-hoz...");
+          
+          // // Tone mapping exposure növelése
+          // sceneManager.renderer.toneMappingExposure = 1.5;
+          
+          // // Bloom beállítások finomhangolása
+          // postProcessingManager.bloomPass.threshold = 2.5;
+          // postProcessingManager.bloomPass.strength = 0.05;
+          
+          // // Fények erősítése
+          // sceneManager.scene.traverse(function(object) {
+          //   if (object.isLight && object.isAmbientLight) {
+          //     object.intensity = 3.5;
+          //   } else if (object.isLight) {
+          //     object.intensity *= 3.2;
+          //   }
+          // });
+          
+          // console.log("✅ Világítás optimalizálva post-processing-hez");
+          // console.log("🌟 Teljes Post-Processing Pipeline aktiválva: FXAA + Bloom + SSAO!");
+        } else {
+          console.warn("❌ Post-Processing nem inicializálható");
+        }
+      } catch (error) {
+        console.error("Post-Processing inicializálási hiba:", error);
+      }
+    } else {
+      console.log("Post-Processing Manager nincs elérhető, folytatás nélküle");
+    }
+}
+
 // FRISSÍTETT v1.13.3: Egyszerűsített inicializálás Pure PBR pipeline-nal + localStorage + világítás optimalizálás
 async function initialize() {
   try {
@@ -332,59 +436,7 @@ async function initialize() {
     }
 
     // Post-Processing (FXAA + Bloom + SSAO) inicializálása
-    if (postProcessingManager) {
-      console.log("✨ Post-Processing (FXAA + Bloom + SSAO) inicializálása...");
-      try {
-        const postProcessingInitialized = await postProcessingManager.initialize();
-        
-        if (postProcessingInitialized) {
-          // ELSŐ: FXAA Anti-aliasing aktiválása (alapvető minőségjavítás)
-          postProcessingManager.setFXAAEnabled(true);
-          postProcessingManager.setFXAAPreset('default');
-          console.log("🎯 FXAA Anti-aliasing aktiválva!");
-          
-          // MÁSODIK: Bloom bekapcsolása 'subtle' preset-tel
-          postProcessingManager.setBloomPreset('subtle');
-          postProcessingManager.setBloomEnabled(true);
-          
-          // HARMADIK: SSAO bekapcsolása 'architectural' preset-tel
-          postProcessingManager.setSSAOPreset('architectural');
-          postProcessingManager.setSSAOEnabled(true);
-          
-          // ÚJ v1.13.3: Világítás optimalizálás post-processing-hez
-          console.log("💡 Világítás optimalizálás post-processing pipeline-hoz...");
-          
-          // Tone mapping exposure növelése
-          sceneManager.renderer.toneMappingExposure = 1.5;
-          
-          // Bloom beállítások finomhangolása
-          postProcessingManager.bloomPass.threshold = 2.5; // Alacsonyabb küszöb
-          postProcessingManager.bloomPass.strength = 0.05; // Erősebb bloom
-          
-          // Fények erősítése
-          sceneManager.scene.traverse(function(object) {
-            // if (object.isLight) {
-            //   object.color.setHex(0xd5d9db); // Tiszta fehér
-            // }
-            if (object.isLight && object.isAmbientLight) {
-              object.intensity = 3.5; // Ambient világosabb
-            } else if (object.isLight) {
-              object.intensity *= 3.2; // Többi fény erősebb
-            }
-          });
-          
-          console.log("✅ Világítás optimalizálva post-processing-hez");
-          
-          console.log("🌟 Teljes Post-Processing Pipeline aktiválva: FXAA + Bloom + SSAO!");
-        } else {
-          console.warn("❌ Post-Processing nem inicializálható");
-        }
-      } catch (error) {
-        console.error("Post-Processing inicializálási hiba:", error);
-      }
-    } else {
-      console.log("Post-Processing Manager nincs elérhető, folytatás nélküle");
-    }
+    // await setRealisticPostProcesing();
 
     // Event listener-ek beállítása
     if (typeof setupEventListeners === "function") {
@@ -749,6 +801,9 @@ window.toggleElementVisibility = function (elementId, isVisible) {
 
 // Inicializálás indítása az oldal betöltése után
 document.addEventListener("DOMContentLoaded", initialize);
+
+window.setRealisticPostProcesing = setRealisticPostProcesing;
+window.setBlueprintPostProcesing = setBlueprintPostProcesing;
 
 // Exportálás más modulok számára (frissített v1.13.3)
 export {
