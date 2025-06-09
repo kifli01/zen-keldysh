@@ -27,6 +27,9 @@ class SceneManager {
 
     // Animáció loop
     this.animationId = null;
+
+    this.defaultCameraPosition = { x: -190, y: 47, z: 110 };
+    this.defaultOrbitTarget = { x: -22, y: -14, z: -25 };
     
     console.log("SceneManager v1.7.3 - Javított forgatás és korlátok");
   }
@@ -60,10 +63,9 @@ class SceneManager {
     this.camera = new THREE.PerspectiveCamera(55, aspect, 0.1, 1000);
 
     // EGYSZERŰ kezdő pozíció - OrbitControls fogja kezelni
-    this.camera.position.set(200, 100, 200);
+    this.camera.position.set(this.defaultCameraPosition.x, this.defaultCameraPosition.y, this.defaultCameraPosition.z);
+
     this.camera.lookAt(0, 0, 0);
-    
-    console.log(`📷 Egyszerű kamera: (200, 100, 200) -> (0, 0, 0)`);
   }
 
   // Renderer létrehozása
@@ -170,13 +172,11 @@ class SceneManager {
       this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
       
       // TARGET: Pálya közepe
-      this.orbitControls.target.set(0, 0, 0);
+      this.orbitControls.target.set(this.defaultOrbitTarget.x, this.defaultOrbitTarget.y, this.defaultOrbitTarget.z);
       
       // ZOOM BEÁLLÍTÁSOK
       this.orbitControls.enableZoom = true;
-      this.orbitControls.zoomSpeed = 1.0;
-      this.orbitControls.minDistance = 60;
-      this.orbitControls.maxDistance = 500;
+      this.orbitControls.zoomSpeed = 1.5;
       this.orbitControls.zoomToCursor = true; // Kurzorhoz zoom
       
       // FORGATÁS BEÁLLÍTÁSOK - javított kiszámíthatóság
@@ -185,15 +185,11 @@ class SceneManager {
       this.orbitControls.autoRotate = false;
       
       // KORLÁTOZOTT FÜGGŐLEGES FORGATÁS - nem tud "átfordulni"
-      this.orbitControls.maxPolarAngle = Math.PI * 0.9; // 162° (nem teljes 180°)
-      this.orbitControls.minPolarAngle = Math.PI * 0.1; // 18° (nem lehet teljesen felülre)
-      
-      // VÍZSZINTES FORGATÁS KORLÁTOZÁSA (opcionális)
-      // this.orbitControls.minAzimuthAngle = -Math.PI; // -180°
-      // this.orbitControls.maxAzimuthAngle = Math.PI;  // +180°
+      this.orbitControls.maxPolarAngle = Math.PI; // 180°
+      this.orbitControls.minPolarAngle = 0; // 0°
       
       this.orbitControls.enablePan = true;
-      this.orbitControls.panSpeed = 0.8;
+      this.orbitControls.panSpeed = 1.0;
       this.orbitControls.screenSpacePanning = true; // FIX: Képernyő alapú mozgatás
       
       // SMOOTH MOZGÁS - erősebb damping
@@ -211,6 +207,23 @@ class SceneManager {
       // ÚJ: CTRL gomb kezelés - Ctrl+Left = forgatás
       this.isCtrlPressed = false;
       this.setupCtrlKeyHandling();
+
+      // DEBUG: Pozíció követés valós időben
+      this.orbitControls.addEventListener('change', () => {
+        console.log('📍 Kamera pozíció:', {
+          position: {
+            x: this.camera.position.x.toFixed(1),
+            y: this.camera.position.y.toFixed(1), 
+            z: this.camera.position.z.toFixed(1)
+          },
+          target: {
+            x: this.orbitControls.target.x.toFixed(1),
+            y: this.orbitControls.target.y.toFixed(1),
+            z: this.orbitControls.target.z.toFixed(1)
+          },
+          distance: this.camera.position.distanceTo(this.orbitControls.target).toFixed(1)
+        });
+      });
       
       // AKTIVÁLÁS
       this.orbitControls.update();
@@ -442,7 +455,7 @@ class SceneManager {
   // EGYSZERŰSÍTETT nézet váltás
   setViewPreset(viewName) {
     const presets = {
-      default: { position: [200, 100, 200], target: [0, 0, 0] },
+      default: { position: [this.defaultCameraPosition.x, this.defaultCameraPosition.y, this.defaultCameraPosition.z], target: [this.defaultOrbitTarget.x, this.defaultOrbitTarget.y, this.defaultOrbitTarget.z] },
       top: { position: [0, 300, 0], target: [0, 0, 0] },
       bottom: { position: [0, -300, 0], target: [0, 0, 0] },
       front: { position: [-300, 0, 0], target: [0, 0, 0] },
