@@ -29,12 +29,6 @@ class SceneManager {
 
     // ÚJ v1.5.0: Kamera beállítások optimalizálása
     this.defaultZoomDistance = 240; // Alapértelmezett zoom távolság
-    // this.cameraLookAtOffset = -20; // Kamera lejjebb néz, pálya feljebb tűnik
-    this.cameraLookAtOffset = {
-      x: -10,
-      y: -20,
-      z: -10,
-    }
     
     // Kamera pozíció számítása a defaultZoomDistance alapján (konzisztencia)
     const direction = new THREE.Vector3(-200, 60, 120).normalize();
@@ -48,31 +42,31 @@ class SceneManager {
     this.viewPresets = {
       default: {
         direction: this.defaultCameraPosition,
-        target: { ...this.cameraLookAtOffset },
+        target: { x: 0, y: 0, z: 0 },
       },
       top: { 
         direction: { x: 0, y: 1, z: 0 }, 
-        target: { ...this.cameraLookAtOffset } 
+        target: { x: 0, y: 0, z: 0 },
       },
       bottom: {
         direction: { x: 0, y: -1, z: 0 },
-        target: { ...this.cameraLookAtOffset },
+        target: { x: 0, y: 0, z: 0 },
       },
       front: { 
         direction: { x: -1, y: 0, z: 0 }, 
-        target: { ...this.cameraLookAtOffset } 
+        target: { x: 0, y: 0, z: 0 } 
       },
       back: { 
         direction: { x: 1, y: 0, z: 0 }, 
-        target: { ...this.cameraLookAtOffset } 
+        target: { x: 0, y: 0, z: 0 } 
       },
       left: { 
         direction: { x: 0, y: 0, z: -1 }, 
-        target: { ...this.cameraLookAtOffset } 
+        target: { x: 0, y: 0, z: 0 } 
       },
       right: { 
         direction: { x: 0, y: 0, z: 1 }, 
-        target: { ...this.cameraLookAtOffset } 
+        target: { x: 0, y: 0, z: 0 } 
       },
     };
 
@@ -113,9 +107,9 @@ class SceneManager {
     );
 
     // ÚJ v1.5.0: Kamera lejjebb néz, így a pálya feljebb tűnik
-    this.camera.lookAt(this.cameraLookAtOffset.x, this.cameraLookAtOffset.y, this.cameraLookAtOffset.z);
+    this.camera.lookAt(0, 0, 0);
     
-    console.log(`📷 Kamera beállítva - pozíció: (${this.defaultCameraPosition.x}, ${this.defaultCameraPosition.y}, ${this.defaultCameraPosition.z}), lookAt: ${this.cameraLookAtOffset}`);
+    console.log(`📷 Kamera beállítva - pozíció: (${this.defaultCameraPosition.x}, ${this.defaultCameraPosition.y}, ${this.defaultCameraPosition.z})`);
   }
 
   // ENHANCED v1.4.0: Fejlett Anti-aliasing renderer létrehozása
@@ -449,7 +443,7 @@ class SceneManager {
     const zoomFactor = 1 + deltaY * zoomSpeed * 0.01;
 
     // ÚJ: Target az offset pontja
-    const target = new THREE.Vector3(this.cameraLookAtOffset.x, this.cameraLookAtOffset.y, this.cameraLookAtOffset.z);
+    const target = new THREE.Vector3(0, 0, 0);
     const direction = this.camera.position.clone().sub(target);
     const newDistance = direction.length() * zoomFactor;
 
@@ -504,13 +498,13 @@ class SceneManager {
     this.camera.position.set(newPosition.x, newPosition.y, newPosition.z);
     this.camera.lookAt(preset.target.x, preset.target.y, preset.target.z);
     
-    console.log(`📷 Nézet váltás: ${viewName} - target: ${this.cameraLookAtOffset}`);
+    console.log(`📷 Nézet váltás: ${viewName}`);
   }
 
   // Kamera animáció egy pozícióba
   animateCameraToPosition(targetPosition, targetLookAt, duration = 800) {
     const startPosition = this.camera.position.clone();
-    const startLookAt = new THREE.Vector3(this.cameraLookAtOffset.x, this.cameraLookAtOffset.y, this.cameraLookAtOffset.z);
+    const startLookAt = new THREE.Vector3(0, 0, 0);
 
     const startTime = Date.now();
 
@@ -690,9 +684,7 @@ class SceneManager {
 
   // ÚJ v1.5.0: Zoom és kamera beállítások módosítása futásidőben
   setCameraSettings(settings = {}) {
-    if (settings.lookAtOffset !== undefined) {
-      this.cameraLookAtOffset = settings.lookAtOffset;
-      
+    if (settings.lookAtOffset !== undefined) {      
       // View presets frissítése
       Object.keys(this.viewPresets).forEach(viewName => {
         this.viewPresets[viewName].target.y = settings.lookAtOffset;
@@ -735,7 +727,6 @@ class SceneManager {
       cameraPosition: this.camera.position,
       scenePosition: this.scene.position,
       sceneRotation: this.scene.rotation,
-      cameraLookAtOffset: this.cameraLookAtOffset, // ÚJ v1.5.0
       defaultZoomDistance: this.defaultZoomDistance, // ÚJ v1.5.0
       coordinateSystemVisible: this.coordinateSystemVisible,
       antiAliasing: {
