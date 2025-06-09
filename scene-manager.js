@@ -1,7 +1,7 @@
 /**
  * Scene Manager
  * THREE.js scene, kamera, fények és kontrolok kezelése
- * v1.7.1 - MEGFORDÍTOTT OrbitControls (Bal=mozgat, Jobb/Ctrl+Bal=forgat)
+ * v1.7.3 - Javított forgatás: korlátozott függőleges + simább mozgás
  */
 
 class SceneManager {
@@ -28,7 +28,7 @@ class SceneManager {
     // Animáció loop
     this.animationId = null;
     
-    console.log("SceneManager v1.7.1 - MEGFORDÍTOTT OrbitControls");
+    console.log("SceneManager v1.7.3 - Javított forgatás és korlátok");
   }
 
   // Scene inicializálása
@@ -45,7 +45,7 @@ class SceneManager {
     
     this.startAnimationLoop();
 
-    console.log("Scene Manager v1.7.1 initialized - MEGFORDÍTOTT kontrollok (Bal=mozgat, Jobb/Ctrl+Bal=forgat)");
+    console.log("Scene Manager v1.7.3 initialized - Korlátozott forgatás (18°-162°)");
   }
 
   // Scene létrehozása
@@ -160,9 +160,9 @@ class SceneManager {
     console.log("✅ PBR világítás létrehozva: 5 fényforrás");
   }
 
-  // TISZTA OrbitControls inicializálása - MEGFORDÍTOTT kontrollok
+  // TISZTA OrbitControls inicializálása - JAVÍTOTT forgatás
   async initializeOrbitControls() {
-    console.log("🔍 TISZTA OrbitControls inicializálás...");
+    console.log("🔍 JAVÍTOTT OrbitControls inicializálás...");
     
     try {
       const { OrbitControls } = await import('three/examples/jsm/controls/OrbitControls.js');
@@ -179,22 +179,26 @@ class SceneManager {
       this.orbitControls.maxDistance = 500;
       this.orbitControls.zoomToCursor = true; // Kurzorhoz zoom
       
-      // FORGATÁS ÉS PAN ENGEDÉLYEZÉSE
+      // FORGATÁS BEÁLLÍTÁSOK - javított kiszámíthatóság
       this.orbitControls.enableRotate = true;
-      this.orbitControls.rotateSpeed = 0.5;
+      this.orbitControls.rotateSpeed = 0.3; // Lassabb = precízebb
       this.orbitControls.autoRotate = false;
+      
+      // KORLÁTOZOTT FÜGGŐLEGES FORGATÁS - nem tud "átfordulni"
+      this.orbitControls.maxPolarAngle = Math.PI * 0.9; // 162° (nem teljes 180°)
+      this.orbitControls.minPolarAngle = Math.PI * 0.1; // 18° (nem lehet teljesen felülre)
+      
+      // VÍZSZINTES FORGATÁS KORLÁTOZÁSA (opcionális)
+      // this.orbitControls.minAzimuthAngle = -Math.PI; // -180°
+      // this.orbitControls.maxAzimuthAngle = Math.PI;  // +180°
       
       this.orbitControls.enablePan = true;
       this.orbitControls.panSpeed = 0.8;
-      this.orbitControls.screenSpacePanning = false;
+      this.orbitControls.screenSpacePanning = true; // FIX: Képernyő alapú mozgatás
       
-      // SMOOTH MOZGÁS
+      // SMOOTH MOZGÁS - erősebb damping
       this.orbitControls.enableDamping = true;
-      this.orbitControls.dampingFactor = 0.05;
-      
-      // KORLÁTOK
-      this.orbitControls.maxPolarAngle = Math.PI; // 180°
-      this.orbitControls.minPolarAngle = 0; // 0°
+      this.orbitControls.dampingFactor = 0.08; // Növelve 0.05-ről
       
       // ÚJ v1.7.1: MEGFORDÍTOTT MOUSE GOMBOK
       // LEFT = PAN (mozgatás), RIGHT = ROTATE (forgatás), CTRL+LEFT = ROTATE
@@ -211,11 +215,11 @@ class SceneManager {
       // AKTIVÁLÁS
       this.orbitControls.update();
       
-      console.log("✅ MEGFORDÍTOTT OrbitControls inicializálva!");
+      console.log("✅ JAVÍTOTT OrbitControls inicializálva!");
       console.log("🎮 Kontrollok:", {
-        "Bal egér": "Pan mozgatás",
-        "Jobb egér": "Forgatás", 
-        "Ctrl + Bal egér": "Forgatás",
+        "Bal egér": "Pan mozgatás (képernyő alapú)",
+        "Jobb egér": "Korlátozott forgatás (18°-162°)", 
+        "Ctrl + Bal egér": "Korlátozott forgatás",
         "Scroll": "Zoom kurzorhoz"
       });
       
@@ -600,7 +604,7 @@ class SceneManager {
       orbitControlsTarget: this.orbitControls ? this.orbitControls.target : null,
       coordinateSystemVisible: this.coordinateSystemVisible,
       isCtrlPressed: this.isCtrlPressed,
-      version: "1.7.1",
+      version: "1.7.3",
     };
   }
 
@@ -625,6 +629,6 @@ class SceneManager {
       this.renderer.dispose();
     }
 
-    console.log("Scene Manager v1.7.1 destroyed");
+    console.log("Scene Manager v1.7.3 destroyed");
   }
 }
