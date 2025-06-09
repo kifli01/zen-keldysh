@@ -25,8 +25,6 @@ body {
   flex: 1;
   position: relative;
   height: 100%;
-  padding-top: 60px; /* Toolbar magasság */
-  /* margin-right eltávolítva - panel nem tolja el */
 }
 
 /* Felső Toolbar v1.14.0 */
