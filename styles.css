@@ -144,6 +144,17 @@ body {
   box-shadow: 0 4px 8px rgba(74, 103, 235, 0.3);
 }
 
+.icon-loader-circle::before {
+  animation:spin 800ms linear infinite;
+}
+
+@keyframes spin { 
+    100% { 
+        -webkit-transform: rotate(360deg); 
+        transform:rotate(360deg); 
+    } 
+}
+
 /* Responsive toolbar */
 @media (max-width: 1200px) {
   .toolbar-label {
