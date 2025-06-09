@@ -207,23 +207,6 @@ class SceneManager {
       // ÚJ: CTRL gomb kezelés - Ctrl+Left = forgatás
       this.isCtrlPressed = false;
       this.setupCtrlKeyHandling();
-
-      // DEBUG: Pozíció követés valós időben
-      this.orbitControls.addEventListener('change', () => {
-        console.log('📍 Kamera pozíció:', {
-          position: {
-            x: this.camera.position.x.toFixed(1),
-            y: this.camera.position.y.toFixed(1), 
-            z: this.camera.position.z.toFixed(1)
-          },
-          target: {
-            x: this.orbitControls.target.x.toFixed(1),
-            y: this.orbitControls.target.y.toFixed(1),
-            z: this.orbitControls.target.z.toFixed(1)
-          },
-          distance: this.camera.position.distanceTo(this.orbitControls.target).toFixed(1)
-        });
-      });
       
       // AKTIVÁLÁS
       this.orbitControls.update();
