@@ -1,10 +1,11 @@
-# Minigolf Pálya - Tervrajz Specifikációk - v1.3
+# Minigolf Pálya - Tervrajz Specifikációk - v1.4
 
 ## Instrukciók
 **FONTOS**: 
 - Olvasd végig ezt a fájlt alaposan !!!
 - Töltsd be a linkeket, és a forrásanyagokat.
 - Együttesen értelmezd ezeket, ha valami féreérthető akkor előbb jelezd azt mielőtt továbbmennél.
+- Az elemek pozíciója egy 3D-s programhoz (THREE js) vannak megadva, melyek általában az origó körül vannak pozícionálva, ezeket kell neked átforgatnod 2D-be a helyes műszaki rajzhoz.
 - NE TALÁLJ KI ELEMEKET
 - Pontosan illeszd az elemet egymáshoz, úgy ahogyan az a tervekben szerepel.
 - Pontosan mérj és értelmezzd a méreteket, pl: a pálya méreteire még rájön a falak vastagsága.
@@ -16,14 +17,13 @@
 
 ### Fájl formátum és canvas
 - **Kimenet**: SVG (image/svg+xml)
-- **Canvas**: 7016×4961px (A2, 300 DPI)
+- **Canvas**: 7016×4961px
 - **ViewBox**: "0 0 7016 4961"
 - **Reszponzívitás**: style="width: 100%; height: auto; max-width: 800px;"
-- **Méretarány**: 1:10 (ISO 5455 standard)
 - **Koordináta rendszer**: SVG standard (bal felső = 0,0)
-- **Konverzió**: **1mm valós = 0.236px rajzon**
+- **Konverzió**: 1mm = 2px
 - **Kimenet**: Tiszta SVG fájl (image/svg+xml)
-- **Tervrajz Pozícionálás**: Vetikálisan és Horizontálisan is Középre
+- **Tervrajz pozíció**: x=500, y=500 (bal felső sarok)
 
 ### Szövegek és Cimkék (ISO 3098 szerint)
 **TILTOTT elemek**
