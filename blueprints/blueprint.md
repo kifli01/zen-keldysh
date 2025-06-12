@@ -1,10 +1,12 @@
-# Minigolf Pálya - Tervrajz Specifikációk - v1.2
+# Minigolf Pálya - Tervrajz Specifikációk - v1.3
 
 ## Instrukciók
 **FONTOS**: 
 - Olvasd végig ezt a fájlt alaposan !!!
 - Töltsd be a linkeket, és a forrásanyagokat.
 - Együttesen értelmezd ezeket, ha valami féreérthető akkor előbb jelezd azt mielőtt továbbmennél.
+- NE TALÁLJ KI ELEMEKET
+- Pontosan illeszd az elemet egymáshoz, úgy ahogyan az a tervekben szerepel.
 - Pontosan mérj és értelmezzd a méreteket, pl: a pálya méreteire még rájön a falak vastagsága.
 - A láthattó elemeket, és lyukakat jelenítsd csak, de az egymésba ágyazottakat is.
 - Minden látható elem látható méretét jelnítsd meg pontosan az adott nézetben.
@@ -16,12 +18,12 @@
 - **Kimenet**: SVG (image/svg+xml)
 - **Canvas**: 7016×4961px (A2, 300 DPI)
 - **ViewBox**: "0 0 7016 4961"
-- **Méretarány**: 1:50 (ISO 5455 standard)
+- **Reszponzívitás**: style="width: 100%; height: auto; max-width: 800px;"
+- **Méretarány**: 1:10 (ISO 5455 standard)
 - **Koordináta rendszer**: SVG standard (bal felső = 0,0)
 - **Konverzió**: **1mm valós = 0.236px rajzon**
 - **Kimenet**: Tiszta SVG fájl (image/svg+xml)
 - **Tervrajz Pozícionálás**: Vetikálisan és Horizontálisan is Középre
-- **Felirat Pozícionálás**: Bal felső saroktól 30mm
 
 ### Szövegek és Cimkék (ISO 3098 szerint)
 **TILTOTT elemek**
@@ -29,12 +31,9 @@
 ❌ Megjegyzések (notes)
 ❌ Hosszú leírások
 ❌ Anyag listák
-
-**ENGEDÉLYEZETT elemek**
-Méretek (csak számok)
-✅ Méretarány megjelölés
-✅ Verzió szám
-✅ Ø szimb
+❌ Méretarány megjelölés
+❌ Verzió szám
+❌ Ø szimb
  
 **Font**
 Arial/sans-serif (egyértelmű olvashatóság)
