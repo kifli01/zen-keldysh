@@ -1,24 +1,27 @@
-# Minigolf Pálya - Tervrajz Specifikációk - v1.1
+# Minigolf Pálya - Tervrajz Specifikációk - v1.2
 
 ## Instrukciók
 **FONTOS**: 
-- Olvasd végig ezt a fájlt alaposan
+- Olvasd végig ezt a fájlt alaposan !!!
 - Töltsd be a linkeket, és a forrásanyagokat.
-- Együttesen értelmezd ezeket, ha valami féreérthető akkor előbb jelezd azt mielptt továbbmennél.
+- Együttesen értelmezd ezeket, ha valami féreérthető akkor előbb jelezd azt mielőtt továbbmennél.
+- Pontosan mérj és értelmezzd a méreteket, pl: a pálya méreteire még rájön a falak vastagsága.
+- A láthattó elemeket, és lyukakat jelenítsd csak, de az egymésba ágyazottakat is.
+- Minden látható elem látható méretét jelnítsd meg pontosan az adott nézetben.
+- Ne rajzolj le semmi olyat ami nincs a tervekben.
 
 ## Rajz követelmények
 
-### Fájl formátum és struktúra
-- **Kimene**t: Tiszta SVG fájl (image/svg+xml)
-- **Canvas méret**: A2 landscape = 594×420mm = 1683×1191px (283.46 DPI)
-- **Koordináta rendszer**: SVG standard (bal felső sarok = 0,0)
-- **Encoding**: UTF-8
-
-### SVG méretek és méretarány
-- **Canvas**: 1200×900px minimum
-- **Rajz terület**: 80% a canvas-ból
-- **Méretarány**: 1:20 (1mm = 0.05px) vagy 1:10
-- **Margók**: min 50px minden oldalon
+### Fájl formátum és canvas
+- **Kimenet**: SVG (image/svg+xml)
+- **Canvas**: 7016×4961px (A2, 300 DPI)
+- **ViewBox**: "0 0 7016 4961"
+- **Méretarány**: 1:50 (ISO 5455 standard)
+- **Koordináta rendszer**: SVG standard (bal felső = 0,0)
+- **Konverzió**: **1mm valós = 0.236px rajzon**
+- **Kimenet**: Tiszta SVG fájl (image/svg+xml)
+- **Tervrajz Pozícionálás**: Vetikálisan és Horizontálisan is Középre
+- **Felirat Pozícionálás**: Bal felső saroktól 30mm
 
 ### Szövegek és Cimkék (ISO 3098 szerint)
 **TILTOTT elemek**
@@ -56,4 +59,3 @@ Arial/sans-serif (egyértelmű olvashatóság)
 - Alkatrészek: `parts.js`
 - Lyukak: CSG operations a model fájlokban
 - Anyagok: `MATERIALS` objektum
-
