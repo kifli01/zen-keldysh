@@ -576,12 +576,12 @@ class SceneManager {
   // Scene export
   exportScene(binary = false) {
     return new Promise((resolve, reject) => {
-      if (!window.THREE.GLTFExporter) {
+      if (!window.GLTFExporter) {
         reject(new Error("GLTFExporter nem elérhető"));
         return;
       }
 
-      const exporter = new THREE.GLTFExporter();
+      const exporter = new window.GLTFExporter();
       const options = {
         binary: binary,
         includeCustomExtensions: true,
