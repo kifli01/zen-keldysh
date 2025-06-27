@@ -1,387 +1,242 @@
 /**
  * Color Manager
- * Fa elemek színkezelése - egységes szín és colorTintStrength
- * v1.0.0 - Alapvető színváltoztatás és localStorage támogatás
+ * Fa elemek színkezelése - egyszerűsített verzió
+ * v2.0.0 - Valós idejű színváltás újragenerálással
  */
 
-class ColorManager {
-  constructor(textureManager, sceneManager) {
-    this.textureManager = textureManager;
-    this.sceneManager = sceneManager;
-    
-    // Alapértelmezett értékek (PINE_SOLID-ból)
-    this.defaultWoodColor = 0xb6c4de;
-    this.defaultColorTintStrength = 1.2;
-    
-    // localStorage kulcsok
-    this.WOOD_COLOR_KEY = 'minigolf_wood_color';
-    this.TINT_STRENGTH_KEY = 'minigolf_wood_tint_strength';
-    
-    // Aktuális értékek
-    this.currentWoodColor = this.defaultWoodColor;
-    this.currentTintStrength = this.defaultColorTintStrength;
-    
-    this.initialized = false;
-    
-    console.log("ColorManager v1.0.0 - Egységes fa színkezelés");
-  }
+// localStorage kulcs
+const WOOD_COLOR_STORAGE_KEY = 'minigolf_wood_color';
 
-  // Inicializálás - localStorage értékek betöltése és alkalmazása
-  initialize() {
-    if (this.initialized) {
-      console.log("ColorManager már inicializálva");
-      return;
-    }
+// Alapértelmezett fa szín
+const DEFAULT_WOOD_COLOR = 0xb6c4de;
 
-    console.log("🎨 ColorManager inicializálás...");
+/**
+ * Fa szín megváltoztatása valós időben
+ * @param {number} hexColor - Hex szín (pl. 0xff5722)
+ */
+window.changeWoodColor = async function(hexColor) {
+  console.log('🎨 Fa szín váltása...', '#' + hexColor.toString(16));
+  
+  try {
+    // 1. Konstansok módosítása - egységes fa szín
+    MATERIALS.PINE_SOLID.baseColor = hexColor;
+    MATERIALS.PINE_PLYWOOD.baseColor = hexColor;
     
-    // localStorage értékek betöltése
-    const savedColor = this.loadWoodColor();
-    const savedTintStrength = this.loadTintStrength();
+    // 2. localStorage mentés
+    localStorage.setItem(WOOD_COLOR_STORAGE_KEY, hexColor.toString(16));
+    console.log(`💾 Fa szín mentve localStorage-ba: #${hexColor.toString(16)}`);
     
-    console.log(`📂 Betöltött értékek - szín: #${savedColor.toString(16)}, tint: ${savedTintStrength}`);
+    // 3. Fa elemek újragenerálása
+    const meshes = sceneManager().getAllMeshes();
+    let updatedCount = 0;
     
-    // Értékek alkalmazása
-    this.setWoodColor(savedColor, false); // false = ne mentse localStorage-ba újra
-    this.setTintStrength(savedTintStrength, false);
-    
-    this.initialized = true;
-    console.log("✅ ColorManager inicializálva");
-  }
-
-  // === FA SZÍN KEZELÉSE ===
-  
-  // Fa szín beállítása mindkét anyagra
-  setWoodColor(hexColor, saveToStorage = true) {
-    try {
-      // Hex szín validálása
-      const validatedColor = this.validateHexColor(hexColor);
-      
-      // MATERIALS objektum frissítése - mindkét fa anyag
-      MATERIALS.PINE_SOLID.baseColor = validatedColor;
-      MATERIALS.PINE_PLYWOOD.baseColor = validatedColor;
-      
-      this.currentWoodColor = validatedColor;
-      
-      console.log(`🎨 Fa szín beállítva: #${validatedColor.toString(16)}`);
-      
-      // localStorage mentés
-      if (saveToStorage) {
-        this.saveWoodColor(validatedColor);
-      }
-      
-      // Mesh-ek frissítése
-      this.updateAllWoodMeshes();
-      
-      return true;
-    } catch (error) {
-      console.error("❌ Fa szín beállítási hiba:", error);
-      return false;
-    }
-  }
-  
-  // Aktuális fa szín lekérése
-  getCurrentWoodColor() {
-    return this.currentWoodColor;
-  }
-  
-  // Fa szín visszaállítása alapértelmezettre
-  resetWoodColor() {
-    console.log("🔄 Fa szín visszaállítása alapértelmezettre");
-    return this.setWoodColor(this.defaultWoodColor);
-  }
-
-  // === COLOR TINT STRENGTH KEZELÉSE ===
-  
-  // ColorTintStrength beállítása mindkét anyagra
-  setTintStrength(strength, saveToStorage = true) {
-    try {
-      // Érték validálása (0.1 - 3.0 közötti tartomány)
-      const validatedStrength = Math.max(0.1, Math.min(3.0, parseFloat(strength) || this.defaultColorTintStrength));
-      
-      // MATERIALS objektum frissítése - mindkét fa anyag
-      MATERIALS.PINE_SOLID.colorTintStrength = validatedStrength;
-      MATERIALS.PINE_PLYWOOD.colorTintStrength = validatedStrength;
-      
-      this.currentTintStrength = validatedStrength;
-      
-      console.log(`🎛️ ColorTintStrength beállítva: ${validatedStrength}`);
-      
-      // localStorage mentés
-      if (saveToStorage) {
-        this.saveTintStrength(validatedStrength);
-      }
-      
-      // Mesh-ek frissítése
-      this.updateAllWoodMeshes();
-      
-      return true;
-    } catch (error) {
-      console.error("❌ ColorTintStrength beállítási hiba:", error);
-      return false;
-    }
-  }
-  
-  // Aktuális tint strength lekérése
-  getCurrentTintStrength() {
-    return this.currentTintStrength;
-  }
-  
-  // Tint strength visszaállítása alapértelmezettre
-  resetTintStrength() {
-    console.log("🔄 ColorTintStrength visszaállítása alapértelmezettre");
-    return this.setTintStrength(this.defaultColorTintStrength);
-  }
-
-  // === LOCALSTORAGE KEZELÉSE ===
-  
-  // Fa szín betöltése localStorage-ból
-  loadWoodColor() {
-    try {
-      const saved = localStorage.getItem(this.WOOD_COLOR_KEY);
-      if (saved) {
-        const parsedColor = parseInt(saved, 16);
-        if (!isNaN(parsedColor)) {
-          console.log(`📂 Fa szín betöltve localStorage-ból: #${parsedColor.toString(16)}`);
-          return parsedColor;
-        }
-      }
-    } catch (error) {
-      console.warn("⚠️ Fa szín localStorage betöltési hiba:", error);
-    }
-    
-    console.log(`📂 Alapértelmezett fa szín használata: #${this.defaultWoodColor.toString(16)}`);
-    return this.defaultWoodColor;
-  }
-  
-  // Fa szín mentése localStorage-ba
-  saveWoodColor(hexColor) {
-    try {
-      localStorage.setItem(this.WOOD_COLOR_KEY, hexColor.toString(16));
-      console.log(`💾 Fa szín mentve localStorage-ba: #${hexColor.toString(16)}`);
-    } catch (error) {
-      console.warn("⚠️ Fa szín localStorage mentési hiba:", error);
-    }
-  }
-  
-  // ColorTintStrength betöltése localStorage-ból
-  loadTintStrength() {
-    try {
-      const saved = localStorage.getItem(this.TINT_STRENGTH_KEY);
-      if (saved) {
-        const parsedStrength = parseFloat(saved);
-        if (!isNaN(parsedStrength) && parsedStrength >= 0.1 && parsedStrength <= 3.0) {
-          console.log(`📂 ColorTintStrength betöltve localStorage-ból: ${parsedStrength}`);
-          return parsedStrength;
-        }
-      }
-    } catch (error) {
-      console.warn("⚠️ ColorTintStrength localStorage betöltési hiba:", error);
-    }
-    
-    console.log(`📂 Alapértelmezett ColorTintStrength használata: ${this.defaultColorTintStrength}`);
-    return this.defaultColorTintStrength;
-  }
-  
-  // ColorTintStrength mentése localStorage-ba
-  saveTintStrength(strength) {
-    try {
-      localStorage.setItem(this.TINT_STRENGTH_KEY, strength.toString());
-      console.log(`💾 ColorTintStrength mentve localStorage-ba: ${strength}`);
-    } catch (error) {
-      console.warn("⚠️ ColorTintStrength localStorage mentési hiba:", error);
-    }
-  }
-
-  // === MESH FRISSÍTÉSE ===
-  
-  // Összes fa mesh újragenerálása
-  async updateAllWoodMeshes() {
-    if (!this.sceneManager || !this.textureManager) {
-      console.warn("⚠️ SceneManager vagy TextureManager nem elérhető");
-      return;
-    }
-
-    console.log("🔄 Fa mesh-ek frissítése...");
-    
-    try {
-      const meshes = this.sceneManager.getAllMeshes();
-      let updatedCount = 0;
-      
-      for (const [elementId, mesh] of meshes) {
-        // ElementManager helyett közvetlenül a mesh userData-ból szerezzük az információt
-        const element = mesh.userData?.element;
+    for (const [elementId, mesh] of meshes) {
+      // Fa elemek azonosítása
+      if (isWoodElement(elementId)) {
+        const element = elementManager().getAllElements().find(e => e.id === elementId);
         
-        if (element && this.isWoodMaterial(element.materialKey)) {
-          const success = await this.updateSingleWoodMesh(mesh, element);
-          if (success) {
+        if (element) {
+          const materialDef = MATERIALS[element.materialKey];
+          const newMaterial = await textureManager().getMaterialWithShade(materialDef, element.shade || 5);
+          
+          // Material csere
+          if (mesh.material) {
+            // Régi material dispose
+            if (mesh.material.dispose) {
+              mesh.material.dispose();
+            }
+            mesh.material = newMaterial;
             updatedCount++;
           }
+          
+          // GROUP mesh-ek kezelése (ha vannak)
+          if (mesh.children && mesh.children.length > 0) {
+            mesh.children.forEach((child) => {
+              if (child.material) {
+                if (child.material.dispose) {
+                  child.material.dispose();
+                }
+                child.material = newMaterial.clone();
+              }
+            });
+          }
         }
       }
-      
-      console.log(`✅ ${updatedCount} fa mesh frissítve`);
-      
-      // Renderelés triggere
-      if (this.sceneManager.renderer && this.sceneManager.camera) {
-        this.sceneManager.renderer.render(this.sceneManager.scene, this.sceneManager.camera);
-      }
-      
-    } catch (error) {
-      console.error("❌ Fa mesh-ek frissítési hiba:", error);
-    }
-  }
-  
-  // Egyetlen fa mesh újragenerálása
-  async updateSingleWoodMesh(mesh, element) {
-    try {
-      // Új material generálása frissített paraméterekkel
-      const materialDef = MATERIALS[element.materialKey];
-      const newMaterial = await this.textureManager.getMaterialWithShade(materialDef, element.shade);
-      
-      if (!newMaterial) {
-        console.warn(`⚠️ Material generálás sikertelen: ${element.id}`);
-        return false;
-      }
-      
-      // GROUP elemek kezelése
-      if (mesh.userData && mesh.userData.isGroup) {
-        mesh.children.forEach((childMesh) => {
-          if (childMesh.material) {
-            // Régi material dispose
-            if (childMesh.material.dispose) {
-              childMesh.material.dispose();
-            }
-            childMesh.material = newMaterial.clone();
-          }
-        });
-      } else {
-        // Hagyományos mesh
-        if (mesh.material) {
-          // Régi material dispose
-          if (mesh.material.dispose) {
-            mesh.material.dispose();
-          }
-          mesh.material = newMaterial;
-        }
-      }
-      
-      return true;
-    } catch (error) {
-      console.error(`❌ Mesh frissítési hiba (${element.id}):`, error);
-      return false;
-    }
-  }
-
-  // === SEGÉDFÜGGVÉNYEK ===
-  
-  // Fa anyag ellenőrzése
-  isWoodMaterial(materialKey) {
-    return materialKey === 'PINE_SOLID' || materialKey === 'PINE_PLYWOOD';
-  }
-  
-  // Hex szín validálása
-  validateHexColor(hexColor) {
-    // Ha már szám, visszaadás
-    if (typeof hexColor === 'number') {
-      return Math.max(0, Math.min(0xFFFFFF, hexColor));
     }
     
-    // String esetén konverzió
-    if (typeof hexColor === 'string') {
-      // # eltávolítása ha van
-      const cleanHex = hexColor.replace('#', '');
-      const parsed = parseInt(cleanHex, 16);
+    console.log(`✅ ${updatedCount} fa elem frissítve és mentve`);
+    
+    // 4. Renderelés triggere
+    sceneManager().renderer.render(sceneManager().scene, sceneManager().camera);
+    
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Fa szín váltási hiba:', error);
+    return false;
+  }
+};
+
+/**
+ * Mentett fa szín betöltése localStorage-ból
+ */
+window.loadSavedWoodColor = function() {
+  try {
+    const saved = localStorage.getItem(WOOD_COLOR_STORAGE_KEY);
+    
+    if (saved) {
+      const color = parseInt(saved, 16);
       
-      if (!isNaN(parsed) && cleanHex.length === 6) {
-        return parsed;
+      if (!isNaN(color)) {
+        console.log('📂 Mentett fa szín betöltése:', '#' + saved);
+        
+        // Konstansok beállítása (renderelés nélkül)
+        MATERIALS.PINE_SOLID.baseColor = color;
+        MATERIALS.PINE_PLYWOOD.baseColor = color;
+        
+        console.log(`✅ Fa szín beállítva: #${saved}`);
+        return color;
       }
     }
     
-    // Hibás érték esetén alapértelmezett
-    console.warn(`⚠️ Hibás hex szín: ${hexColor}, alapértelmezett használata`);
-    return this.defaultWoodColor;
+    console.log('📂 Nincs mentett fa szín, alapértelmezett használata');
+    return DEFAULT_WOOD_COLOR;
+    
+  } catch (error) {
+    console.warn('⚠️ Fa szín localStorage betöltési hiba:', error);
+    return DEFAULT_WOOD_COLOR;
   }
-  
-  // Hex szín THREE.Color-rá konvertálása
-  hexToThreeColor(hexColor) {
-    return new THREE.Color(hexColor);
-  }
-  
-  // THREE.Color hex string-gé konvertálása
-  threeColorToHex(threeColor) {
-    return parseInt(threeColor.getHexString(), 16);
-  }
+};
 
-  // === KOMBINÁLT MŰVELETEK ===
-  
-  // Mindkét érték egyszerre beállítása
-  setWoodProperties(hexColor, tintStrength) {
-    console.log(`🎨 Fa tulajdonságok beállítása - szín: #${hexColor.toString(16)}, tint: ${tintStrength}`);
-    
-    const colorSuccess = this.setWoodColor(hexColor);
-    const tintSuccess = this.setTintStrength(tintStrength);
-    
-    return colorSuccess && tintSuccess;
-  }
-  
-  // Minden beállítás visszaállítása alapértelmezettre
-  resetAllWoodProperties() {
-    console.log("🔄 Összes fa tulajdonság visszaállítása");
-    
-    const colorSuccess = this.resetWoodColor();
-    const tintSuccess = this.resetTintStrength();
-    
-    return colorSuccess && tintSuccess;
-  }
+/**
+ * Fa szín visszaállítása alapértelmezettre
+ */
+window.resetWoodColor = function() {
+  console.log('🔄 Fa szín visszaállítása alapértelmezettre');
+  return changeWoodColor(DEFAULT_WOOD_COLOR);
+};
 
-  // === STATUS ÉS DEBUG ===
-  
-  // Aktuális állapot lekérése
-  getStatus() {
-    return {
-      initialized: this.initialized,
-      currentWoodColor: `#${this.currentWoodColor.toString(16)}`,
-      currentTintStrength: this.currentTintStrength,
-      defaultWoodColor: `#${this.defaultWoodColor.toString(16)}`,
-      defaultTintStrength: this.defaultColorTintStrength,
-      hasTextureManager: !!this.textureManager,
-      hasSceneManager: !!this.sceneManager,
-      version: '1.0.0'
-    };
-  }
-  
-  // Debug információ kiírása
-  logStatus() {
-    console.log("=== COLOR MANAGER STATUS ===");
-    const status = this.getStatus();
-    Object.entries(status).forEach(([key, value]) => {
-      console.log(`${key}: ${value}`);
-    });
-    console.log("===========================");
-  }
-  
-  // localStorage tartalom kiírása
-  logStorageContents() {
-    console.log("=== COLOR MANAGER LOCALSTORAGE ===");
-    console.log(`${this.WOOD_COLOR_KEY}: ${localStorage.getItem(this.WOOD_COLOR_KEY)}`);
-    console.log(`${this.TINT_STRENGTH_KEY}: ${localStorage.getItem(this.TINT_STRENGTH_KEY)}`);
-    console.log("=================================");
-  }
+/**
+ * Aktuális fa szín lekérése
+ */
+window.getCurrentWoodColor = function() {
+  return MATERIALS.PINE_SOLID.baseColor;
+};
 
-  // === CLEANUP ===
+/**
+ * Hex szín konvertálása színes stringgé (debug)
+ */
+window.hexToColorString = function(hexColor) {
+  return '#' + hexColor.toString(16).padStart(6, '0');
+};
+
+/**
+ * Fa elem azonosítása elementId alapján
+ * @param {string} elementId - Elem azonosító
+ * @returns {boolean} - Fa elem-e
+ */
+function isWoodElement(elementId) {
+  const woodKeywords = [
+    'frame', 'leg', 'wall', 'cross', 'beam', 
+    'plate', 'dowel', 'tessauer', 'countersunk'
+  ];
   
-  // Cleanup és erőforrások felszabadítása
-  destroy() {
-    console.log("🧹 ColorManager cleanup...");
-    
-    this.textureManager = null;
-    this.sceneManager = null;
-    this.initialized = false;
-    
-    console.log("ColorManager v1.0.0 cleanup kész");
-  }
+  return woodKeywords.some(keyword => elementId.includes(keyword));
 }
 
-// Globális hozzáférhetőség
-window.ColorManager = ColorManager;
+/**
+ * Fa elemek számának lekérése (debug)
+ */
+window.getWoodElementCount = function() {
+  const meshes = sceneManager().getAllMeshes();
+  let woodCount = 0;
+  
+  for (const [elementId] of meshes) {
+    if (isWoodElement(elementId)) {
+      woodCount++;
+    }
+  }
+  
+  return woodCount;
+};
+
+/**
+ * Fa elemek listázása (debug)
+ */
+window.listWoodElements = function() {
+  const meshes = sceneManager().getAllMeshes();
+  const woodElements = [];
+  
+  for (const [elementId] of meshes) {
+    if (isWoodElement(elementId)) {
+      const element = elementManager().getAllElements().find(e => e.id === elementId);
+      woodElements.push({
+        id: elementId,
+        materialKey: element?.materialKey || 'UNKNOWN'
+      });
+    }
+  }
+  
+  console.log(`=== FA ELEMEK (${woodElements.length}) ===`);
+  woodElements.forEach(item => {
+    console.log(`${item.id} - ${item.materialKey}`);
+  });
+  console.log('================================');
+  
+  return woodElements;
+};
+
+/**
+ * localStorage fa szín debug információk
+ */
+window.woodColorDebug = function() {
+  console.log('=== FA SZÍN DEBUG ===');
+  console.log('Aktuális fa szín:', hexToColorString(getCurrentWoodColor()));
+  console.log('PINE_SOLID.baseColor:', hexToColorString(MATERIALS.PINE_SOLID.baseColor));
+  console.log('PINE_PLYWOOD.baseColor:', hexToColorString(MATERIALS.PINE_PLYWOOD.baseColor));
+  console.log('localStorage érték:', localStorage.getItem(WOOD_COLOR_STORAGE_KEY));
+  console.log('Fa elemek száma:', getWoodElementCount());
+  console.log('====================');
+};
+
+/**
+ * localStorage fa szín törlése
+ */
+window.clearWoodColorStorage = function() {
+  localStorage.removeItem(WOOD_COLOR_STORAGE_KEY);
+  console.log('🧹 Fa szín localStorage törölve');
+};
+
+// Automatikus betöltés inicializáláskor (ha a DOM már kész)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    // Késleltetett betöltés - várjuk meg hogy minden manager kész legyen
+    setTimeout(() => {
+      if (typeof sceneManager === 'function' && sceneManager()) {
+        loadSavedWoodColor();
+      }
+    }, 2000); // 2 másodperc késleltetés
+  });
+} else {
+  // DOM már kész
+  setTimeout(() => {
+    if (typeof sceneManager === 'function' && sceneManager()) {
+      loadSavedWoodColor();
+    }
+  }, 1000);
+}
+
+console.log('✅ Color Manager v2.0.0 - Egyszerűsített fa színkezelés betöltve');
+
+// Globális hozzáférhetőség régi ColorManager objektum helyett
+window.ColorManager = {
+  changeWoodColor,
+  loadSavedWoodColor,
+  resetWoodColor,
+  getCurrentWoodColor,
+  getWoodElementCount,
+  listWoodElements,
+  woodColorDebug,
+  clearWoodColorStorage,
+  version: '2.0.0'
+};
