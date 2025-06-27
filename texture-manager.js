@@ -204,25 +204,15 @@ class TextureManager {
       const normalizedShade = Math.max(1, Math.min(10, shade));
       
       // JAVÍTOTT brightness formula - világosabb
-      const brightness = 0.8 + (normalizedShade - 1) * (0.8 / 9); // 0.8-1.6 tartomány
+      // const brightness = 0.8 + (normalizedShade - 1) * (0.8 / 9); // 0.8-1.6 tartomány
       const roughness = (materialDef.roughnessBase || 0.5) + (10 - normalizedShade) * 0.05;
       const metalness = materialDef.metalnessBase || 0.0;
       
       // Alapszín számítás - csökkentett color tinting
       const baseColor = new THREE.Color(materialDef.baseColor || materialDef.color || 0x808080);
-      baseColor.multiplyScalar(brightness);
       
       // Csökkentett Color Tinting
       let finalColor = baseColor;
-      let colorIntensity = 1.0; // Visszaállítva az alapértelmezett értékre
-      
-      if (textureSet.diffuse && materialDef.enableColorTinting !== false) {
-        colorIntensity = materialDef.colorTintStrength || 1.0; // Alapértelmezett 1.0
-        finalColor = baseColor.clone();
-        finalColor.multiplyScalar(colorIntensity);
-        
-        console.log(`🎨 Color Tinting: ${materialName}, intensity: ${colorIntensity}, color: #${finalColor.getHexString()}`);
-      }
       
       // Textúra repeat beállítása (BIZTONSÁGOSAN)
       const repeat = materialDef.pbrRepeat || materialDef.repeat || { x: 1, y: 1 };
@@ -283,7 +273,7 @@ class TextureManager {
         flatShading: false,
         
         // Csökkentett környezeti világítás
-        envMapIntensity: materialDef.envMapIntensity || 0.5, // 1.0 helyett 0.5
+        envMapIntensity: 0.5, // 1.0 helyett 0.5
       });
 
       // Debug log
@@ -294,7 +284,7 @@ class TextureManager {
       if (textureSet.metalness) appliedMaps.push('metalness');
       if (textureSet.ao) appliedMaps.push('ao');
       
-      console.log(`🎨 PBR Material: ${materialName}, shade: ${normalizedShade}, brightness: ${brightness.toFixed(2)}, maps: [${appliedMaps.join(', ')}]`);
+      // console.log(`🎨 PBR Material: ${materialName}, shade: ${normalizedShade}, brightness: ${brightness.toFixed(2)}, maps: [${appliedMaps.join(', ')}]`);
       
       return material;
       

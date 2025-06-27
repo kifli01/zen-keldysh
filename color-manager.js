@@ -8,7 +8,7 @@
 const WOOD_COLOR_STORAGE_KEY = 'minigolf_wood_color';
 
 // Alapértelmezett fa szín
-const DEFAULT_WOOD_COLOR = 0xb6c4de;
+const DEFAULT_WOOD_COLOR = 0xd3e3ff;
 
 /**
  * Fa szín megváltoztatása valós időben
@@ -37,13 +37,13 @@ window.changeWoodColor = async function(hexColor) {
         
         if (element) {
           const materialDef = MATERIALS[element.materialKey];
-          const newMaterial = await textureManager().getMaterialWithShade(materialDef, element.shade || 5);
+          const newMaterial = await textureManager().getMaterialWithShade(materialDef);
           
           // Material csere
           if (mesh.material) {
             // Régi material dispose
             if (mesh.material.dispose) {
-              mesh.material.dispose();
+              // mesh.material.dispose();
             }
             mesh.material = newMaterial;
             updatedCount++;
@@ -54,7 +54,7 @@ window.changeWoodColor = async function(hexColor) {
             mesh.children.forEach((child) => {
               if (child.material) {
                 if (child.material.dispose) {
-                  child.material.dispose();
+                  // child.material.dispose();
                 }
                 child.material = newMaterial.clone();
               }
