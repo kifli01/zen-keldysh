@@ -101,9 +101,7 @@
         gl_FragColor = vec4(finalColor, 1.0);
       }
     </script>
-  </head>
-  <body>
-    <!-- Import map és főalkalmazás - FRISSÍTETT OrbitControls támogatással -->
+
     <script type="importmap">
       {
         "imports": {
@@ -148,13 +146,21 @@
         }
       });
     </script>
+  </head>
 
+  <body>
     <!-- UI struktúra -->
     <div id="viewer-container">
       <!-- Felső Toolbar - EREDETITŐL ELTÉRŐ ELRENDEZÉS -->
       <div id="top-toolbar">
         <!-- Bal oldal: Nézetek és kontrollok -->
         <div class="toolbar-left">
+          <div class="toolbar-group">
+            <button id="toggle-left-panel" title="Bal oldali panel"><i data-lucide="panel-left"></i></button>
+          </div>
+          
+          <div class="toolbar-separator"></div>
+          
           <div class="toolbar-group">
             <button id="view-top" title="Felülnézet"><i data-lucide="arrow-up"></i></button>
             <button id="view-bottom" title="Alulnézet"><i data-lucide="arrow-down"></i></button>
@@ -206,6 +212,35 @@
     <div id="right-slider">
       <input type="range" id="explode-slider" class="vertical-slider" 
              min="0" max="1000" value="0" step="1">
+    </div>
+
+    <!-- Bal oldali panel -->
+    <div id="left-panel" class="hidden">
+      <h2>Fa szín</h2>
+      <div class="color-section">
+        <div class="color-preview" id="color-preview"></div>
+        <div class="rgb-sliders">
+          <div class="slider-group">
+            <label for="red-slider">Red:</label>
+            <input type="range" id="red-slider" min="0" max="255" value="211">
+            <span id="red-value">211</span>
+          </div>
+          <div class="slider-group">
+            <label for="green-slider">Green:</label>
+            <input type="range" id="green-slider" min="0" max="255" value="227">
+            <span id="green-value">227</span>
+          </div>
+          <div class="slider-group">
+            <label for="blue-slider">Blue:</label>
+            <input type="range" id="blue-slider" min="0" max="255" value="255">
+            <span id="blue-value">255</span>
+          </div>
+        </div>
+        <div class="hex-display">
+          <label>Hex:</label>
+          <span id="hex-value">#d3e3ff</span>
+        </div>
+      </div>
     </div>
 
     <!-- Summary panel - alapból rejtett -->

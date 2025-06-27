@@ -82,6 +82,66 @@ function setupEventListeners({
     });
   }
 
+  // Bal oldali panel toggle gomb - ÚJ
+  const leftPanelBtn = document.getElementById("toggle-left-panel");
+  if (leftPanelBtn) {
+    leftPanelBtn.addEventListener("click", function () {
+      toggleLeftPanel();
+    });
+  }
+
+  // Fa szín picker event listener - ÚJ
+  const woodColorPicker = document.getElementById("wood-color-picker");
+  if (woodColorPicker) {
+    woodColorPicker.addEventListener("change", function () {
+      const hexString = this.value; // pl. "#ff5722"
+      const hexNumber = parseInt(hexString.substring(1), 16); // Eltávolítjuk a #-et és átalakítjuk számmá
+      
+      console.log(`🎨 Fa szín változás: ${hexString} -> 0x${hexNumber.toString(16)}`);
+      
+      if (window.changeWoodColor) {
+        window.changeWoodColor(hexNumber);
+      } else {
+        console.warn("changeWoodColor függvény nem található");
+      }
+    });
+  }
+
+  // RGB slider event listener-ek - ÚJ
+const redSlider = document.getElementById("red-slider");
+const greenSlider = document.getElementById("green-slider");
+const blueSlider = document.getElementById("blue-slider");
+
+if (redSlider && greenSlider && blueSlider) {
+  function updateColor() {
+    const r = parseInt(redSlider.value);
+    const g = parseInt(greenSlider.value);
+    const b = parseInt(blueSlider.value);
+    
+    // Értékek frissítése
+    document.getElementById("red-value").textContent = r;
+    document.getElementById("green-value").textContent = g;
+    document.getElementById("blue-value").textContent = b;
+    
+    // Hex érték számítása
+    const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    document.getElementById("hex-value").textContent = hex;
+    
+    // Color preview frissítése
+    document.getElementById("color-preview").style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+    
+    // changeWoodColor hívása
+    const hexNumber = (r << 16) + (g << 8) + b;
+    if (window.changeWoodColor) {
+      window.changeWoodColor(hexNumber);
+    }
+  }
+  
+  redSlider.addEventListener("input", updateColor);
+  greenSlider.addEventListener("input", updateColor);
+  blueSlider.addEventListener("input", updateColor);
+}
+
   // Summary panel toggle gomb
   const summaryBtn = document.getElementById("toggle-summary-panel");
   if (summaryBtn) {
@@ -190,6 +250,63 @@ function setupEventListeners({
 
   console.log("✅ Event listener-ek beállítva v1.15.0 - Explode slider támogatással");
 }
+
+
+// Bal oldali panel toggle funkcionalitás
+function toggleLeftPanel() {
+  const leftPanel = document.getElementById("left-panel");
+  const toggleBtn = document.getElementById("toggle-left-panel");
+  
+  if (!leftPanel || !toggleBtn) {
+    console.warn("Bal oldali panel elemek nem találhatóak");
+    return;
+  }
+  
+  const isVisible = leftPanel.classList.contains("visible");
+  
+  if (isVisible) {
+    // Panel elrejtése
+    leftPanel.classList.remove("visible");
+    leftPanel.classList.add("hidden");
+    
+    // Ikon váltás
+    const icon = toggleBtn.querySelector('i[data-lucide]');
+    if (icon) {
+      icon.setAttribute('data-lucide', 'panel-left');
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+    
+    console.log("📋 Bal oldali panel elrejtve");
+  } else {
+    // Panel megjelenítése
+    leftPanel.classList.remove("hidden");
+    leftPanel.classList.add("visible");
+    
+    // Ikon váltás
+    const icon = toggleBtn.querySelector('i[data-lucide]');
+    if (icon) {
+      icon.setAttribute('data-lucide', 'x');
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+    
+    console.log("📋 Bal oldali panel megjelenítve");
+  }
+}
+
+// Event listener hozzáadása a setupEventListeners függvényhez
+const leftPanelBtn = document.getElementById("toggle-left-panel");
+if (leftPanelBtn) {
+  leftPanelBtn.addEventListener("click", function () {
+    toggleLeftPanel();
+  });
+}
+
+// Globális hozzáférhetőség
+window.toggleLeftPanel = toggleLeftPanel;
 
 // Summary Panel Toggle funkcionalitás
 function toggleSummaryPanel() {

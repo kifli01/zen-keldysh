@@ -168,6 +168,139 @@ body {
   right: 470px; /* 450px panel + 20px */
 }
 
+/* Bal oldali panel */
+#left-panel {
+  width: 450px;
+  height: calc(100vh - 60px);
+  background-color: #f9f9f9;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  overflow-y: auto;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  z-index: 998;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+#left-panel.visible {
+  transform: translateX(0);
+}
+
+#left-panel.hidden {
+  transform: translateX(-100%);
+}
+
+#left-panel h2 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #262730;
+  border-bottom: 1px solid #e7e7ec;
+  padding-bottom: 10px;
+  font-family: "Merriweather", Georgia, serif;
+  font-weight: 300;
+}
+
+/* Color section */
+.color-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Color preview */
+.color-preview {
+  width: 100%;
+  height: 80px;
+  border-radius: 8px;
+  border: 2px solid #e7e7ec;
+  background-color: #d3e3ff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* RGB Sliders */
+.rgb-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.slider-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-group label {
+  font-weight: 500;
+  color: #4f5461;
+  min-width: 50px;
+  font-size: 14px;
+}
+
+.slider-group input[type="range"] {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #e7e7ec;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.slider-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4a67eb;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider-group input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4a67eb;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider-group span {
+  font-weight: 500;
+  color: #262730;
+  min-width: 35px;
+  text-align: right;
+  font-size: 14px;
+}
+
+/* Hex display */
+.hex-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background-color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e7e7ec;
+}
+
+.hex-display label {
+  font-weight: 500;
+  color: #4f5461;
+  font-size: 14px;
+}
+
+.hex-display span {
+  font-family: "Monaco", "Consolas", monospace;
+  font-weight: 600;
+  color: #262730;
+  font-size: 14px;
+}
+
 .vertical-slider {
   writing-mode: vertical-lr;
   direction: rtl;
