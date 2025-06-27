@@ -29,8 +29,8 @@ const MATERIALS = {
   PINE_PLYWOOD: {
     name: "Lucfenyő rétegelt lemez",
     density: 0.5, // g/cm³
-    color: 0xb6c4de,
-    baseColor: 0xb6c4de,
+    color: 0xd3e3ff,
+    baseColor: 0xd3e3ff,
     shininess: 10,
     
     // LEGACY textúra (fallback)
@@ -50,7 +50,7 @@ const MATERIALS = {
     // PBR tulajdonságok
     roughnessBase: 0.5,
     metalnessBase: 0.0,
-    envMapIntensity: 0.3,
+    envMapIntensity: 0,
     
     // Dynamic Normal Scale
     normalScale: 10.6,
@@ -64,8 +64,8 @@ const MATERIALS = {
   PINE_SOLID: {
     name: "Lucfenyő tömörfa",
     density: 0.45, // g/cm³
-    color: 0xb6c4de,
-    baseColor: 0xb6c4de,
+    color: 0xd3e3ff,
+    baseColor: 0xd3e3ff,
     shininess: 0,
     
     // LEGACY textúra (fallback)
@@ -85,7 +85,7 @@ const MATERIALS = {
     // PBR tulajdonságok
     roughnessBase: 0.9,
     metalnessBase: 0.0,
-    envMapIntensity: 0.1,
+    envMapIntensity: 0,
     
     // Dynamic Normal Scale
     normalScale: 0.7,
@@ -99,8 +99,8 @@ const MATERIALS = {
   ARTIFICIAL_GRASS: {
     name: "LazyLawn Meadow Twist műfű",
     density: 0.2, // g/cm³
-    color: 0x6e93fa,
-    baseColor: 0x6e93fa,
+    color: 0x95c5ff,
+    baseColor: 0x95c5ff,
     shininess: 2,
     
     // LEGACY textúra (fallback)
@@ -121,7 +121,7 @@ const MATERIALS = {
     // PBR tulajdonságok
     roughnessBase: 0.95,
     metalnessBase: 0.0,
-    envMapIntensity: 0.1,
+    envMapIntensity: 0,
     
     // Dynamic Normal Scale
     normalScale: 0.8,
@@ -137,7 +137,7 @@ const MATERIALS = {
     name: "Fehér műanyag",
     density: 0.9, // g/cm³
     color: 0xffffff,
-    baseColor: 0x8c846d,
+    baseColor: 0xb4aa8d,
     shininess: 30,
     
     // LEGACY textúra (fallback)
