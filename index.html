@@ -239,6 +239,17 @@
             <i data-lucide="save"></i>
           </button>
         </div>
+
+        <!-- Firebase preset kezelés -->
+        <div class="preset-section">
+          <h3>Mentett színek (Firebase)</h3>
+          <div class="preset-grid" id="preset-grid">
+            <div class="loading-presets">Preset-ek betöltése...</div>
+          </div>
+          <button id="save-as-preset-btn" class="preset-save-btn">
+            <i data-lucide="plus"></i> Jelenlegi szín mentése
+          </button>
+        </div>
       </div>
     </div>
 
@@ -247,5 +258,39 @@
       <h1>Minigolf Pálya Specifikáció</h1>
       <!-- A summary javascript-ből lesz feltöltve -->
     </div>
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+      import { getDatabase, ref, set, get, child, push, remove } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBTJzcnYIXKm-i3CCsH6EiiARA_GUsU7sY",
+        authDomain: "minigolf-47dbb.firebaseapp.com",
+        databaseURL: "https://minigolf-47dbb-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "minigolf-47dbb",
+        storageBucket: "minigolf-47dbb.firebasestorage.app",
+        messagingSenderId: "106364045207",
+        appId: "1:106364045207:web:9f3ba6b12c7465c13726d2"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const database = getDatabase(app);
+      
+      // Globális hozzáférés
+      window.firebaseDb = database;
+      window.firebaseRef = ref;
+      window.firebaseSet = set;
+      window.firebaseGet = get;
+      window.firebaseChild = child;
+      window.firebasePush = push;
+      window.firebaseRemove = remove;
+      
+      console.log('🔥 Firebase v11.9.1 inicializálva');
+    </script>
   </body>
 </html>

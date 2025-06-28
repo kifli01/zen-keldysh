@@ -200,6 +200,12 @@ function setupEventListeners({
     });
   }
 
+  // Firebase preset gomb
+  const savePresetBtn = document.getElementById("save-as-preset-btn");
+  if (savePresetBtn) {
+    savePresetBtn.addEventListener("click", saveCurrentColorAsPreset);
+  }
+
   console.log("✅ Event listener-ek beállítva v1.17.0 - iro.js Color Picker integrációval");
 }
 
@@ -265,6 +271,7 @@ function initializeColorPicker() {
 
     // Kezdeti color preview beállítása
     updateColorPreview(colorPicker.color);
+    loadPresetsToUI();
     
     console.log("✅ iro.js Color Picker inicializálva (sliderPicker layout)");
     
@@ -451,14 +458,94 @@ function downloadBlob(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 
-// Globális hozzáférés
-window.setupEventListeners = setupEventListeners;
-window.exportGLTF = exportGLTF;
-window.toggleLeftPanel = toggleLeftPanel;
-window.toggleSummaryPanel = toggleSummaryPanel;
-window.initializeColorPicker = initializeColorPicker;
-window.saveCurrentColor = saveCurrentColor;
-window.resetToDefaultColor = resetToDefaultColor;
+// v1.18.0: Firebase preset-ek betöltése UI-ba
+async function loadPresetsToUI() {
+  try {
+    const presets = await window.loadPresetsFromFirebase();
+    const presetGrid = document.getElementById("preset-grid");
+    
+    if (!presetGrid) {
+      console.warn("preset-grid elem nem található");
+      return;
+    }
+
+    presetGrid.innerHTML = '';
+
+    if (presets.length === 0) {
+      presetGrid.innerHTML = '<div class="no-presets">Nincs mentett szín</div>';
+      return;
+    }
+
+    presets.forEach((preset) => {
+      const presetElement = createPresetElement(preset);
+      presetGrid.appendChild(presetElement);
+    });
+
+    console.log(`🔥 ${presets.length} preset betöltve UI-ba`);
+    
+  } catch (error) {
+    console.error('❌ Preset-ek UI betöltési hiba:', error);
+  }
+}
+
+// Preset elem létrehozása
+function createPresetElement(preset) {
+  const presetDiv = document.createElement('div');
+  presetDiv.className = 'preset-item';
+  presetDiv.style.backgroundColor = `#${preset.color.toString(16).padStart(6, '0')}`;
+  presetDiv.title = `Szín: ${preset.colorString}`;
+  
+  presetDiv.addEventListener('click', () => {
+    if (colorPicker) {
+      const hexString = `#${preset.color.toString(16).padStart(6, '0')}`;
+      colorPicker.color.set(hexString);
+    }
+    if (window.changeWoodColor) {
+      window.changeWoodColor(preset.color);
+    }
+  });
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'delete-btn';
+  deleteBtn.innerHTML = '×';
+  deleteBtn.title = 'Törlés';
+  
+  deleteBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const success = await window.deletePresetFromFirebase(preset.id);
+    if (success) await loadPresetsToUI();
+  });
+
+  presetDiv.appendChild(deleteBtn);
+  return presetDiv;
+}
+
+// Preset mentés
+async function saveCurrentColorAsPreset() {
+  if (!colorPicker) return;
+  
+  const hexNumber = parseInt(colorPicker.color.hexString.substring(1), 16);
+  const success = await window.savePresetToFirebase(hexNumber);
+  
+  if (success) {
+    await loadPresetsToUI();
+    
+    const saveBtn = document.getElementById("save-as-preset-btn");
+    if (saveBtn) {
+      const originalText = saveBtn.innerHTML;
+      saveBtn.innerHTML = '<i data-lucide="check"></i> Mentve!';
+      saveBtn.disabled = true;
+      
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      
+      setTimeout(() => {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }, 2000);
+    }
+  }
+}
 
 // Eredeti színre visszaállítás
 function resetToDefaultColor() {
@@ -552,3 +639,12 @@ function saveCurrentColor() {
     console.error("❌ saveWoodColor függvény nem található");
   }
 }
+
+// Globális hozzáférés
+window.setupEventListeners = setupEventListeners;
+window.exportGLTF = exportGLTF;
+window.toggleLeftPanel = toggleLeftPanel;
+window.toggleSummaryPanel = toggleSummaryPanel;
+window.initializeColorPicker = initializeColorPicker;
+window.saveCurrentColor = saveCurrentColor;
+window.resetToDefaultColor = resetToDefaultColor;
