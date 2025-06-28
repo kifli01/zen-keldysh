@@ -256,26 +256,18 @@ function initializeWoodColorPicker() {
   try {
     // FA SliderPicker létrehozása
     woodColorPicker = new iro.ColorPicker("#iro-color-picker", {
-      width: 410, // Teljes panel szélesség mínusz padding
+      width: 390, // Teljes panel szélesség mínusz padding
       color: "#d3e3ff", // Alapértelmezett fa szín
       borderWidth: 0, // Nincs border
       layout: [
         {
+          component: iro.ui.Box,
+        },
+        {
           component: iro.ui.Slider,
           options: {
+            id: 'hue-slider',
             sliderType: 'hue'
-          }
-        },
-        {
-          component: iro.ui.Slider,
-          options: {
-            sliderType: 'saturation'
-          }
-        },
-        {
-          component: iro.ui.Slider,
-          options: {
-            sliderType: 'value'
           }
         }
       ]
@@ -320,26 +312,18 @@ function initializeGrassColorPicker() {
   try {
     // MŰFŰ SliderPicker létrehozása
     grassColorPicker = new iro.ColorPicker("#iro-grass-color-picker", {
-      width: 410, // Teljes panel szélesség mínusz padding
+      width: 390, // Teljes panel szélesség mínusz padding
       color: "#95c5ff", // Alapértelmezett műfű szín
       borderWidth: 0, // Nincs border
       layout: [
         {
+          component: iro.ui.Box,
+        },
+        {
           component: iro.ui.Slider,
           options: {
+            id: 'hue-slider',
             sliderType: 'hue'
-          }
-        },
-        {
-          component: iro.ui.Slider,
-          options: {
-            sliderType: 'saturation'
-          }
-        },
-        {
-          component: iro.ui.Slider,
-          options: {
-            sliderType: 'value'
           }
         }
       ]
