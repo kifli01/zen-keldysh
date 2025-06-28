@@ -1,8 +1,11 @@
 /**
  * Event Handlers
  * UI interakciók kezelése
- * v1.15.0 - Explode slider támogatás hozzáadva
+ * v1.17.0 - iro.js Color Picker integráció
  */
+
+// Globális iro.js color picker változó
+let colorPicker = null;
 
 // Event listener-ek beállítása
 function setupEventListeners({
@@ -33,7 +36,7 @@ function setupEventListeners({
     });
   }
 
-  // ÚJ v1.15.0: Explode slider kezelése
+  // Explode slider kezelése
   const explodeSlider = document.getElementById("explode-slider");
   if (explodeSlider) {
     explodeSlider.addEventListener("input", function () {
@@ -82,7 +85,7 @@ function setupEventListeners({
     });
   }
 
-  // Bal oldali panel toggle gomb - ÚJ
+  // Bal oldali panel toggle gomb
   const leftPanelBtn = document.getElementById("toggle-left-panel");
   if (leftPanelBtn) {
     leftPanelBtn.addEventListener("click", function () {
@@ -90,57 +93,24 @@ function setupEventListeners({
     });
   }
 
-  // Fa szín picker event listener - ÚJ
-  const woodColorPicker = document.getElementById("wood-color-picker");
-  if (woodColorPicker) {
-    woodColorPicker.addEventListener("change", function () {
-      const hexString = this.value; // pl. "#ff5722"
-      const hexNumber = parseInt(hexString.substring(1), 16); // Eltávolítjuk a #-et és átalakítjuk számmá
-      
-      console.log(`🎨 Fa szín változás: ${hexString} -> 0x${hexNumber.toString(16)}`);
-      
-      if (window.changeWoodColor) {
-        window.changeWoodColor(hexNumber);
-      } else {
-        console.warn("changeWoodColor függvény nem található");
-      }
+  // iro.js Color Picker inicializálása
+  initializeColorPicker();
+
+  // Szín mentés gomb
+  const saveColorBtn = document.getElementById("save-color-btn");
+  if (saveColorBtn) {
+    saveColorBtn.addEventListener("click", function () {
+      saveCurrentColor();
     });
   }
 
-  // RGB slider event listener-ek - ÚJ
-const redSlider = document.getElementById("red-slider");
-const greenSlider = document.getElementById("green-slider");
-const blueSlider = document.getElementById("blue-slider");
-
-if (redSlider && greenSlider && blueSlider) {
-  function updateColor() {
-    const r = parseInt(redSlider.value);
-    const g = parseInt(greenSlider.value);
-    const b = parseInt(blueSlider.value);
-    
-    // Értékek frissítése
-    document.getElementById("red-value").textContent = r;
-    document.getElementById("green-value").textContent = g;
-    document.getElementById("blue-value").textContent = b;
-    
-    // Hex érték számítása
-    const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-    document.getElementById("hex-value").textContent = hex;
-    
-    // Color preview frissítése
-    document.getElementById("color-preview").style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-    
-    // changeWoodColor hívása
-    const hexNumber = (r << 16) + (g << 8) + b;
-    if (window.changeWoodColor) {
-      window.changeWoodColor(hexNumber);
-    }
+  // Szín reset gomb
+  const resetColorBtn = document.getElementById("reset-color-btn");
+  if (resetColorBtn) {
+    resetColorBtn.addEventListener("click", function () {
+      resetToDefaultColor();
+    });
   }
-  
-  redSlider.addEventListener("input", updateColor);
-  greenSlider.addEventListener("input", updateColor);
-  blueSlider.addEventListener("input", updateColor);
-}
 
   // Summary panel toggle gomb
   const summaryBtn = document.getElementById("toggle-summary-panel");
@@ -160,44 +130,26 @@ if (redSlider && greenSlider && blueSlider) {
   const resetBtn = document.getElementById("reset-view");
   if (resetBtn) {
     resetBtn.addEventListener("click", function () {
-      // Exploded állapot visszaállítása
-      if (exploder.getState().isExploded) {
-        exploder.reset(allMeshes, elementManager.getAllElements());
-        
-        // UI elemek szinkronizálása
-        const explodeBtn = document.getElementById("toggle-explode");
-        const explodeSlider = document.getElementById("explode-slider");
-        
-        if (explodeBtn) {
-          explodeBtn.className = "icon-layers";
-        }
-        if (explodeSlider) {
-          explodeSlider.value = 0;
-        }
-      }
-
-      // Nézet visszaállítása (kamera pozíció)
       sceneManager.resetView();
     });
   }
 
-  // Zoom In gomb
+  // Zoom gombok
   const zoomInBtn = document.getElementById("zoom-in");
   if (zoomInBtn) {
     zoomInBtn.addEventListener("click", function () {
-      sceneManager.zoomCamera(-50); // Negatív érték = közelebb
+      sceneManager.zoomIn();
     });
   }
 
-  // Zoom Out gomb
   const zoomOutBtn = document.getElementById("zoom-out");
   if (zoomOutBtn) {
     zoomOutBtn.addEventListener("click", function () {
-      sceneManager.zoomCamera(50); // Pozitív érték = távolabb
+      sceneManager.zoomOut();
     });
   }
 
-  // GLTF export gomb
+  // GLTF Export gomb
   const exportBtn = document.getElementById("export-gltf");
   if (exportBtn) {
     exportBtn.addEventListener("click", function () {
@@ -205,7 +157,7 @@ if (redSlider && greenSlider && blueSlider) {
     });
   }
 
-  // Nézet váltó gombok
+  // Nézet beállítás gombok
   const viewTopBtn = document.getElementById("view-top");
   if (viewTopBtn) {
     viewTopBtn.addEventListener("click", function () {
@@ -248,9 +200,93 @@ if (redSlider && greenSlider && blueSlider) {
     });
   }
 
-  console.log("✅ Event listener-ek beállítva v1.15.0 - Explode slider támogatással");
+  console.log("✅ Event listener-ek beállítva v1.17.0 - iro.js Color Picker integrációval");
 }
 
+// iro.js Color Picker inicializálása
+function initializeColorPicker() {
+  // Ellenőrizzük, hogy az iro.js betöltődött-e
+  if (typeof iro === 'undefined') {
+    console.error("❌ iro.js nem töltődött be! Ellenőrizd a CDN-t.");
+    return;
+  }
+
+  const pickerContainer = document.getElementById("iro-color-picker");
+  if (!pickerContainer) {
+    console.error("❌ iro-color-picker container nem található!");
+    return;
+  }
+
+  try {
+    // SliderPicker létrehozása (3 slider: hue, saturation, value - teljes szélességűek)
+    colorPicker = new iro.ColorPicker("#iro-color-picker", {
+      width: 410, // Teljes panel szélesség mínusz padding
+      color: "#d3e3ff", // Alapértelmezett fa szín
+      borderWidth: 0, // Nincs border
+      layout: [
+        {
+          component: iro.ui.Slider,
+          options: {
+            sliderType: 'hue'
+          }
+        },
+        {
+          component: iro.ui.Slider,
+          options: {
+            sliderType: 'saturation'
+          }
+        },
+        {
+          component: iro.ui.Slider,
+          options: {
+            sliderType: 'value'
+          }
+        }
+      ]
+    });
+
+    // Color change event listener
+    colorPicker.on('color:change', function(color) {
+      const hexString = color.hexString; // pl. "#ff5722"
+      const hexNumber = parseInt(hexString.substring(1), 16); // 0xff5722
+      
+      console.log(`🎨 iro.js színváltozás: ${hexString} -> 0x${hexNumber.toString(16)}`);
+      
+      // UI frissítése
+      updateColorPreview(color);
+      
+      // Fa szín változtatása
+      if (window.changeWoodColor) {
+        window.changeWoodColor(hexNumber);
+      } else {
+        console.warn("changeWoodColor függvény nem található");
+      }
+    });
+
+    // Kezdeti color preview beállítása
+    updateColorPreview(colorPicker.color);
+    
+    console.log("✅ iro.js Color Picker inicializálva (sliderPicker layout)");
+    
+  } catch (error) {
+    console.error("❌ iro.js Color Picker inicializálási hiba:", error);
+  }
+}
+
+// Color preview és hex érték frissítése
+function updateColorPreview(color) {
+  // Color preview frissítése
+  const colorPreview = document.getElementById("color-preview");
+  if (colorPreview) {
+    colorPreview.style.backgroundColor = color.rgbaString;
+  }
+  
+  // Hex érték frissítése
+  const hexValue = document.getElementById("hex-value");
+  if (hexValue) {
+    hexValue.textContent = color.hexString.split("#").join("0x");
+  }
+}
 
 // Bal oldali panel toggle funkcionalitás
 function toggleLeftPanel() {
@@ -296,17 +332,6 @@ function toggleLeftPanel() {
     console.log("📋 Bal oldali panel megjelenítve");
   }
 }
-
-// Event listener hozzáadása a setupEventListeners függvényhez
-const leftPanelBtn = document.getElementById("toggle-left-panel");
-if (leftPanelBtn) {
-  leftPanelBtn.addEventListener("click", function () {
-    toggleLeftPanel();
-  });
-}
-
-// Globális hozzáférhetőség
-window.toggleLeftPanel = toggleLeftPanel;
 
 // Summary Panel Toggle funkcionalitás
 function toggleSummaryPanel() {
@@ -363,9 +388,6 @@ function toggleSummaryPanel() {
     console.log("📋 Summary panel megjelenítve");
   }
 }
-
-// Globális hozzáférhetőség
-window.toggleSummaryPanel = toggleSummaryPanel;
 
 // GLTF exportálási funkció
 async function exportGLTF(
@@ -432,3 +454,101 @@ function downloadBlob(blob, filename) {
 // Globális hozzáférés
 window.setupEventListeners = setupEventListeners;
 window.exportGLTF = exportGLTF;
+window.toggleLeftPanel = toggleLeftPanel;
+window.toggleSummaryPanel = toggleSummaryPanel;
+window.initializeColorPicker = initializeColorPicker;
+window.saveCurrentColor = saveCurrentColor;
+window.resetToDefaultColor = resetToDefaultColor;
+
+// Eredeti színre visszaállítás
+function resetToDefaultColor() {
+  console.log("🔄 Szín visszaállítása alapértelmezettre...");
+  
+  // resetWoodColor használata (color-manager.js)
+  if (window.resetWoodColor) {
+    const success = window.resetWoodColor();
+    
+    if (success) {
+      // iro.js picker frissítése az eredeti színre
+      if (colorPicker) {
+        colorPicker.color.set("#d3e3ff"); // Alapértelmezett fa szín
+        console.log("✅ iro.js picker frissítve az alapértelmezettre");
+      }
+      
+      // Vizuális visszajelzés - gomb animáció
+      const resetBtn = document.getElementById("reset-color-btn");
+      if (resetBtn) {
+        const originalText = resetBtn.innerHTML;
+        resetBtn.innerHTML = '<i data-lucide="check"></i>!';
+        resetBtn.disabled = true;
+        
+        // Lucide ikon frissítése
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+        
+        // 2 másodperc után visszaállítás
+        setTimeout(() => {
+          resetBtn.innerHTML = originalText;
+          resetBtn.disabled = false;
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
+        }, 2000);
+      }
+      
+      console.log("✅ Szín visszaállítva alapértelmezettre");
+    } else {
+      console.error("❌ Szín reset sikertelen");
+    }
+  } else {
+    console.error("❌ resetWoodColor függvény nem található");
+  }
+}
+
+// Aktuális szín mentése
+function saveCurrentColor() {
+  if (!colorPicker) {
+    console.warn("⚠️ Color picker nincs inicializálva");
+    return;
+  }
+  
+  const currentColor = colorPicker.color;
+  const hexString = currentColor.hexString;
+  const hexNumber = parseInt(hexString.substring(1), 16);
+  
+  // saveWoodColor használata (color-manager.js)
+  if (window.saveWoodColor) {
+    const success = window.saveWoodColor(hexNumber);
+    
+    if (success) {
+      console.log(`💾 Szín mentve: ${hexString} (0x${hexNumber.toString(16)})`);
+      
+      // Vizuális visszajelzés - gomb animáció
+      const saveBtn = document.getElementById("save-color-btn");
+      if (saveBtn) {
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i data-lucide="check"></i>';
+        saveBtn.disabled = true;
+        
+        // Lucide ikon frissítése
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+        
+        // 2 másodperc után visszaállítás
+        setTimeout(() => {
+          saveBtn.innerHTML = originalText;
+          saveBtn.disabled = false;
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
+        }, 2000);
+      }
+    } else {
+      console.error("❌ Szín mentése sikertelen");
+    }
+  } else {
+    console.error("❌ saveWoodColor függvény nem található");
+  }
+}

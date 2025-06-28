@@ -277,8 +277,16 @@ body {
   font-size: 14px;
 }
 
+.color-footer {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 /* Hex display */
 .hex-display {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 10px;

@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Minigolf Pálya Viewer - v1.16.0 OrbitControls</title>
+    <title>Minigolf Pálya Viewer - v1.17.0 iro.js Color Picker</title>
 
     <!-- ES6 modules támogatás -->
     <script
@@ -28,7 +28,7 @@
     <script src="geometry-builder.js"></script>
     <script src="exploder.js"></script>
     <script src="scene-manager.js"></script>
-    <script src="post-processing-manager.js"></script> <!-- ÁTHELYEZVE scene-manager után -->
+    <script src="post-processing-manager.js"></script>
     <script src="view-mode.js"></script>
     <script src="summary.js"></script>
     <script src="event-handlers.js"></script>
@@ -38,6 +38,9 @@
     
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- iro.js Color Picker CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
 
     <!-- Toon Shader kódok -->
     <script id="toonVertexShader" type="x-shader/x-vertex">
@@ -102,6 +105,7 @@
       }
     </script>
 
+    <!-- Import Maps for ES6 Modules -->
     <script type="importmap">
       {
         "imports": {
@@ -136,7 +140,6 @@
 
     <!-- Lucide Icons inicializálása -->
     <script>
-      // Lucide ikonok inicializálása az oldal betöltése után
       document.addEventListener('DOMContentLoaded', function() {
         if (typeof lucide !== 'undefined') {
           lucide.createIcons();
@@ -151,7 +154,7 @@
   <body>
     <!-- UI struktúra -->
     <div id="viewer-container">
-      <!-- Felső Toolbar - EREDETITŐL ELTÉRŐ ELRENDEZÉS -->
+      <!-- Felső Toolbar -->
       <div id="top-toolbar">
         <!-- Bal oldal: Nézetek és kontrollok -->
         <div class="toolbar-left">
@@ -186,7 +189,7 @@
 
           <div class="toolbar-separator"></div>
           
-          <!-- ÚJ v1.17.0: GLTF Export gomb -->
+          <!-- GLTF Export gomb -->
           <div class="toolbar-group">
             <button id="export-gltf" title="GLTF Export"><i data-lucide="download"></i></button>
           </div>
@@ -208,7 +211,7 @@
       </div>
     </div>
 
-    <!-- ÚJ v1.15.0: Jobb oldali vertikális slider -->
+    <!-- Jobb oldali vertikális slider -->
     <div id="right-slider">
       <input type="range" id="explode-slider" class="vertical-slider" 
              min="0" max="1000" value="0" step="1">
@@ -219,26 +222,22 @@
       <h2>Fa szín</h2>
       <div class="color-section">
         <div class="color-preview" id="color-preview"></div>
-        <div class="rgb-sliders">
-          <div class="slider-group">
-            <label for="red-slider">Red:</label>
-            <input type="range" id="red-slider" min="0" max="255" value="211">
-            <span id="red-value">211</span>
+        
+        <!-- iro.js Color Picker Container -->
+        <div id="iro-color-picker"></div>
+
+        <div class="color-footer">
+          <button id="reset-color-btn" title="Eredeti szín visszaállítása">
+            <i data-lucide="brush-cleaning"></i>
+          </button>
+
+          <div class="hex-display">
+            <span id="hex-value"></span>
           </div>
-          <div class="slider-group">
-            <label for="green-slider">Green:</label>
-            <input type="range" id="green-slider" min="0" max="255" value="227">
-            <span id="green-value">227</span>
-          </div>
-          <div class="slider-group">
-            <label for="blue-slider">Blue:</label>
-            <input type="range" id="blue-slider" min="0" max="255" value="255">
-            <span id="blue-value">255</span>
-          </div>
-        </div>
-        <div class="hex-display">
-          <label>Hex:</label>
-          <span id="hex-value">#d3e3ff</span>
+          
+          <button id="save-color-btn" title="Szín mentése">
+            <i data-lucide="save"></i>
+          </button>
         </div>
       </div>
     </div>

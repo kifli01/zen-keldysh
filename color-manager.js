@@ -1,7 +1,7 @@
 /**
  * Color Manager
- * Fa elemek színkezelése - egyszerűsített verzió
- * v2.0.0 - Valós idejű színváltás újragenerálással
+ * Fa elemek színkezelése - v2.1.0 külön mentés funkcióval
+ * v2.1.0 - Szétválasztott changeWoodColor és saveWoodColor
  */
 
 // localStorage kulcs
@@ -11,7 +11,7 @@ const WOOD_COLOR_STORAGE_KEY = 'minigolf_wood_color';
 const DEFAULT_WOOD_COLOR = 0xd3e3ff;
 
 /**
- * Fa szín megváltoztatása valós időben
+ * Fa szín megváltoztatása valós időben (NINCS localStorage mentés)
  * @param {number} hexColor - Hex szín (pl. 0xff5722)
  */
 window.changeWoodColor = async function(hexColor) {
@@ -22,11 +22,7 @@ window.changeWoodColor = async function(hexColor) {
     MATERIALS.PINE_SOLID.baseColor = hexColor;
     MATERIALS.PINE_PLYWOOD.baseColor = hexColor;
     
-    // 2. localStorage mentés
-    localStorage.setItem(WOOD_COLOR_STORAGE_KEY, hexColor.toString(16));
-    console.log(`💾 Fa szín mentve localStorage-ba: #${hexColor.toString(16)}`);
-    
-    // 3. Fa elemek újragenerálása
+    // 2. Fa elemek újragenerálása
     const meshes = sceneManager().getAllMeshes();
     let updatedCount = 0;
     
@@ -64,15 +60,37 @@ window.changeWoodColor = async function(hexColor) {
       }
     }
     
-    console.log(`✅ ${updatedCount} fa elem frissítve és mentve`);
+    console.log(`✅ ${updatedCount} fa elem frissítve (NINCS mentés)`);
     
-    // 4. Renderelés triggere
+    // 3. Renderelés triggere
     sceneManager().renderer.render(sceneManager().scene, sceneManager().camera);
     
     return true;
     
   } catch (error) {
     console.error('❌ Fa szín váltási hiba:', error);
+    return false;
+  }
+};
+
+/**
+ * ÚJ v2.1.0: Aktuális fa szín mentése localStorage-ba
+ * @param {number} hexColor - Opcionális hex szín, ha nincs megadva akkor az aktuálisat menti
+ */
+window.saveWoodColor = function(hexColor = null) {
+  try {
+    // Ha nincs szín megadva, aktuális szín használata
+    const colorToSave = hexColor !== null ? hexColor : getCurrentWoodColor();
+    
+    // localStorage mentés
+    localStorage.setItem(WOOD_COLOR_STORAGE_KEY, colorToSave.toString(16));
+    
+    console.log(`💾 Fa szín mentve localStorage-ba: #${colorToSave.toString(16)}`);
+    
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Fa szín mentési hiba:', error);
     return false;
   }
 };
@@ -113,6 +131,7 @@ window.loadSavedWoodColor = function() {
  */
 window.resetWoodColor = function() {
   console.log('🔄 Fa szín visszaállítása alapértelmezettre');
+  window.clearWoodColorStorage();
   return changeWoodColor(DEFAULT_WOOD_COLOR);
 };
 
@@ -226,11 +245,12 @@ if (document.readyState === 'loading') {
   }, 1000);
 }
 
-console.log('✅ Color Manager v2.0.0 - Egyszerűsített fa színkezelés betöltve');
+console.log('✅ Color Manager v2.1.0 - Szétválasztott változtatás/mentés betöltve');
 
-// Globális hozzáférhetőség régi ColorManager objektum helyett
+// Globális hozzáférhetőség
 window.ColorManager = {
   changeWoodColor,
+  saveWoodColor, // ÚJ
   loadSavedWoodColor,
   resetWoodColor,
   getCurrentWoodColor,
@@ -238,5 +258,5 @@ window.ColorManager = {
   listWoodElements,
   woodColorDebug,
   clearWoodColorStorage,
-  version: '2.0.0'
+  version: '2.1.0'
 };
