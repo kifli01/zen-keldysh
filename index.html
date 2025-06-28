@@ -219,22 +219,18 @@
 
     <!-- Bal oldali panel -->
     <div id="left-panel" class="hidden">
-      <h2>Fa szín</h2>
-      <div class="color-section">
-        <div class="color-row">
-          <button id="reset-color-btn" title="Eredeti szín visszaállítása">
-            <i data-lucide="brush-cleaning"></i>
-          </button>
-
-          <div class="color-preview" id="color-preview"></div>
-
-          <button id="save-color-btn" title="Szín mentése">
-            <i data-lucide="save"></i>
-          </button>
+      <!-- MEGLÉVŐ FA SZEKCIÓ (változatlan) -->
+      <div class="color-control-panel">
+        <div class="section-header">
+          <h2>Fa színválasztás</h2>
         </div>
         
+        <div class="color-row">
+          <button id="reset-color-btn"><i data-lucide="brush-cleaning"></i></button>
+          <div class="color-preview" id="color-preview"></div>
+          <button id="save-color-btn"><i data-lucide="save"></i></button>
+        </div>
         
-        <!-- iro.js Color Picker Container -->
         <div id="iro-color-picker"></div>
 
         <div class="color-row">
@@ -247,10 +243,43 @@
           </button>
         </div>
 
-        <!-- Firebase preset kezelés -->
         <div class="preset-section">
           <div class="preset-grid" id="preset-grid">
             <div class="loading-presets">Preset-ek betöltése...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÚJ MŰFŰ SZEKCIÓ -->
+      <div class="color-control-panel grass-section">
+        <div class="section-header">
+          <h2>Műfű színválasztás</h2>
+        </div>
+        
+        <div class="color-row">
+          <button id="reset-grass-color-btn" class="control-btn">
+            <i data-lucide="brush-cleaning"></i>
+          </button>
+          <div class="color-preview" id="grass-color-preview"></div>
+          <button id="save-grass-color-btn" class="control-btn">
+            <i data-lucide="save"></i>
+          </button>
+        </div>
+        
+        <div id="iro-grass-color-picker"></div>
+        
+        <div class="color-row">
+          <div class="hex-display">
+            <span id="grass-hex-value"></span>
+          </div>
+          <button id="save-grass-preset-btn" class="preset-save-btn">
+            <i data-lucide="plus"></i>
+          </button>
+        </div>
+        
+        <div class="preset-section">
+          <div class="preset-grid" id="grass-preset-grid">
+            <div class="loading-presets">Műfű preset-ek betöltése...</div>
           </div>
         </div>
       </div>
