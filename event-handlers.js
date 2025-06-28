@@ -512,6 +512,7 @@ function createPresetElement(preset) {
   
   deleteBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
+    if (!confirm('Biztosan törölni szeretnéd?')) return;
     const success = await window.deletePresetFromFirebase(preset.id);
     if (success) await loadPresetsToUI();
   });
@@ -566,7 +567,7 @@ function resetToDefaultColor() {
       const resetBtn = document.getElementById("reset-color-btn");
       if (resetBtn) {
         const originalText = resetBtn.innerHTML;
-        resetBtn.innerHTML = '<i data-lucide="check"></i>!';
+        resetBtn.innerHTML = '<i data-lucide="check"></i>';
         resetBtn.disabled = true;
         
         // Lucide ikon frissítése

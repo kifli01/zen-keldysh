@@ -221,34 +221,37 @@
     <div id="left-panel" class="hidden">
       <h2>Fa szín</h2>
       <div class="color-section">
-        <div class="color-preview" id="color-preview"></div>
-        
-        <!-- iro.js Color Picker Container -->
-        <div id="iro-color-picker"></div>
-
-        <div class="color-footer">
+        <div class="color-row">
           <button id="reset-color-btn" title="Eredeti szín visszaállítása">
             <i data-lucide="brush-cleaning"></i>
           </button>
 
+          <div class="color-preview" id="color-preview"></div>
+
+          <button id="save-color-btn" title="Szín mentése">
+            <i data-lucide="save"></i>
+          </button>
+        </div>
+        
+        
+        <!-- iro.js Color Picker Container -->
+        <div id="iro-color-picker"></div>
+
+        <div class="color-row">
           <div class="hex-display">
             <span id="hex-value"></span>
           </div>
-          
-          <button id="save-color-btn" title="Szín mentése">
-            <i data-lucide="save"></i>
+
+          <button id="save-as-preset-btn" class="preset-save-btn">
+            <i data-lucide="plus"></i>
           </button>
         </div>
 
         <!-- Firebase preset kezelés -->
         <div class="preset-section">
-          <h3>Mentett színek (Firebase)</h3>
           <div class="preset-grid" id="preset-grid">
             <div class="loading-presets">Preset-ek betöltése...</div>
           </div>
-          <button id="save-as-preset-btn" class="preset-save-btn">
-            <i data-lucide="plus"></i> Jelenlegi szín mentése
-          </button>
         </div>
       </div>
     </div>
