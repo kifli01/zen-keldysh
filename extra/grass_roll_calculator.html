@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grass Roll Layout Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0;
+            background: white;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .info-panel {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .grass-roll-container {
+            position: relative;
+            width: 1000px;
+            height: 1000px;
+            margin: 50px 0;
+            background: #2d5016;
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        .grass-roll-container:active {
+            cursor: grabbing;
+        }
+
+        .hole-grid {
+            position: absolute;
+            width: 1200px;
+            height: 1200px;
+            background-image: radial-gradient(circle at center, #ccc 2px, transparent 2px);
+            background-size: 23.75px 23.75px; /* 9.5cm at 2.5px/cm scale */
+            opacity: 0.8;
+            cursor: move;
+            top: -100px;
+            left: -100px;
+        }
+
+        .course-layout {
+            position: absolute;
+            cursor: move;
+            top: 50px;
+            left: 50px;
+            z-index: 10;
+        }
+
+        .course-frame {
+            width: 200px; /* 80cm × 2.5px/cm */
+            height: 625px; /* 250cm × 2.5px/cm */
+            border: 1px dashed white;
+            background: transparent;
+            float: left;
+            position: relative;
+        }
+
+        .course-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .measurement-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .dimension-label {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0 40px 0;
+        }
+
+        .control-group {
+            display: inline-block;
+            margin: 0 15px;
+            vertical-align: top;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        button:hover {
+            background: #1976D2;
+        }
+
+        .reset-btn {
+            background: #f44336;
+        }
+
+        .reset-btn:hover {
+            background: #d32f2f;
+        }
+
+        .coordinates {
+            margin-top: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Roll Height (cm):</label>
+                <input type="number" id="rollHeight" value="400" min="100" max="1000" onchange="updateDimensions()">
+            </div>
+            <div class="control-group">
+                <label>Course Spacing (cm):</label>
+                <input type="number" id="courseSpacing" value="0" min="0" max="20" step="0.5" onchange="updateDimensions()">
+            </div>
+            <button onclick="resetPosition()" class="reset-btn">Reset Position</button>
+        </div>
+
+        <div class="grass-roll-container" id="rollContainer">
+            <div class="hole-grid" id="holeGrid"></div>
+            <div class="course-layout" id="courseLayout">
+                <div class="course-frame">
+                    <div class="course-label">Course 1<br>80×250cm</div>
+                </div>
+                <div class="course-frame">
+                    <div class="course-label">Course 2<br>80×250cm</div>
+                </div>
+                <div class="course-frame">
+                    <div class="course-label">Course 3<br>80×250cm</div>
+                </div>
+                <div class="course-frame">
+                    <div class="course-label">Course 4<br>80×250cm</div>
+                </div>
+            </div>
+            <div class="measurement-overlay">
+                <div class="dimension-label" style="top: -25px; left: 50%; transform: translateX(-50%);">
+                    <span id="widthLabel">400cm</span>
+                </div>
+                <div class="dimension-label" style="left: -60px; top: 50%; transform: translateY(-50%) rotate(-90deg);">
+                    <span id="heightLabel">400cm</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="coordinates">
+            <strong>Final Roll Size:</strong> 
+            400cm × <span id="finalHeightLabel">400</span>cm
+        </div>
+    </div>
+
+    <script>
+        let isDragging = false;
+        let startX, startY, currentX = -100, currentY = -100;
+        let isDraggingCourse = false;
+        let courseCurrentX = 50, courseCurrentY = 50;
+        let activeElement = null;
+        
+        const holeGrid = document.getElementById('holeGrid');
+        const courseLayout = document.getElementById('courseLayout');
+        const rollContainer = document.getElementById('rollContainer');
+
+        // Hole Grid Mouse events
+        holeGrid.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            activeElement = 'grid';
+            startX = e.clientX - currentX;
+            startY = e.clientY - currentY;
+            holeGrid.style.cursor = 'grabbing';
+            e.stopPropagation();
+        });
+
+        // Course Layout Mouse events
+        courseLayout.addEventListener('mousedown', (e) => {
+            isDraggingCourse = true;
+            activeElement = 'course';
+            startX = e.clientX - courseCurrentX;
+            startY = e.clientY - courseCurrentY;
+            courseLayout.style.cursor = 'grabbing';
+            e.stopPropagation();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging && activeElement === 'grid') {
+                currentX = e.clientX - startX;
+                currentY = e.clientY - startY;
+                updateGridPosition();
+            } else if (isDraggingCourse && activeElement === 'course') {
+                courseCurrentX = e.clientX - startX;
+                courseCurrentY = e.clientY - startY;
+                updateCoursePosition();
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            isDraggingCourse = false;
+            activeElement = null;
+            holeGrid.style.cursor = 'move';
+            courseLayout.style.cursor = 'move';
+        });
+
+        // Touch events for hole grid
+        holeGrid.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            activeElement = 'grid';
+            const touch = e.touches[0];
+            startX = touch.clientX - currentX;
+            startY = touch.clientY - currentY;
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        // Touch events for course layout
+        courseLayout.addEventListener('touchstart', (e) => {
+            isDraggingCourse = true;
+            activeElement = 'course';
+            const touch = e.touches[0];
+            startX = touch.clientX - courseCurrentX;
+            startY = touch.clientY - courseCurrentY;
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging && activeElement === 'grid') {
+                const touch = e.touches[0];
+                currentX = touch.clientX - startX;
+                currentY = touch.clientY - startY;
+                updateGridPosition();
+                e.preventDefault();
+            } else if (isDraggingCourse && activeElement === 'course') {
+                const touch = e.touches[0];
+                courseCurrentX = touch.clientX - startX;
+                courseCurrentY = touch.clientY - startY;
+                updateCoursePosition();
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+            isDraggingCourse = false;
+            activeElement = null;
+        });
+
+        function updateGridPosition() {
+            holeGrid.style.left = currentX + 'px';
+            holeGrid.style.top = currentY + 'px';
+            
+            const gridXElement = document.getElementById('gridX');
+            const gridYElement = document.getElementById('gridY');
+            if (gridXElement) gridXElement.textContent = currentX;
+            if (gridYElement) gridYElement.textContent = currentY;
+        }
+
+        function updateCoursePosition() {
+            courseLayout.style.left = courseCurrentX + 'px';
+            courseLayout.style.top = courseCurrentY + 'px';
+            
+            const courseXElement = document.getElementById('courseX');
+            const courseYElement = document.getElementById('courseY');
+            if (courseXElement) courseXElement.textContent = courseCurrentX;
+            if (courseYElement) courseYElement.textContent = courseCurrentY;
+        }
+
+        function updateDimensions() {
+            const width = 400; // Fixed width
+            const height = parseInt(document.getElementById('rollHeight').value);
+            const spacing = 9.5; // Fixed spacing
+            const courseSpacing = parseFloat(document.getElementById('courseSpacing').value);
+            
+            // Update container size (2.5px per cm)
+            const containerWidth = width * 2.5;
+            const containerHeight = height * 2.5;
+            
+            rollContainer.style.width = containerWidth + 'px';
+            rollContainer.style.height = containerHeight + 'px';
+            
+            // Update hole grid spacing (fixed)
+            const spacingPx = spacing * 2.5;
+            holeGrid.style.backgroundSize = spacingPx + 'px ' + spacingPx + 'px';
+            
+            // Update course layout dimensions based on spacing
+            const courseSpacingPx = courseSpacing * 2.5;
+            const totalCourseWidth = (4 * 200) + (3 * courseSpacingPx); // 4 courses + 3 gaps
+            courseLayout.style.width = totalCourseWidth + 'px';
+            
+            // Apply spacing to course frames
+            const frames = courseLayout.querySelectorAll('.course-frame');
+            frames.forEach((frame, index) => {
+                if (index > 0) {
+                    frame.style.marginLeft = courseSpacingPx + 'px';
+                } else {
+                    frame.style.marginLeft = '0px';
+                }
+            });
+            
+            // Update labels
+            document.getElementById('widthLabel').textContent = width + 'cm';
+            document.getElementById('heightLabel').textContent = height + 'cm';
+            document.getElementById('finalHeightLabel').textContent = height;
+        }
+
+        function resetPosition() {
+            currentX = -100;
+            currentY = -100;
+            courseCurrentX = 50;
+            courseCurrentY = 50;
+            updateGridPosition();
+            updateCoursePosition();
+        }
+
+        // Initialize
+        updateGridPosition();
+        updateCoursePosition();
+        updateDimensions(); // Initialize with spacing
+    </script>
+</body>
+</html>
