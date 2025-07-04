@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grass Roll Layout Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0;
+            background: white;
+            padding: 0;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0 40px 0;
+        }
+
+        .control-group {
+            display: inline-block;
+            margin: 0 15px;
+            vertical-align: top;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        button:hover {
+            background: #1976D2;
+        }
+
+        .reset-btn {
+            background: #f44336;
+        }
+
+        .reset-btn:hover {
+            background: #d32f2f;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 100px;
+            align-items: flex-start;
+        }
+
+        .editor-section {
+            flex: 0 0 auto;
+        }
+
+        .summary-section {
+            flex: 0 0 300px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .summary-section h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .summary-item {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .summary-item strong {
+            font-weight: 600;
+        }
+
+        .price-inputs {
+            margin-bottom: 20px;
+        }
+
+        .price-inputs .control-group {
+            margin-bottom: 10px;
+        }
+
+        .price-inputs label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 3px;
+            color: #666;
+        }
+
+        .price-inputs input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .grass-roll-container {
+            position: relative;
+            width: 487.5px; /* 195cm × 2.5px/cm */
+            height: 1500px; /* 600cm × 2.5px/cm */
+            margin: 50px 0;
+            background: #2d5016;
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        .grass-roll-container:active {
+            cursor: grabbing;
+        }
+
+        .hole-grid {
+            position: absolute;
+            width: 600px; /* 240cm × 2.5px/cm - wider for 195cm roll */
+            height: 1625px; /* 650cm × 2.5px/cm - minimum height */
+            background-image: radial-gradient(circle at center, #ccc 2px, transparent 2px);
+            background-size: 23.75px 23.75px; /* 9.5cm at 2.5px/cm scale */
+            opacity: 0.8;
+            cursor: move;
+            top: -100px;
+            left: -100px;
+        }
+
+        .course-layout {
+            position: absolute;
+            cursor: move;
+            top: 50px;
+            left: 50px;
+            z-index: 10;
+        }
+
+        .course-frame {
+            width: 200px; /* 80cm × 2.5px/cm */
+            height: 625px; /* 250cm × 2.5px/cm */
+            border: 1px dashed white;
+            background: transparent;
+            position: absolute;
+        }
+
+        .course-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .measurement-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .dimension-label {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <label>Roll Height (cm):</label>
+                <input type="number" id="rollHeight" value="600" min="100" max="1000" onchange="updateDimensions()">
+            </div>
+            <div class="control-group">
+                <label>Horizontal Spacing (cm):</label>
+                <input type="number" id="courseSpacing" value="0" min="0" max="20" step="0.5" onchange="updateDimensions()">
+            </div>
+            <div class="control-group">
+                <label>Vertical Spacing (cm):</label>
+                <input type="number" id="verticalSpacing" value="0" min="0" max="50" step="0.5" onchange="updateDimensions()">
+            </div>
+            <button onclick="resetPosition()" class="reset-btn">Reset Position</button>
+        </div>
+
+        <div class="main-content">
+            <div class="editor-section">
+                <div class="grass-roll-container" id="rollContainer">
+                    <div class="hole-grid" id="holeGrid"></div>
+                    <div class="course-layout" id="courseLayout">
+                        <!-- Top row: Course 1 and 2 -->
+                        <div class="course-frame" style="top: 0px;">
+                            <div class="course-label">Course 1<br>80×250cm</div>
+                        </div>
+                        <div class="course-frame" style="top: 0px;">
+                            <div class="course-label">Course 2<br>80×250cm</div>
+                        </div>
+                        <!-- Bottom row: Course 3 and 4 -->
+                        <div class="course-frame" style="top: 625px; margin-left: 0px !important; clear: left;">
+                            <div class="course-label">Course 3<br>80×250cm</div>
+                        </div>
+                        <div class="course-frame" style="top: 625px;">
+                            <div class="course-label">Course 4<br>80×250cm</div>
+                        </div>
+                    </div>
+                    <div class="measurement-overlay">
+                        <div class="dimension-label" style="top: -25px; left: 50%; transform: translateX(-50%);">
+                            <span id="widthLabel">195cm</span>
+                        </div>
+                        <div class="dimension-label" style="left: -60px; top: 50%; transform: translateY(-50%) rotate(-90deg);">
+                            <span id="heightLabel">600cm</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-section">
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 20px;">
+                    Final Roll Size: 195cm × <span id="finalHeightLabel">600</span>cm
+                </div>
+
+                <div class="price-inputs">
+                    <div class="control-group">
+                        <label>Price per m² (EUR):</label>
+                        <input type="number" id="pricePerM2" value="33" min="0" step="0.01" onchange="updateCalculations()">
+                    </div>
+                    <div class="control-group">
+                        <label>EUR to HUF rate:</label>
+                        <input type="number" id="eurToHuf" value="400" min="1" step="0.1" onchange="updateCalculations()">
+                    </div>
+                </div>
+
+                <h3>Cost Calculation</h3>
+                <div class="summary-item">
+                    <strong>Total area:</strong> <span id="totalArea">11.70</span> m²
+                </div>
+                <div class="summary-item">
+                    <strong>Price per m²:</strong> €<span id="displayPriceEur">33.00</span> / <span id="displayPriceHuf">13,200</span> HUF
+                </div>
+                <div class="summary-item">
+                    <strong>Net total:</strong> €<span id="netTotalEur">386.10</span> / <span id="netTotalHuf">154,440</span> HUF
+                </div>
+                <div class="summary-item">
+                    <strong>Gross total (27% VAT):</strong> €<span id="grossTotalEur">490.35</span> / <span id="grossTotalHuf">196,140</span> HUF
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isDragging = false;
+        let startX, startY, currentX = -100, currentY = -100;
+        let isDraggingCourse = false;
+        let courseCurrentX = 50, courseCurrentY = 50;
+        let activeElement = null;
+        
+        const holeGrid = document.getElementById('holeGrid');
+        const courseLayout = document.getElementById('courseLayout');
+        const rollContainer = document.getElementById('rollContainer');
+
+        // Hole Grid Mouse events
+        holeGrid.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            activeElement = 'grid';
+            startX = e.clientX - currentX;
+            startY = e.clientY - currentY;
+            holeGrid.style.cursor = 'grabbing';
+            e.stopPropagation();
+        });
+
+        // Course Layout Mouse events
+        courseLayout.addEventListener('mousedown', (e) => {
+            isDraggingCourse = true;
+            activeElement = 'course';
+            startX = e.clientX - courseCurrentX;
+            startY = e.clientY - courseCurrentY;
+            courseLayout.style.cursor = 'grabbing';
+            e.stopPropagation();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging && activeElement === 'grid') {
+                currentX = e.clientX - startX;
+                currentY = e.clientY - startY;
+                updateGridPosition();
+            } else if (isDraggingCourse && activeElement === 'course') {
+                courseCurrentX = e.clientX - startX;
+                courseCurrentY = e.clientY - startY;
+                updateCoursePosition();
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            isDraggingCourse = false;
+            activeElement = null;
+            holeGrid.style.cursor = 'move';
+            courseLayout.style.cursor = 'move';
+        });
+
+        // Touch events for hole grid
+        holeGrid.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            activeElement = 'grid';
+            const touch = e.touches[0];
+            startX = touch.clientX - currentX;
+            startY = touch.clientY - currentY;
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        // Touch events for course layout
+        courseLayout.addEventListener('touchstart', (e) => {
+            isDraggingCourse = true;
+            activeElement = 'course';
+            const touch = e.touches[0];
+            startX = touch.clientX - courseCurrentX;
+            startY = touch.clientY - courseCurrentY;
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging && activeElement === 'grid') {
+                const touch = e.touches[0];
+                currentX = touch.clientX - startX;
+                currentY = touch.clientY - startY;
+                updateGridPosition();
+                e.preventDefault();
+            } else if (isDraggingCourse && activeElement === 'course') {
+                const touch = e.touches[0];
+                courseCurrentX = touch.clientX - startX;
+                courseCurrentY = touch.clientY - startY;
+                updateCoursePosition();
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+            isDraggingCourse = false;
+            activeElement = null;
+        });
+
+        function updateGridPosition() {
+            holeGrid.style.left = currentX + 'px';
+            holeGrid.style.top = currentY + 'px';
+        }
+
+        function updateCoursePosition() {
+            courseLayout.style.left = courseCurrentX + 'px';
+            courseLayout.style.top = courseCurrentY + 'px';
+        }
+
+        function updateDimensions() {
+            const width = 195; // Fixed width - new value
+            const height = parseInt(document.getElementById('rollHeight').value);
+            const spacing = 9.5; // Fixed spacing
+            const courseSpacing = parseFloat(document.getElementById('courseSpacing').value);
+            const verticalSpacing = parseFloat(document.getElementById('verticalSpacing').value);
+            
+            // Update container size (2.5px per cm)
+            const containerWidth = width * 2.5;
+            const containerHeight = height * 2.5;
+            
+            rollContainer.style.width = containerWidth + 'px';
+            rollContainer.style.height = containerHeight + 'px';
+            
+            // Update hole grid spacing (fixed)
+            const spacingPx = spacing * 2.5;
+            holeGrid.style.backgroundSize = spacingPx + 'px ' + spacingPx + 'px';
+            
+            // Update course layout for 2x2 grid
+            const courseSpacingPx = courseSpacing * 2.5;
+            const verticalSpacingPx = verticalSpacing * 2.5;
+            const frames = courseLayout.querySelectorAll('.course-frame');
+            
+            // Position courses in 2x2 grid with both horizontal and vertical spacing
+            frames.forEach((frame, index) => {
+                if (index === 0) { // Course 1: top-left
+                    frame.style.left = '0px';
+                    frame.style.top = '0px';
+                } else if (index === 1) { // Course 2: top-right
+                    frame.style.left = (200 + courseSpacingPx) + 'px';
+                    frame.style.top = '0px';
+                } else if (index === 2) { // Course 3: bottom-left
+                    frame.style.left = '0px';
+                    frame.style.top = (625 + verticalSpacingPx) + 'px';
+                } else if (index === 3) { // Course 4: bottom-right
+                    frame.style.left = (200 + courseSpacingPx) + 'px';
+                    frame.style.top = (625 + verticalSpacingPx) + 'px';
+                }
+            });
+            
+            // Update labels
+            document.getElementById('widthLabel').textContent = width + 'cm';
+            document.getElementById('heightLabel').textContent = height + 'cm';
+            document.getElementById('finalHeightLabel').textContent = height;
+            
+            // Update calculations
+            updateCalculations();
+        }
+
+        function updateCalculations() {
+            const width = 195; // cm
+            const height = parseInt(document.getElementById('rollHeight').value);
+            const pricePerM2 = parseFloat(document.getElementById('pricePerM2').value);
+            const eurToHuf = parseFloat(document.getElementById('eurToHuf').value);
+            
+            // Calculate area in m²
+            const totalAreaM2 = (width * height) / 10000; // Convert cm² to m²
+            
+            // Calculate prices
+            const pricePerM2Huf = pricePerM2 * eurToHuf;
+            const netTotalEur = totalAreaM2 * pricePerM2;
+            const netTotalHuf = totalAreaM2 * pricePerM2Huf;
+            const grossTotalEur = netTotalEur * 1.27; // 27% VAT
+            const grossTotalHuf = netTotalHuf * 1.27;
+            
+            // Update display
+            document.getElementById('totalArea').textContent = totalAreaM2.toFixed(2);
+            document.getElementById('displayPriceEur').textContent = pricePerM2.toFixed(2);
+            document.getElementById('displayPriceHuf').textContent = Math.round(pricePerM2Huf).toLocaleString();
+            document.getElementById('netTotalEur').textContent = netTotalEur.toFixed(2);
+            document.getElementById('netTotalHuf').textContent = Math.round(netTotalHuf).toLocaleString();
+            document.getElementById('grossTotalEur').textContent = grossTotalEur.toFixed(2);
+            document.getElementById('grossTotalHuf').textContent = Math.round(grossTotalHuf).toLocaleString();
+        }
+
+        function resetPosition() {
+            currentX = -100;
+            currentY = -100;
+            courseCurrentX = 50;
+            courseCurrentY = 50;
+            updateGridPosition();
+            updateCoursePosition();
+        }
+
+        // Initialize
+        updateGridPosition();
+        updateCoursePosition();
+        updateDimensions(); // Initialize with spacing and calculations
+    </script>
+</body>
+</html>
