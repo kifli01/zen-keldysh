@@ -9,7 +9,9 @@ const GEOMETRY_TYPES = {
   BOX: "box",
   CYLINDER: "cylinder",
   EXTRUDE: "extrude",
-  SPHERE: "sphere", 
+  SPHERE: "sphere",
+  TRIANGLE: "triangle",
+  TRAPEZOID: "trapezoid", 
   GROUP: "group",
 };
 
@@ -22,6 +24,7 @@ const ELEMENT_TYPES = {
   WALL: "wall",
   BALL: "ball",
   PART: "part",
+  FASTENER: "fastener",
 };
 
 // JAVÍTOTT v1.8.1: Anyag definíciók - konzisztens objektum struktúra

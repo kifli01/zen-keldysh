@@ -150,7 +150,13 @@ class GeometryBuilder {
       case GEOMETRY_TYPES.SPHERE:
         const sphereRadius = dim.radius || dim.diameter / 2;
         return new THREE.SphereGeometry(sphereRadius, 16, 12);
+      
+      case GEOMETRY_TYPES.TRIANGLE:
+        return this.createTriangleGeometry(dim);
 
+      case GEOMETRY_TYPES.TRAPEZOID:
+        return this.createTrapezoidGeometry(dim);
+      
       case GEOMETRY_TYPES.GROUP:
         return this.createGroupGeometry(element);
 
@@ -474,6 +480,51 @@ class GeometryBuilder {
       supportedMaps: ['diffuse', 'normal', 'roughness', 'metalness', 'ao'],
       textureManagerRequired: true,
     };
+  }
+
+  // Háromszög geometria létrehozása
+  createTriangleGeometry(dimensions) {
+    const { width, height, thickness } = dimensions;
+    
+    const triangleShape = new THREE.Shape();
+    triangleShape.moveTo(0, 0);
+    triangleShape.lineTo(width, 0);
+    triangleShape.lineTo(width/2, height);
+    triangleShape.lineTo(0, 0);
+
+    const extrudeSettings = {
+      depth: thickness,
+      bevelEnabled: false
+    };
+
+    const geometry = new THREE.ExtrudeGeometry(triangleShape, extrudeSettings);
+    geometry.translate(-width/2, -height/3, -thickness/2);
+    
+    return geometry;
+  }
+
+  // Trapéz geometria létrehozása
+  createTrapezoidGeometry(dimensions) {
+    const { topWidth, bottomWidth, height, thickness } = dimensions;
+    
+    const trapezoidShape = new THREE.Shape();
+    const offset = (bottomWidth - topWidth) / 2;
+    
+    trapezoidShape.moveTo(0, 0);
+    trapezoidShape.lineTo(bottomWidth, 0);
+    trapezoidShape.lineTo(bottomWidth - offset, height);
+    trapezoidShape.lineTo(offset, height);
+    trapezoidShape.lineTo(0, 0);
+
+    const extrudeSettings = {
+      depth: thickness,
+      bevelEnabled: false
+    };
+
+    const geometry = new THREE.ExtrudeGeometry(trapezoidShape, extrudeSettings);
+    geometry.translate(-bottomWidth/2, -height/2, -thickness/2);
+    
+    return geometry;
   }
 
   // Cleanup

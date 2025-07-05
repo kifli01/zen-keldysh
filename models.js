@@ -34,6 +34,9 @@ async function loadModels() {
     const ball = await import("./models/ball.js");
     models.push(...ball.elements);
 
+    const fasteners = await import("./models/fasteners.js");
+    models.push(...fasteners.elements);
+
     console.log(`✅ ${models.length} elem betöltve`);
     return models;
   } catch (error) {
