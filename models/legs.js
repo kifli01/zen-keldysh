@@ -11,16 +11,14 @@ export const elements = [
         x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2,
         z:
           -COURSE_DIMENSIONS.width / 2 +
-          COURSE_DIMENSIONS.frameWidth +
-          COURSE_DIMENSIONS.legDiameter / 2 +
+          COURSE_DIMENSIONS.frameWidth / 2 +
           COURSE_DIMENSIONS.legInset,
       },
       {
         x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2,
         z:
           COURSE_DIMENSIONS.width / 2 -
-          COURSE_DIMENSIONS.frameWidth -
-          COURSE_DIMENSIONS.legDiameter / 2 -
+          COURSE_DIMENSIONS.frameWidth / 2 -
           COURSE_DIMENSIONS.legInset,
       },
       // 1. belső keresztlécnél
@@ -28,16 +26,14 @@ export const elements = [
         x: -COURSE_DIMENSIONS.length / 2 + spacing,
         z:
           -COURSE_DIMENSIONS.width / 2 +
-          COURSE_DIMENSIONS.frameWidth +
-          COURSE_DIMENSIONS.legDiameter / 2 +
+          COURSE_DIMENSIONS.frameWidth / 2 +
           COURSE_DIMENSIONS.legInset,
       },
       {
         x: -COURSE_DIMENSIONS.length / 2 + spacing,
         z:
           COURSE_DIMENSIONS.width / 2 -
-          COURSE_DIMENSIONS.frameWidth -
-          COURSE_DIMENSIONS.legDiameter / 2 -
+          COURSE_DIMENSIONS.frameWidth / 2 -
           COURSE_DIMENSIONS.legInset,
       },
       // 2. belső keresztlécnél
@@ -45,16 +41,14 @@ export const elements = [
         x: -COURSE_DIMENSIONS.length / 2 + 2 * spacing,
         z:
           -COURSE_DIMENSIONS.width / 2 +
-          COURSE_DIMENSIONS.frameWidth +
-          COURSE_DIMENSIONS.legDiameter / 2 +
+          COURSE_DIMENSIONS.frameWidth / 2 +
           COURSE_DIMENSIONS.legInset,
       },
       {
         x: -COURSE_DIMENSIONS.length / 2 + 2 * spacing,
         z:
           COURSE_DIMENSIONS.width / 2 -
-          COURSE_DIMENSIONS.frameWidth -
-          COURSE_DIMENSIONS.legDiameter / 2 -
+          COURSE_DIMENSIONS.frameWidth / 2 -
           COURSE_DIMENSIONS.legInset,
       },
       // Hátsó keresztlécnél
@@ -62,16 +56,14 @@ export const elements = [
         x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
         z:
           -COURSE_DIMENSIONS.width / 2 +
-          COURSE_DIMENSIONS.frameWidth +
-          COURSE_DIMENSIONS.legDiameter / 2 +
+          COURSE_DIMENSIONS.frameWidth / 2 +
           COURSE_DIMENSIONS.legInset,
       },
       {
         x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
         z:
           COURSE_DIMENSIONS.width / 2 -
-          COURSE_DIMENSIONS.frameWidth -
-          COURSE_DIMENSIONS.legDiameter / 2 -
+          COURSE_DIMENSIONS.frameWidth / 2 -
           COURSE_DIMENSIONS.legInset,
       },
     ];

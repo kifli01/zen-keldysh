@@ -97,7 +97,7 @@ const MATERIALS = {
   },
   
   ARTIFICIAL_GRASS: {
-    name: "LazyLawn Meadow Twist műfű",
+    name: "Namgrass Silva",
     density: 0.2, // g/cm³
     color: 0x95c5ff,
     baseColor: 0x95c5ff,
@@ -246,16 +246,16 @@ const COURSE_DIMENSIONS = {
   holeRadius: 5.4, // átmérő: 10.8 cm
   holePositionX: 50, // A lyuk pozíciója a pálya végétől (cm)
   frontWidth: 2, // 2cm első takaró léc
-  frameWidth: 6, // 6 cm széles lécek
+  frameWidth: 10, // 12 cm széles lécek
   frameHeight: 4, // 4 cm magas lécek
   sideWidth: 5, // 5 cm széles oldallécek
   sideHeight: 16, // 16 cm magas oldallécek
   sideVerticalShift: 7, // 7 cm-re a borítástól felfelé
   legDiameter: 6, // 6 cm átmérőjű lábak
-  legHeight: 12, // 12 cm magas lábak
-  legInset: 3, // 3cm-rel bentebb
+  legHeight: 8, // 12 cm magas lábak
+  legInset: 0, // 3cm-rel bentebb
   crossBeamCount: 2, // belső keresztlécek száma
-  crossBeamWidth: 12, // keresztlécek szélessége
+  crossBeamWidth: 10, // keresztlécek szélessége
 };
 
 // JAVÍTOTT: Számított értékek
