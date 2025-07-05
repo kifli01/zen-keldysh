@@ -255,7 +255,7 @@ const COURSE_DIMENSIONS = {
   sideHeight: 16, // 16 cm magas oldallécek
   sideVerticalShift: 7, // 7 cm-re a borítástól felfelé
   legDiameter: 6, // 6 cm átmérőjű lábak
-  legHeight: 8, // 12 cm magas lábak
+  legHeight: 5, // 12 cm magas lábak
   legInset: 0, // 3cm-rel bentebb
   crossBeamCount: 2, // belső keresztlécek száma
   crossBeamWidth: 10, // keresztlécek szélessége
@@ -267,6 +267,9 @@ COURSE_DIMENSIONS.frontHeight =
   COURSE_DIMENSIONS.sideVerticalShift -
   COURSE_DIMENSIONS.turfThickness + 
   COURSE_DIMENSIONS.topPlateThickness / 2;
+
+
+COURSE_DIMENSIONS.spacing = COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
 
 // Lyuk pozíciók
 const HOLE_POSITION = {

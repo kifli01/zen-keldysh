@@ -502,7 +502,7 @@ window.hexToColorString = function(hexColor) {
 function isWoodElement(elementId) {
   const woodKeywords = [
     'frame', 'leg', 'wall', 'cross', 'beam', 
-    'plate', 'dowel', 'tessauer', 'countersunk'
+    'plate', 'dowel', 'tessauer', 'countersunk', 'fastener'
   ];
   
   return woodKeywords.some(keyword => elementId.includes(keyword));
