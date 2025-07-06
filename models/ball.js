@@ -15,7 +15,7 @@ export const elements = [
     transform: {
       position: {
         x: -COURSE_DIMENSIONS.length / 2 + 20, // 20 cm-rel a pálya elejétől
-        y: COURSE_DIMENSIONS.topPlateThickness / 2 + COURSE_DIMENSIONS.turfThickness / 2 + 2.15, // A műfű tetején + labda sugara
+        y: COURSE_DIMENSIONS.topPlateThickness / 2 + COURSE_DIMENSIONS.turfThickness / 2 + 2.75, // A műfű tetején + labda sugara
         z: -COURSE_DIMENSIONS.width / 2 + 2.15, // Bal szélhez érve (bal oldali fal belseje + labda sugara)
       },
     },
