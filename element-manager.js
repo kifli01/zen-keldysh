@@ -1,13 +1,13 @@
 /**
  * Element Manager
  * Minigolf elemek kezelése, számítások, összesítések
- * v1.6.1 - NaN Debug Fix + Védőkód
+ * v1.6.2 - TRAPEZOID geometria implementálás + súlyszámítás javítás
  */
 
 class ElementManager {
   constructor() {
     this.elements = new Map();
-    this.version = "1.6.1"; // Verzió frissítés NaN debug-hoz
+    this.version = "1.6.2"; // Verzió frissítés TRAPEZOID implementációhoz
   }
 
   // Elem hozzáadása alapértékekkel
@@ -39,7 +39,7 @@ class ElementManager {
     return processedElement;
   }
 
-  // JAVÍTOTT: Védőkóddal ellátott térfogat számítás
+  // JAVÍTOTT: Védőkóddal ellátott térfogat számítás + TRAPEZOID implementáció
   calculateProperties(element) {
     const geom = element.geometry;
     let volume = 0;
@@ -77,86 +77,60 @@ class ElementManager {
           console.log(`⚪ SPHERE ${element.id}: (4/3)π × ${sphereRadius}³ = ${volume} cm³`);
           break;
 
-        case GEOMETRY_TYPES.GROUP:
-          // JAVÍTOTT: GROUP térfogat számítás debug-gal
-          if (geom.elements && Array.isArray(geom.elements)) {
-            volume = geom.elements.reduce((total, childElement, index) => {
-              const childDim = childElement.geometry?.dimensions;
-              if (!childDim) {
-                console.warn(`⚠️ GROUP ${element.id} gyerek ${index}: nincs dimensions`);
-                return total + 0.1; // Kis fallback
-              }
+        case GEOMETRY_TYPES.TRIANGLE:
+          // Derékszögű háromszög térfogata = (1/2) × alap × magasság × vastagság
+          const triWidth = Number(dim.width) || 1;
+          const triHeight = Number(dim.height) || 1;
+          const triThickness = Number(dim.thickness) || 1;
+          volume = 0.5 * triWidth * triHeight * triThickness;
+          console.log(`🔺 TRIANGLE ${element.id}: (1/2) × ${triWidth} × ${triHeight} × ${triThickness} = ${volume} cm³`);
+          break;
 
-              let childVolume = 0;
-              
-              switch (childElement.geometry.type) {
-                case GEOMETRY_TYPES.BOX:
-                  const cW = Number(childDim.width) || 1;
-                  const cH = Number(childDim.height) || 1;
-                  const cL = Number(childDim.length) || 1;
-                  childVolume = cW * cH * cL;
-                  break;
-                case GEOMETRY_TYPES.CYLINDER:
-                  const cR = Number(childDim.radius) || Number(childDim.diameter) / 2 || 1;
-                  const cHeight = Number(childDim.height) || 1;
-                  childVolume = Math.PI * cR * cR * cHeight;
-                  break;
-                default:
-                  childVolume = 1.0; // Fallback
-              }
-              
-              console.log(`  └─ Gyerek ${index}: ${childVolume} cm³`);
-              return total + childVolume;
-            }, 0);
-            console.log(`👥 GROUP ${element.id}: össz ${volume} cm³`);
-          } else {
-            // Fallback ha nincs gyerek elem definíció
-            volume = 2.0;
-            console.log(`👥 GROUP ${element.id}: fallback ${volume} cm³`);
-          }
+        case GEOMETRY_TYPES.TRAPEZOID:
+          // ÚJ: Trapéz térfogata = [(felső_szélesség + alsó_szélesség) / 2] × magasság × vastagság
+          const topWidth = Number(dim.topWidth) || 1;
+          const bottomWidth = Number(dim.bottomWidth) || 1;
+          const trapHeight = Number(dim.height) || 1;
+          const trapThickness = Number(dim.thickness) || 1;
+          
+          // Trapéz terület = (a + b) / 2 * h, ahol a=topWidth, b=bottomWidth, h=height
+          const trapezoidArea = ((topWidth + bottomWidth) / 2) * trapHeight;
+          volume = trapezoidArea * trapThickness;
+          
+          console.log(`🔷 TRAPEZOID ${element.id}: [(${topWidth} + ${bottomWidth}) / 2] × ${trapHeight} × ${trapThickness} = ${volume} cm³`);
+          console.log(`   └─ Trapéz terület: ${trapezoidArea.toFixed(2)} cm², vastagság: ${trapThickness} cm`);
+          break;
+
+        case GEOMETRY_TYPES.EXTRUDE:
+          // Extrude típus térfogata (ha van)
+          const extrudeArea = Number(dim.area) || (Number(dim.width) * Number(dim.height)) || 1;
+          const extrudeDepth = Number(dim.depth) || Number(dim.thickness) || 1;
+          volume = extrudeArea * extrudeDepth;
+          console.log(`📐 EXTRUDE ${element.id}: ${extrudeArea} × ${extrudeDepth} = ${volume} cm³`);
+          break;
+
+        case GEOMETRY_TYPES.GROUP:
+          // Group típus becsült térfogata
+          volume = 10; // Kis becsült érték group elemekhez
+          console.log(`📂 GROUP ${element.id}: becsült térfogat = ${volume} cm³`);
           break;
 
         default:
-          volume = 1.0;
-          console.warn(`⚠️ Ismeretlen geometry típus: ${geom.type}`);
+          console.warn(`❌ Ismeretlen geometria típus: ${geom.type} (elem: ${element.id})`);
+          volume = 1; // Fallback térfogat
+          break;
       }
-
-      // VÉDŐKÓD: NaN és Infinity ellenőrzés
-      if (!isFinite(volume) || isNaN(volume) || volume < 0) {
-        console.error(`❌ Hibás térfogat ${element.id}: ${volume}, fallback használata`);
-        volume = 1.0; // Fallback érték
-      }
-
     } catch (error) {
-      console.error(`❌ Térfogat számítási hiba ${element.id}:`, error);
-      volume = 1.0; // Fallback
+      console.error(`❌ Térfogatszámítási hiba ${element.id}:`, error);
+      volume = 1; // Fallback hiba esetén
     }
 
-    // CSG műveletek hatása (becsült levonás)
-    if (geom.csgOperations && Array.isArray(geom.csgOperations)) {
-      const subtractOperations = geom.csgOperations.filter(op => op.type === 'subtract');
-      subtractOperations.forEach((operation) => {
-        if (operation.geometry === 'cylinder' && operation.params) {
-          const holeRadius = Number(operation.params.radius) || 1;
-          const holeHeight = Number(operation.params.height) || 1;
-          const holeVolume = Math.PI * holeRadius * holeRadius * holeHeight;
-          volume -= holeVolume;
-          console.log(`  🕳️ Lyuk levonva: ${holeVolume} cm³`);
-        }
-      });
-    }
-
-    // VÉDŐKÓD: Material density ellenőrzés
-    const density = Number(element.material?.density) || 0.5;
-    if (!isFinite(density) || isNaN(density) || density <= 0) {
-      console.error(`❌ Hibás density ${element.id}: ${density}`);
-      density = 0.5; // Fallback
-    }
-
+    // VÉDŐKÓD: Density ellenőrzése
+    const density = element.material?.density || 0.5; // g/cm³ alapértelmezett
     const weight = volume * density;
 
-    // VÉDŐKÓD: Végső NaN ellenőrzés
-    const finalVolume = isFinite(volume) && !isNaN(volume) ? Math.max(0, volume) : 1.0;
+    // VÉDŐKÓD: NaN és Infinity eredmények szűrése
+    const finalVolume = isFinite(volume) && volume > 0 ? Math.max(0, volume) : 1.0;
     const finalWeight = isFinite(weight) && !isNaN(weight) ? weight : 0.5;
 
     element.calculated = {

@@ -123,7 +123,7 @@ export const elements = [
       type: GEOMETRY_TYPES.TRAPEZOID,
       dimensions: {
         topWidth: COURSE_DIMENSIONS.trapezoidTopWidth,
-        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomdWidth, 
+        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomWidth, 
         height: COURSE_DIMENSIONS.trapezoidHeight,
         thickness: COURSE_DIMENSIONS.fastenerThickness,
       },
@@ -151,7 +151,7 @@ export const elements = [
       type: GEOMETRY_TYPES.TRAPEZOID,
       dimensions: {
         topWidth: COURSE_DIMENSIONS.trapezoidTopWidth,
-        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomdWidth, 
+        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomWidth, 
         height: COURSE_DIMENSIONS.trapezoidHeight,
         thickness: COURSE_DIMENSIONS.fastenerThickness,
       },
@@ -179,7 +179,7 @@ export const elements = [
       type: GEOMETRY_TYPES.TRAPEZOID,
       dimensions: {
         topWidth: COURSE_DIMENSIONS.trapezoidTopWidth,
-        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomdWidth, 
+        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomWidth, 
         height: COURSE_DIMENSIONS.trapezoidHeight,
         thickness: COURSE_DIMENSIONS.fastenerThickness,
       },
@@ -207,7 +207,7 @@ export const elements = [
       type: GEOMETRY_TYPES.TRAPEZOID,
       dimensions: {
         topWidth: COURSE_DIMENSIONS.trapezoidTopWidth,
-        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomdWidth, 
+        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomWidth, 
         height: COURSE_DIMENSIONS.trapezoidHeight,
         thickness: COURSE_DIMENSIONS.fastenerThickness,
       },

@@ -264,7 +264,7 @@ const COURSE_DIMENSIONS = {
   frameHeight: 3, // 3 cm magas lécek
   sideWidth: 5, // 5 cm széles oldallécek
   sideHeight: 15, // 16 cm magas oldallécek
-  sideVerticalShift: 7, // 7 cm-re a borítástól felfelé
+  sideVerticalShift: 6.9, // 7 cm-re a borítástól felfelé
   legDiameter: 6, // 6 cm átmérőjű lábak
   legHeight: 5, // 12 cm magas lábak
   legInset: 0, // 3cm-rel bentebb
@@ -272,7 +272,7 @@ const COURSE_DIMENSIONS = {
   crossBeamWidth: 10, // keresztlécek szélessége
   fastenerThickness: 3,
   triangleLegLength: 14,
-  triangleShift: 0.3,
+  triangleShift: 0.4,
   trapezoidHeight: 10,
   trapezoidTopWidth: 20,
 };
@@ -285,7 +285,7 @@ COURSE_DIMENSIONS.frontHeight =
   COURSE_DIMENSIONS.topPlateThickness / 2;
 
 COURSE_DIMENSIONS.triangleDims = calculateRightTriangleDimensions(COURSE_DIMENSIONS.triangleLegLength);
-COURSE_DIMENSIONS.trapezoidBottomdWidth = calculate45DegreeTrapezoidWidth(COURSE_DIMENSIONS.trapezoidTopWidth, COURSE_DIMENSIONS.trapezoidHeight)
+COURSE_DIMENSIONS.trapezoidBottomWidth = calculate45DegreeTrapezoidWidth(COURSE_DIMENSIONS.trapezoidTopWidth, COURSE_DIMENSIONS.trapezoidHeight)
 COURSE_DIMENSIONS.spacing = COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
 
 // Lyuk pozíciók
