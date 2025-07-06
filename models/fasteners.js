@@ -20,11 +20,11 @@ function calculate45DegreeTrapezoidWidth(topWidth, height) {
   return bottomWidth;
 }
 
-const fastenerThickness = 4;
-const triangleDims = calculateRightTriangleDimensions(12);
+const fastenerThickness = 3;
+const triangleDims = calculateRightTriangleDimensions(14);
 const triangleShift = 0.3;
 const trapezoidHeight = 10;
-const trapezoidTopWidth = 14;
+const trapezoidTopWidth = 20;
 const trapezoidBottomdWidth =  calculate45DegreeTrapezoidWidth(trapezoidTopWidth, trapezoidHeight);
 
 export const elements = [
