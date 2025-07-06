@@ -405,6 +405,7 @@ class ElementManager {
       [ELEMENT_TYPES.WALL]: "Oldalfalak",
       [ELEMENT_TYPES.BALL]: "Labda",
       [ELEMENT_TYPES.PART]: "Alkatrészek",
+      [ELEMENT_TYPES.FASTENER]: "Merevítők",
     };
     return typeNames[type] || type;
   }

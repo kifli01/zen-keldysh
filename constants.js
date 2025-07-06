@@ -240,6 +240,17 @@ const DEFAULT_TRANSFORM = {
   scale: { x: 1, y: 1, z: 1 },
 };
 
+function calculateRightTriangleDimensions(legLength) {
+  const width = 2 * legLength;  // Alap = 2 × szár
+  const height = legLength;     // Magasság = szár
+  return { width, height };
+}
+
+function calculate45DegreeTrapezoidWidth(topWidth, height) {
+  const bottomWidth = topWidth + (2 * height);
+  return bottomWidth;
+}
+
 // JAVÍTOTT: Minigolf pálya alapvető méretek
 const COURSE_DIMENSIONS = {
   length: 250, // cm
@@ -259,6 +270,11 @@ const COURSE_DIMENSIONS = {
   legInset: 0, // 3cm-rel bentebb
   crossBeamCount: 2, // belső keresztlécek száma
   crossBeamWidth: 10, // keresztlécek szélessége
+  fastenerThickness: 3,
+  triangleLegLength: 14,
+  triangleShift: 0.3,
+  trapezoidHeight: 10,
+  trapezoidTopWidth: 20,
 };
 
 // JAVÍTOTT: Számított értékek
@@ -268,7 +284,8 @@ COURSE_DIMENSIONS.frontHeight =
   COURSE_DIMENSIONS.turfThickness + 
   COURSE_DIMENSIONS.topPlateThickness / 2;
 
-
+COURSE_DIMENSIONS.triangleDims = calculateRightTriangleDimensions(COURSE_DIMENSIONS.triangleLegLength);
+COURSE_DIMENSIONS.trapezoidBottomdWidth = calculate45DegreeTrapezoidWidth(COURSE_DIMENSIONS.trapezoidTopWidth, COURSE_DIMENSIONS.trapezoidHeight)
 COURSE_DIMENSIONS.spacing = COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
 
 // Lyuk pozíciók
