@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minigolf Felsőmaró Sablon Kalkulátor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            width: 100%;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 20px;
+            width: 100%;
+        }
+        
+        .left-side {
+            flex: 0 0 30%;
+            width: 30%;
+        }
+        
+        .right-side {
+            flex: 0 0 70%;
+            width: 70%;
+        }
+        
+        .panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .panel h2 {
+            color: #007bff;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .input-row {
+            margin-bottom: 15px;
+        }
+        
+        .input-row label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .input-row input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .input-row input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        
+        .results-panel {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .results-panel h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .result-line {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .result-line strong {
+            color: #007bff;
+        }
+        
+        .formula-line {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .viz-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .viz-container svg {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        .legend {
+            text-align: left;
+        }
+        
+        .legend-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 3px solid;
+            box-sizing: border-box;
+        }
+        
+        .template-circle {
+            border-color: #007bff;
+            border-style: dashed;
+            background: transparent;
+        }
+        
+        .cut-circle {
+            border-color: #dc3545;
+            background: transparent;
+        }
+        
+        .follower-circle {
+            border-color: #28a745;
+            background: transparent;
+        }
+        
+        .cutter-circle {
+            border-color: #fd7e14;
+            background: rgba(253, 126, 20, 0.3);
+        }
+        
+        .center-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+        }
+        
+        .template-color {
+            border-color: #007bff;
+            background: transparent;
+        }
+        
+        .cut-color {
+            border-color: #dc3545;
+            background: transparent;
+        }
+        
+        .follower-color {
+            border-color: #28a745;
+            background: transparent;
+        }
+        
+        .cutter-color {
+            border-color: #fd7e14;
+            background: #fd7e14;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Minigolf Felsőmaró Sablon Kalkulátor</h1>
+            <p>Állítsd be a sablon, marófej és sablonkövető átmérőjét, és láthatod a marás ívét!</p>
+        </div>
+
+        <div class="main-content">
+            <div class="left-side">
+                <div class="panel">
+                    <h2>Beállítások</h2>
+                    
+                    <div class="input-row">
+                        <label for="template-input">Sablon átmérő (mm)</label>
+                        <input type="number" id="template-input" value="150" min="1">
+                    </div>
+
+                    <div class="input-row">
+                        <label for="follower-input">Sablonkövető átmérő (mm)</label>
+                        <input type="number" id="follower-input" value="20" min="1">
+                    </div>
+
+                    <div class="input-row">
+                        <label for="cutter-input">Marófej átmérő (mm)</label>
+                        <input type="number" id="cutter-input" value="10" min="1">
+                    </div>
+
+                    <div class="input-row">
+                        <label for="cut-input">Marás íve átmérő (mm) - Számított</label>
+                        <input type="number" id="cut-input" value="140" min="1">
+                    </div>
+                </div>
+
+                <div class="results-panel">
+                    <h3>Kalkuláció</h3>
+                    <div class="result-line">Sablon átmérő: <span id="template-display">150</span> mm</div>
+                    <div class="result-line">Sablonkövető átmérő: <span id="follower-display">20</span> mm</div>
+                    <div class="result-line">Marófej átmérő: <span id="cutter-display">10</span> mm</div>
+                    <div class="result-line"><strong>Kalkulált marás íve: <span id="calculated-display">140</span> mm</strong></div>
+                    
+                    <div class="formula-line">
+                        Formula: <span id="formula-template">150</span> - <span id="formula-follower">20</span> + <span id="formula-cutter">10</span> = <span id="formula-result">140</span> mm
+                    </div>
+                    
+                    <div id="warning-message" class="warning-box">
+                        <strong>Figyelem:</strong> A beállított marás íve eltér a kalkulált értéktől!
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-side">
+                <div class="panel">
+                    <h2>Vizualizáció</h2>
+                    
+                    <div class="viz-container">
+                        <div id="drawing-area" style="position: relative; width: 600px; height: 600px; border: 1px solid #ddd; background: white; margin: 0 auto;">
+                            <!-- A körök itt lesznek -->
+                        </div>
+                    </div>
+
+                    <div class="legend">
+                        <div class="legend-row">
+                            <div style="width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; border: 2px dashed #007bff; background: transparent;"></div>
+                            <span>Sablon (<span id="legend-template">150</span> mm)</span>
+                        </div>
+                        <div class="legend-row">
+                            <div style="width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; border: 2px solid #dc3545; background: transparent;"></div>
+                            <span>Marás íve (<span id="legend-cut">140</span> mm)</span>
+                        </div>
+                        <div class="legend-row">
+                            <div style="width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; border: 2px solid #28a745; background: transparent;"></div>
+                            <span>Sablonkövető (<span id="legend-follower">20</span> mm)</span>
+                        </div>
+                        <div class="legend-row">
+                            <div style="width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; border: 2px solid #fd7e14; background: rgba(253, 126, 20, 0.3);"></div>
+                            <span>Marófej (<span id="legend-cutter">10</span> mm)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var values = {
+            template: 150,
+            follower: 20,
+            cutter: 10,
+            cut: 140
+        };
+
+        function getCalculatedCut() {
+            return values.template - values.follower + values.cutter;
+        }
+
+        function refreshDisplay() {
+            var calculatedValue = getCalculatedCut();
+            
+            // Frissítjük az input mezőket is a belső értékekkel
+            document.getElementById('template-input').value = values.template;
+            document.getElementById('follower-input').value = values.follower;
+            document.getElementById('cutter-input').value = values.cutter;
+            document.getElementById('cut-input').value = values.cut;
+            
+            document.getElementById('template-display').textContent = values.template;
+            document.getElementById('follower-display').textContent = values.follower;
+            document.getElementById('cutter-display').textContent = values.cutter;
+            document.getElementById('calculated-display').textContent = calculatedValue;
+            
+            document.getElementById('formula-template').textContent = values.template;
+            document.getElementById('formula-follower').textContent = values.follower;
+            document.getElementById('formula-cutter').textContent = values.cutter;
+            document.getElementById('formula-result').textContent = calculatedValue;
+            
+            var warningElement = document.getElementById('warning-message');
+            if (Math.abs(values.cut - calculatedValue) > 0.1) {
+                warningElement.style.display = 'block';
+            } else {
+                warningElement.style.display = 'none';
+            }
+            
+            document.getElementById('legend-template').textContent = values.template;
+            document.getElementById('legend-follower').textContent = values.follower;
+            document.getElementById('legend-cutter').textContent = values.cutter;
+            document.getElementById('legend-cut').textContent = values.cut;
+            
+            redrawVisualization();
+        }
+
+        function redrawVisualization() {
+            console.log('Template:', values.template, 'Follower:', values.follower, 'Cutter:', values.cutter, 'Cut:', values.cut);
+            
+            var container = document.getElementById('drawing-area');
+            var centerPoint = 300;
+            var scaleFactor = 2.0;
+
+            var templateR = (values.template / 2) * scaleFactor;
+            var followerR = (values.follower / 2) * scaleFactor;
+            var cutterR = (values.cutter / 2) * scaleFactor;
+            var cutR = (values.cut / 2) * scaleFactor;
+
+            console.log('Template radius:', templateR, 'Cut radius:', cutR);
+
+            // Töröljük a régi köröket
+            container.innerHTML = '';
+
+            // Sablon kör (legnagyobb, kék, szaggatott)
+            var templateCircle = document.createElement('div');
+            templateCircle.className = 'circle template-circle';
+            templateCircle.style.width = (templateR * 2) + 'px';
+            templateCircle.style.height = (templateR * 2) + 'px';
+            templateCircle.style.left = (centerPoint - templateR) + 'px';
+            templateCircle.style.top = (centerPoint - templateR) + 'px';
+            container.appendChild(templateCircle);
+
+            // Marás íve (piros)
+            var cutCircle = document.createElement('div');
+            cutCircle.className = 'circle cut-circle';
+            cutCircle.style.width = (cutR * 2) + 'px';
+            cutCircle.style.height = (cutR * 2) + 'px';
+            cutCircle.style.left = (centerPoint - cutR) + 'px';
+            cutCircle.style.top = (centerPoint - cutR) + 'px';
+            container.appendChild(cutCircle);
+
+            // Sablonkövető pozíciója
+            var followerCenterX = centerPoint + templateR - followerR;
+            var followerCircle = document.createElement('div');
+            followerCircle.className = 'circle follower-circle';
+            followerCircle.style.width = (followerR * 2) + 'px';
+            followerCircle.style.height = (followerR * 2) + 'px';
+            followerCircle.style.left = (followerCenterX - followerR) + 'px';
+            followerCircle.style.top = (centerPoint - followerR) + 'px';
+            container.appendChild(followerCircle);
+
+            // Marófej
+            var cutterCircle = document.createElement('div');
+            cutterCircle.className = 'circle cutter-circle';
+            cutterCircle.style.width = (cutterR * 2) + 'px';
+            cutterCircle.style.height = (cutterR * 2) + 'px';
+            cutterCircle.style.left = (followerCenterX - cutterR) + 'px';
+            cutterCircle.style.top = (centerPoint - cutterR) + 'px';
+            container.appendChild(cutterCircle);
+
+            // Középpont
+            var centerDot = document.createElement('div');
+            centerDot.className = 'center-dot';
+            centerDot.style.left = (centerPoint - 4) + 'px';
+            centerDot.style.top = (centerPoint - 4) + 'px';
+            container.appendChild(centerDot);
+
+            console.log('HTML updated with', container.children.length, 'elements');
+        }
+
+        function setupEventHandlers() {
+            document.getElementById('template-input').addEventListener('input', function() {
+                console.log('Template changed to:', this.value);
+                values.template = Math.max(1, parseInt(this.value) || 1);
+                // Automatikusan kalkuláljuk a marás ívét
+                values.cut = getCalculatedCut();
+                refreshDisplay();
+            });
+
+            document.getElementById('follower-input').addEventListener('input', function() {
+                console.log('Follower changed to:', this.value);
+                values.follower = Math.max(1, parseInt(this.value) || 1);
+                // Automatikusan kalkuláljuk a marás ívét
+                values.cut = getCalculatedCut();
+                refreshDisplay();
+            });
+
+            document.getElementById('cutter-input').addEventListener('input', function() {
+                console.log('Cutter changed to:', this.value);
+                values.cutter = Math.max(1, parseInt(this.value) || 1);
+                // Automatikusan kalkuláljuk a marás ívét
+                values.cut = getCalculatedCut();
+                refreshDisplay();
+            });
+
+            document.getElementById('cut-input').addEventListener('input', function() {
+                console.log('Cut changed to:', this.value);
+                values.cut = Math.max(1, parseInt(this.value) || 1);
+                refreshDisplay();
+            });
+        }
+
+        window.addEventListener('load', function() {
+            setupEventHandlers();
+            refreshDisplay();
+        });
+    </script>
+</body>
+</html>
