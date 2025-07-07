@@ -174,6 +174,16 @@
             background: rgba(253, 126, 20, 0.3);
         }
         
+        .hole-circle {
+            border-color: #6f42c1;
+            background: rgba(111, 66, 193, 0.1);
+        }
+        
+        .insert-circle {
+            border-color: #e83e8c;
+            background: transparent;
+        }
+        
         .center-dot {
             position: absolute;
             width: 8px;
@@ -234,6 +244,16 @@
                         <label for="cut-input">Marás íve átmérő (mm) - Számított</label>
                         <input type="number" id="cut-input" value="140" min="1">
                     </div>
+
+                    <div class="input-row">
+                        <label for="hole-input">Lyuk átmérő (mm)</label>
+                        <input type="number" id="hole-input" value="108" min="1">
+                    </div>
+
+                    <div class="input-row">
+                        <label for="thickness-input">Betét anyagvastagság (mm)</label>
+                        <input type="number" id="thickness-input" value="3" min="0.1" step="0.1">
+                    </div>
                 </div>
 
                 <div class="results-panel">
@@ -242,9 +262,19 @@
                     <div class="result-line">Sablonkövető átmérő: <span id="follower-display">20</span> mm</div>
                     <div class="result-line">Marófej átmérő: <span id="cutter-display">10</span> mm</div>
                     <div class="result-line"><strong>Kalkulált marás íve: <span id="calculated-display">140</span> mm</strong></div>
+                    <div class="result-line">Lyuk átmérő: <span id="hole-display">108</span> mm</div>
+                    <div class="result-line">Anyagvastagság: <span id="thickness-display">3</span> mm</div>
+                    <div class="result-line"><strong>Kalkulált betét átmérő: <span id="insert-display">114</span> mm</strong></div>
+                    <div class="result-line"><strong>Távolság (lyuk-marás): <span id="gap-display">16</span> mm</strong></div>
                     
                     <div class="formula-line">
-                        Formula: <span id="formula-template">150</span> - <span id="formula-follower">20</span> + <span id="formula-cutter">10</span> = <span id="formula-result">140</span> mm
+                        Marás íve: <span id="formula-template">150</span> - <span id="formula-follower">20</span> + <span id="formula-cutter">10</span> = <span id="formula-result">140</span> mm
+                    </div>
+                    <div class="formula-line">
+                        Betét: <span id="formula-hole">108</span> + 2×<span id="formula-thickness">3</span> = <span id="formula-insert">114</span> mm
+                    </div>
+                    <div class="formula-line">
+                        Távolság: (<span id="formula-cut-gap">140</span> - <span id="formula-hole-gap">108</span>) ÷ 2 = <span id="formula-gap">16</span> mm
                     </div>
                     
                     <div id="warning-message" class="warning-box">
@@ -280,6 +310,14 @@
                             <div style="width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; border: 2px solid #fd7e14; background: rgba(253, 126, 20, 0.3);"></div>
                             <span>Marófej (<span id="legend-cutter">10</span> mm)</span>
                         </div>
+                        <div class="legend-row">
+                            <div style="width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; border: 2px solid #6f42c1; background: rgba(111, 66, 193, 0.1);"></div>
+                            <span>Lyuk (<span id="legend-hole">108</span> mm)</span>
+                        </div>
+                        <div class="legend-row">
+                            <div style="width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; border: 2px solid #e83e8c; background: transparent;"></div>
+                            <span>Betét (<span id="legend-insert">114</span> mm, <span id="legend-thickness">3</span>mm vastag)</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -291,31 +329,55 @@
             template: 150,
             follower: 20,
             cutter: 10,
-            cut: 140
+            cut: 140,
+            hole: 108,
+            thickness: 3  // anyagvastagság mm-ben
         };
 
         function getCalculatedCut() {
             return values.template - values.follower + values.cutter;
         }
 
+        function getCalculatedInsert() {
+            return values.hole + (2 * values.thickness);  // lyuk + 2x anyagvastagság
+        }
+
+        function getGapDistance() {
+            return (values.cut - values.hole) / 2;  // távolság a lyuk és mart ív pereme között
+        }
+
         function refreshDisplay() {
             var calculatedValue = getCalculatedCut();
+            var calculatedInsert = getCalculatedInsert();
+            var gapDistance = getGapDistance();
             
             // Frissítjük az input mezőket is a belső értékekkel
             document.getElementById('template-input').value = values.template;
             document.getElementById('follower-input').value = values.follower;
             document.getElementById('cutter-input').value = values.cutter;
             document.getElementById('cut-input').value = values.cut;
+            document.getElementById('hole-input').value = values.hole;
+            document.getElementById('thickness-input').value = values.thickness;
             
             document.getElementById('template-display').textContent = values.template;
             document.getElementById('follower-display').textContent = values.follower;
             document.getElementById('cutter-display').textContent = values.cutter;
             document.getElementById('calculated-display').textContent = calculatedValue;
+            document.getElementById('hole-display').textContent = values.hole;
+            document.getElementById('thickness-display').textContent = values.thickness;
+            document.getElementById('insert-display').textContent = calculatedInsert;
+            document.getElementById('gap-display').textContent = gapDistance;
             
             document.getElementById('formula-template').textContent = values.template;
             document.getElementById('formula-follower').textContent = values.follower;
             document.getElementById('formula-cutter').textContent = values.cutter;
             document.getElementById('formula-result').textContent = calculatedValue;
+            document.getElementById('formula-hole').textContent = values.hole;
+            document.getElementById('formula-thickness').textContent = values.thickness;
+            document.getElementById('formula-insert').textContent = calculatedInsert;
+            document.getElementById('formula-cut-gap').textContent = values.cut;
+            document.getElementById('formula-hole-gap').textContent = values.hole;
+            document.getElementById('formula-gap').textContent = gapDistance;
             
             var warningElement = document.getElementById('warning-message');
             if (Math.abs(values.cut - calculatedValue) > 0.1) {
@@ -328,12 +390,15 @@
             document.getElementById('legend-follower').textContent = values.follower;
             document.getElementById('legend-cutter').textContent = values.cutter;
             document.getElementById('legend-cut').textContent = values.cut;
+            document.getElementById('legend-hole').textContent = values.hole;
+            document.getElementById('legend-thickness').textContent = values.thickness;
+            document.getElementById('legend-insert').textContent = calculatedInsert;
             
             redrawVisualization();
         }
 
         function redrawVisualization() {
-            console.log('Template:', values.template, 'Follower:', values.follower, 'Cutter:', values.cutter, 'Cut:', values.cut);
+            console.log('Template:', values.template, 'Follower:', values.follower, 'Cutter:', values.cutter, 'Cut:', values.cut, 'Hole:', values.hole, 'Thickness:', values.thickness);
             
             var container = document.getElementById('drawing-area');
             var centerPoint = 300;
@@ -343,8 +408,10 @@
             var followerR = (values.follower / 2) * scaleFactor;
             var cutterR = (values.cutter / 2) * scaleFactor;
             var cutR = (values.cut / 2) * scaleFactor;
+            var holeR = (values.hole / 2) * scaleFactor;
+            var insertR = (getCalculatedInsert() / 2) * scaleFactor;
 
-            console.log('Template radius:', templateR, 'Cut radius:', cutR);
+            console.log('Template radius:', templateR, 'Cut radius:', cutR, 'Hole radius:', holeR, 'Insert radius:', insertR);
 
             // Töröljük a régi köröket
             container.innerHTML = '';
@@ -366,6 +433,24 @@
             cutCircle.style.left = (centerPoint - cutR) + 'px';
             cutCircle.style.top = (centerPoint - cutR) + 'px';
             container.appendChild(cutCircle);
+
+            // Betét kör (rózsaszín)
+            var insertCircle = document.createElement('div');
+            insertCircle.className = 'circle insert-circle';
+            insertCircle.style.width = (insertR * 2) + 'px';
+            insertCircle.style.height = (insertR * 2) + 'px';
+            insertCircle.style.left = (centerPoint - insertR) + 'px';
+            insertCircle.style.top = (centerPoint - insertR) + 'px';
+            container.appendChild(insertCircle);
+
+            // Lyuk kör (lila, kitöltött)
+            var holeCircle = document.createElement('div');
+            holeCircle.className = 'circle hole-circle';
+            holeCircle.style.width = (holeR * 2) + 'px';
+            holeCircle.style.height = (holeR * 2) + 'px';
+            holeCircle.style.left = (centerPoint - holeR) + 'px';
+            holeCircle.style.top = (centerPoint - holeR) + 'px';
+            container.appendChild(holeCircle);
 
             // Sablonkövető pozíciója
             var followerCenterX = centerPoint + templateR - followerR;
@@ -424,6 +509,18 @@
             document.getElementById('cut-input').addEventListener('input', function() {
                 console.log('Cut changed to:', this.value);
                 values.cut = Math.max(1, parseInt(this.value) || 1);
+                refreshDisplay();
+            });
+
+            document.getElementById('hole-input').addEventListener('input', function() {
+                console.log('Hole changed to:', this.value);
+                values.hole = Math.max(1, parseInt(this.value) || 1);
+                refreshDisplay();
+            });
+
+            document.getElementById('thickness-input').addEventListener('input', function() {
+                console.log('Thickness changed to:', this.value);
+                values.thickness = Math.max(0.1, parseFloat(this.value) || 0.1);
                 refreshDisplay();
             });
         }
