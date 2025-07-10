@@ -16,112 +16,112 @@ export const elements = [
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
       // ÚJ: Tipli lyukak - bal hosszanti léc
-      csgOperations: [
-        ...Array.from({ length: 5 }, (v, i) => createCircleHole({
-          radius: 0.2,
-          position: { 
-            x: HOLE_POSITION.smallCorner.x[i], 
-            y: - COURSE_DIMENSIONS.frameHeight / 2 + 1.3 / 2 - 0.1, 
-            z: - COURSE_DIMENSIONS.frameWidth / 2 + 2 + 0.3 / 2 + 0.2,
-          },
-          axis: 'y',
-          direction: 'bottom',
-          depth: 1.3,
-        })),
-        // Első keresztléc tipliei - 2 lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // -123
-            y: 0,
-            z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
-          },
-          axis: 'z',
-          direction: 'right',
-          depth: 2
-        }),
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // -115
-            y: 0,
-            z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
-          },
-          axis: 'z',
-          direction: 'right',
-          depth: 2,
+      // csgOperations: [
+      //   ...Array.from({ length: 5 }, (v, i) => createCircleHole({
+      //     radius: 0.2,
+      //     position: { 
+      //       x: HOLE_POSITION.smallCorner.x[i], 
+      //       y: - COURSE_DIMENSIONS.frameHeight / 2 + 1.3 / 2 - 0.1, 
+      //       z: - COURSE_DIMENSIONS.frameWidth / 2 + 2 + 0.3 / 2 + 0.2,
+      //     },
+      //     axis: 'y',
+      //     direction: 'bottom',
+      //     depth: 1.3,
+      //   })),
+      //   // Első keresztléc tipliei - 2 lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // -123
+      //       y: 0,
+      //       z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
+      //     },
+      //     axis: 'z',
+      //     direction: 'right',
+      //     depth: 2
+      //   }),
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // -115
+      //       y: 0,
+      //       z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
+      //     },
+      //     axis: 'z',
+      //     direction: 'right',
+      //     depth: 2,
 
-        }),
-        // 1. belső keresztléc tipliei - 2 lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 3 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // ~-87.33
-            y: 0,
-            z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
-          },
-          axis: 'z',
-          direction: 'right',
-          depth: 2
-        }),
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 3 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // ~-79.33
-            y: 0,
-            z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
-          },
-          axis: 'z',
-          direction: 'right',
-          depth: 2
-        }),
-        // 2. belső keresztléc tipliei - 2 lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + 2 * COURSE_DIMENSIONS.length / 3 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // ~-4
-            y: 0,
-            z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
-          },
-          axis: 'z',
-          direction: 'right',
-          depth: 2
-        }),
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + 2 * COURSE_DIMENSIONS.length / 3 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // ~+4
-            y: 0,
-            z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
-          },
-          axis: 'z',
-          direction: 'right',
-          depth: 2
-        }),
-        // Hátsó keresztléc tipliei - 2 lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // +115
-            y: 0,
-            z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
-          },
-          axis: 'z',
-          direction: 'right',
-          depth: 2
-        }),
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // +123
-            y: 0,
-            z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
-          },
-          axis: 'z',
-          direction: 'right',
-          depth: 2
-        })
-      ],
+      //   }),
+      //   // 1. belső keresztléc tipliei - 2 lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 3 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // ~-87.33
+      //       y: 0,
+      //       z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
+      //     },
+      //     axis: 'z',
+      //     direction: 'right',
+      //     depth: 2
+      //   }),
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 3 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // ~-79.33
+      //       y: 0,
+      //       z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
+      //     },
+      //     axis: 'z',
+      //     direction: 'right',
+      //     depth: 2
+      //   }),
+      //   // 2. belső keresztléc tipliei - 2 lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + 2 * COURSE_DIMENSIONS.length / 3 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // ~-4
+      //       y: 0,
+      //       z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
+      //     },
+      //     axis: 'z',
+      //     direction: 'right',
+      //     depth: 2
+      //   }),
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + 2 * COURSE_DIMENSIONS.length / 3 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // ~+4
+      //       y: 0,
+      //       z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
+      //     },
+      //     axis: 'z',
+      //     direction: 'right',
+      //     depth: 2
+      //   }),
+      //   // Hátsó keresztléc tipliei - 2 lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // +115
+      //       y: 0,
+      //       z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
+      //     },
+      //     axis: 'z',
+      //     direction: 'right',
+      //     depth: 2
+      //   }),
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // +123
+      //       y: 0,
+      //       z: COURSE_DIMENSIONS.frameWidth / 2 - 1 // +2
+      //     },
+      //     axis: 'z',
+      //     direction: 'right',
+      //     depth: 2
+      //   })
+      // ],
     },
     transform: {
       position: {
@@ -148,111 +148,111 @@ export const elements = [
         length: COURSE_DIMENSIONS.length, // 250 cm
       },
       // ÚJ: Tipli lyukak - jobb hosszanti léc
-      csgOperations: [
-        ...Array.from({ length: 5 }, (v, i) => createCircleHole({
-          radius: 0.2,
-          position: { 
-            x: HOLE_POSITION.smallCorner.x[i], 
-            y: - COURSE_DIMENSIONS.frameHeight / 2 + 1.3 / 2 - 0.1, 
-            z: COURSE_DIMENSIONS.frameWidth / 2 - 2 - 0.3 / 2 - 0.2,
-          },
-          axis: 'y',
-          direction: 'bottom',
-          depth: 1.3,
-        })),
-        // Első keresztléc tipliei - 2 lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // -123
-            y: 0,
-            z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
-          },
-          axis: 'z',
-          direction: 'left',
-          depth: 2
-        }),
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // -115
-            y: 0,
-            z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
-          },
-          axis: 'z',
-          direction: 'left',
-          depth: 2
-        }),
-        // 1. belső keresztléc tipliei - 2 lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 3 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // ~-87.33
-            y: 0,
-            z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
-          },
-          axis: 'z',
-          direction: 'left',
-          depth: 2
-        }),
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 3 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // ~-79.33
-            y: 0,
-            z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
-          },
-          axis: 'z',
-          direction: 'left',
-          depth: 2
-        }),
-        // 2. belső keresztléc tipliei - 2 lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + 2 * COURSE_DIMENSIONS.length / 3 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // ~-4
-            y: 0,
-            z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
-          },
-          axis: 'z',
-          direction: 'left',
-          depth: 2
-        }),
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -COURSE_DIMENSIONS.length / 2 + 2 * COURSE_DIMENSIONS.length / 3 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // ~+4
-            y: 0,
-            z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
-          },
-          axis: 'z',
-          direction: 'left',
-          depth: 2
-        }),
-        // Hátsó keresztléc tipliei - 2 lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // +115
-            y: 0,
-            z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
-          },
-          axis: 'z',
-          direction: 'left',
-          depth: 2
-        }),
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // +123
-            y: 0,
-            z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
-          },
-          axis: 'z',
-          direction: 'left',
-          depth: 2
-        })
-      ],
+      // csgOperations: [
+      //   ...Array.from({ length: 5 }, (v, i) => createCircleHole({
+      //     radius: 0.2,
+      //     position: { 
+      //       x: HOLE_POSITION.smallCorner.x[i], 
+      //       y: - COURSE_DIMENSIONS.frameHeight / 2 + 1.3 / 2 - 0.1, 
+      //       z: COURSE_DIMENSIONS.frameWidth / 2 - 2 - 0.3 / 2 - 0.2,
+      //     },
+      //     axis: 'y',
+      //     direction: 'bottom',
+      //     depth: 1.3,
+      //   })),
+      //   // Első keresztléc tipliei - 2 lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // -123
+      //       y: 0,
+      //       z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
+      //     },
+      //     axis: 'z',
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // -115
+      //       y: 0,
+      //       z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
+      //     },
+      //     axis: 'z',
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   // 1. belső keresztléc tipliei - 2 lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 3 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // ~-87.33
+      //       y: 0,
+      //       z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
+      //     },
+      //     axis: 'z',
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.length / 3 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // ~-79.33
+      //       y: 0,
+      //       z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
+      //     },
+      //     axis: 'z',
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   // 2. belső keresztléc tipliei - 2 lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + 2 * COURSE_DIMENSIONS.length / 3 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // ~-4
+      //       y: 0,
+      //       z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
+      //     },
+      //     axis: 'z',
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -COURSE_DIMENSIONS.length / 2 + 2 * COURSE_DIMENSIONS.length / 3 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // ~+4
+      //       y: 0,
+      //       z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
+      //     },
+      //     axis: 'z',
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   // Hátsó keresztléc tipliei - 2 lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // +115
+      //       y: 0,
+      //       z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
+      //     },
+      //     axis: 'z',
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // +123
+      //       y: 0,
+      //       z: -COURSE_DIMENSIONS.frameWidth / 2 + 1 // -2
+      //     },
+      //     axis: 'z',
+      //     direction: 'left',
+      //     depth: 2
+      //   })
+      // ],
     },
     transform: {
       position: {
@@ -280,56 +280,56 @@ export const elements = [
         length: COURSE_DIMENSIONS.crossBeamWidth, // 12 cm (dupla széles)
       },
       // ÚJ: Tipli lyukak - első keresztléc
-      csgOperations: [
-        // Bal oldal - első tipli lyuk
-        createCircleHole({
-          radius: 0.4, // 8mm átmérő / 2
-          position: {
-            x: -4, // -12/2 + 2 = -4cm
-            y: 0,  // Keresztléc közepén
-            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1,
-          },
-          axis: 'z',
-          direction: 'left',
-          depth: 2
-        }),
-        // Bal oldal - második tipli lyuk  
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: 4,   // 12/2 - 2 = 4cm
-            y: 0,
-            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1
-          },
-          axis: 'z', 
-          direction: 'left',
-          depth: 2
-        }),
-        // Jobb oldal - első tipli lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -4,
-            y: 0,
-            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
-          },
-          axis: 'z',
-          direction: 'right', 
-          depth: 2
-        }),
-        // Jobb oldal - második tipli lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: 4,
-            y: 0, 
-            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
-          },
-          axis: 'z',
-          direction: 'right',
-          depth: 2
-        })
-      ],
+      // csgOperations: [
+      //   // Bal oldal - első tipli lyuk
+      //   createCircleHole({
+      //     radius: 0.4, // 8mm átmérő / 2
+      //     position: {
+      //       x: -2, // -12/2 + 2 = -4cm
+      //       y: 0,  // Keresztléc közepén
+      //       z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1,
+      //     },
+      //     axis: 'z',
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   // Bal oldal - második tipli lyuk  
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: 2,   // 12/2 - 2 = 4cm
+      //       y: 0,
+      //       z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1
+      //     },
+      //     axis: 'z', 
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   // Jobb oldal - első tipli lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -2,
+      //       y: 0,
+      //       z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+      //     },
+      //     axis: 'z',
+      //     direction: 'right', 
+      //     depth: 2
+      //   }),
+      //   // Jobb oldal - második tipli lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: 2,
+      //       y: 0, 
+      //       z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+      //     },
+      //     axis: 'z',
+      //     direction: 'right',
+      //     depth: 2
+      //   })
+      // ],
     },
     transform: {
       position: {
@@ -356,56 +356,56 @@ export const elements = [
         length: COURSE_DIMENSIONS.crossBeamWidth, // 12 cm (dupla széles)
       },
       // ÚJ: Tipli lyukak - hátsó keresztléc
-      csgOperations: [
-        // Bal oldal - első tipli lyuk
-        createCircleHole({
-          radius: 0.4, // 8mm átmérő / 2
-          position: {
-            x: -4, // -12/2 + 2 = -4cm
-            y: 0,  // Keresztléc közepén
-            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1,
-          },
-          axis: 'z',
-          direction: 'left',
-          depth: 2
-        }),
-        // Bal oldal - második tipli lyuk  
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: 4,   // 12/2 - 2 = 4cm
-            y: 0,
-            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1
-          },
-          axis: 'z', 
-          direction: 'left',
-          depth: 2
-        }),
-        // Jobb oldal - első tipli lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -4,
-            y: 0,
-            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
-          },
-          axis: 'z',
-          direction: 'right', 
-          depth: 2
-        }),
-        // Jobb oldal - második tipli lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: 4,
-            y: 0, 
-            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
-          },
-          axis: 'z',
-          direction: 'right',
-          depth: 2
-        })
-      ],
+      // csgOperations: [
+      //   // Bal oldal - első tipli lyuk
+      //   createCircleHole({
+      //     radius: 0.4, // 8mm átmérő / 2
+      //     position: {
+      //       x: -2, // -12/2 + 2 = -4cm
+      //       y: 0,  // Keresztléc közepén
+      //       z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1,
+      //     },
+      //     axis: 'z',
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   // Bal oldal - második tipli lyuk  
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: 2,   // 12/2 - 2 = 4cm
+      //       y: 0,
+      //       z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1
+      //     },
+      //     axis: 'z', 
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   // Jobb oldal - első tipli lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -2,
+      //       y: 0,
+      //       z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+      //     },
+      //     axis: 'z',
+      //     direction: 'right', 
+      //     depth: 2
+      //   }),
+      //   // Jobb oldal - második tipli lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: 2,
+      //       y: 0, 
+      //       z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+      //     },
+      //     axis: 'z',
+      //     direction: 'right',
+      //     depth: 2
+      //   })
+      // ],
     },
     transform: {
       position: {
@@ -438,56 +438,56 @@ export const elements = [
           length: COURSE_DIMENSIONS.crossBeamWidth, // 12 cm (dupla széles)
         },
         // ÚJ: Tipli lyukak - belső keresztlécek
-        csgOperations: [
-        // Bal oldal - első tipli lyuk
-        createCircleHole({
-          radius: 0.4, // 8mm átmérő / 2
-          position: {
-            x: -4, // -12/2 + 2 = -4cm
-            y: 0,  // Keresztléc közepén
-            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1,
-          },
-          axis: 'z',
-          direction: 'left',
-          depth: 2
-        }),
-        // Bal oldal - második tipli lyuk  
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: 4,   // 12/2 - 2 = 4cm
-            y: 0,
-            z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1
-          },
-          axis: 'z', 
-          direction: 'left',
-          depth: 2
-        }),
-        // Jobb oldal - első tipli lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: -4,
-            y: 0,
-            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
-          },
-          axis: 'z',
-          direction: 'right', 
-          depth: 2
-        }),
-        // Jobb oldal - második tipli lyuk
-        createCircleHole({
-          radius: 0.4,
-          position: {
-            x: 4,
-            y: 0, 
-            z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
-          },
-          axis: 'z',
-          direction: 'right',
-          depth: 2
-        })
-      ],
+      //   csgOperations: [
+      //   // Bal oldal - első tipli lyuk
+      //   createCircleHole({
+      //     radius: 0.4, // 8mm átmérő / 2
+      //     position: {
+      //       x: -2, // -12/2 + 2 = -4cm
+      //       y: 0,  // Keresztléc közepén
+      //       z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1,
+      //     },
+      //     axis: 'z',
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   // Bal oldal - második tipli lyuk  
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: 2,   // 12/2 - 2 = 4cm
+      //       y: 0,
+      //       z: (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 - 1
+      //     },
+      //     axis: 'z', 
+      //     direction: 'left',
+      //     depth: 2
+      //   }),
+      //   // Jobb oldal - első tipli lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: -2,
+      //       y: 0,
+      //       z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+      //     },
+      //     axis: 'z',
+      //     direction: 'right', 
+      //     depth: 2
+      //   }),
+      //   // Jobb oldal - második tipli lyuk
+      //   createCircleHole({
+      //     radius: 0.4,
+      //     position: {
+      //       x: 2,
+      //       y: 0, 
+      //       z: - (COURSE_DIMENSIONS.width - 2 * COURSE_DIMENSIONS.frameWidth) / 2 + 1
+      //     },
+      //     axis: 'z',
+      //     direction: 'right',
+      //     depth: 2
+      //   })
+      // ],
       },
       transform: {
         position: {
@@ -505,165 +505,165 @@ export const elements = [
 
   // Tipliek a keresztlécekhez - függőlegesen középen - VÁLTOZATLAN
   // Első keresztléc tipliei (4 db)
-  ...(() => {
-    const crossBeamX =
-      -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2;
-    const crossBeamY = -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness;
+  // ...(() => {
+  //   const crossBeamX =
+  //     -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2;
+  //   const crossBeamY = -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness;
 
-    return [
-      // Bal oldal - első tipli
-      window.part.dowel({
-        id: "dowel_front_left_1",
-        position: {
-          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // 2 cm-re a széltől
-          y: crossBeamY, // Keresztléc közepén
-          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 }, // Függőlegesen felfelé
-      }),
-      // Bal oldal - második tipli
-      window.part.dowel({
-        id: "dowel_front_left_2",
-        position: {
-          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // 2 cm-re a másik széltől
-          y: crossBeamY, // Keresztléc közepén
-          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 },
-      }),
-      // Jobb oldal - első tipli
-      window.part.dowel({
-        id: "dowel_front_right_1",
-        position: {
-          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
-          y: crossBeamY, // Keresztléc közepén
-          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 },
-      }),
-      // Jobb oldal - második tipli
-      window.part.dowel({
-        id: "dowel_front_right_2",
-        position: {
-          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
-          y: crossBeamY, // Keresztléc közepén
-          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 },
-      }),
-    ];
-  })(),
+  //   return [
+  //     // Bal oldal - első tipli
+  //     window.part.dowel({
+  //       id: "dowel_front_left_1",
+  //       position: {
+  //         x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2, // 2 cm-re a széltől
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 }, // Függőlegesen felfelé
+  //     }),
+  //     // Bal oldal - második tipli
+  //     window.part.dowel({
+  //       id: "dowel_front_left_2",
+  //       position: {
+  //         x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2, // 2 cm-re a másik széltől
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  //     }),
+  //     // Jobb oldal - első tipli
+  //     window.part.dowel({
+  //       id: "dowel_front_right_1",
+  //       position: {
+  //         x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  //     }),
+  //     // Jobb oldal - második tipli
+  //     window.part.dowel({
+  //       id: "dowel_front_right_2",
+  //       position: {
+  //         x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  //     }),
+  //   ];
+  // })(),
 
-  // Hátsó keresztléc tipliei (4 db)
-  ...(() => {
-    const crossBeamX =
-      COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2;
-    const crossBeamY = -COURSE_DIMENSIONS.frameHeight / 2 - 1.2;
+  // // Hátsó keresztléc tipliei (4 db)
+  // ...(() => {
+  //   const crossBeamX =
+  //     COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2;
+  //   const crossBeamY = -COURSE_DIMENSIONS.frameHeight / 2 - 1.2;
 
-    return [
-      // Bal oldal - első tipli
-      window.part.dowel({
-        id: "dowel_back_left_1",
-        position: {
-          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
-          y: crossBeamY, // Keresztléc közepén
-          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 },
-      }),
-      // Bal oldal - második tipli
-      window.part.dowel({
-        id: "dowel_back_left_2",
-        position: {
-          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
-          y: crossBeamY, // Keresztléc közepén
-          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 },
-      }),
-      // Jobb oldal - első tipli
-      window.part.dowel({
-        id: "dowel_back_right_1",
-        position: {
-          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
-          y: crossBeamY, // Keresztléc közepén
-          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 },
-      }),
-      // Jobb oldal - második tipli
-      window.part.dowel({
-        id: "dowel_back_right_2",
-        position: {
-          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
-          y: crossBeamY, // Keresztléc közepén
-          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 },
-      }),
-    ];
-  })(),
+  //   return [
+  //     // Bal oldal - első tipli
+  //     window.part.dowel({
+  //       id: "dowel_back_left_1",
+  //       position: {
+  //         x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  //     }),
+  //     // Bal oldal - második tipli
+  //     window.part.dowel({
+  //       id: "dowel_back_left_2",
+  //       position: {
+  //         x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  //     }),
+  //     // Jobb oldal - első tipli
+  //     window.part.dowel({
+  //       id: "dowel_back_right_1",
+  //       position: {
+  //         x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  //     }),
+  //     // Jobb oldal - második tipli
+  //     window.part.dowel({
+  //       id: "dowel_back_right_2",
+  //       position: {
+  //         x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  //     }),
+  //   ];
+  // })(),
 
-  // Belső keresztlécek tipliei
-  ...Array.from({ length: COURSE_DIMENSIONS.crossBeamCount }, (_, i) => {
-    const spacing =
-      COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
-    const crossBeamX = -COURSE_DIMENSIONS.length / 2 + spacing * (i + 1);
-    const crossBeamY = -COURSE_DIMENSIONS.frameHeight / 2 - 1.2;
+  // // Belső keresztlécek tipliei
+  // ...Array.from({ length: COURSE_DIMENSIONS.crossBeamCount }, (_, i) => {
+  //   const spacing =
+  //     COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
+  //   const crossBeamX = -COURSE_DIMENSIONS.length / 2 + spacing * (i + 1);
+  //   const crossBeamY = -COURSE_DIMENSIONS.frameHeight / 2 - 1.2;
 
-    return [
-      // Bal oldal - első tipli
-      window.part.dowel({
-        id: `dowel_cross_${i + 1}_left_1`,
-        position: {
-          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
-          y: crossBeamY, // Keresztléc közepén
-          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 },
-      }),
-      // Bal oldal - második tipli
-      window.part.dowel({
-        id: `dowel_cross_${i + 1}_left_2`,
-        position: {
-          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
-          y: crossBeamY, // Keresztléc közepén
-          z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 },
-      }),
-      // Jobb oldal - első tipli
-      window.part.dowel({
-        id: `dowel_cross_${i + 1}_right_1`,
-        position: {
-          x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
-          y: crossBeamY, // Keresztléc közepén
-          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 },
-      }),
-      // Jobb oldal - második tipli
-      window.part.dowel({
-        id: `dowel_cross_${i + 1}_right_2`,
-        position: {
-          x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
-          y: crossBeamY, // Keresztléc közepén
-          z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
-        },
-        explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
-        rotation: { x: Math.PI / 2, y: 0, z: 0 },
-      }),
-    ];
-  }).flat(),
+  //   return [
+  //     // Bal oldal - első tipli
+  //     window.part.dowel({
+  //       id: `dowel_cross_${i + 1}_left_1`,
+  //       position: {
+  //         x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  //     }),
+  //     // Bal oldal - második tipli
+  //     window.part.dowel({
+  //       id: `dowel_cross_${i + 1}_left_2`,
+  //       position: {
+  //         x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: -15 }, // Csak balra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  //     }),
+  //     // Jobb oldal - első tipli
+  //     window.part.dowel({
+  //       id: `dowel_cross_${i + 1}_right_1`,
+  //       position: {
+  //         x: crossBeamX - COURSE_DIMENSIONS.crossBeamWidth / 2 + 2,
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  //     }),
+  //     // Jobb oldal - második tipli
+  //     window.part.dowel({
+  //       id: `dowel_cross_${i + 1}_right_2`,
+  //       position: {
+  //         x: crossBeamX + COURSE_DIMENSIONS.crossBeamWidth / 2 - 2,
+  //         y: crossBeamY, // Keresztléc közepén
+  //         z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.frameWidth,
+  //       },
+  //       explodeOffset: { x: 0, y: 0, z: 15 }, // Csak jobbra
+  //       rotation: { x: Math.PI / 2, y: 0, z: 0 },
+  //     }),
+  //   ];
+  // }).flat(),
 ];

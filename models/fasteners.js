@@ -4,6 +4,11 @@
  * v1.0.0 - Egyszerűsített verzió
  */
 
+const topPosition = -COURSE_DIMENSIONS.frameHeight / 2 - COURSE_DIMENSIONS.topPlateThickness / 2;
+const spacingFront = COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
+// const spacingBack = COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount);
+
+
 export const elements = [
   // Derékszögű háromszög rögzítő elem
   {
@@ -21,16 +26,14 @@ export const elements = [
     },
     transform: {
       position: {
-        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.triangleShift, 
-        y: -COURSE_DIMENSIONS.frameHeight -
-            COURSE_DIMENSIONS.topPlateThickness / 2 - 
-            COURSE_DIMENSIONS.fastenerThickness / 2,
-        z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.triangleShift,
+        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.crossBeamWidth - COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.frameWidth + COURSE_DIMENSIONS.triangleShift,
       },
       rotation: { x: Math.PI / 2, y: 0, z: Math.PI / 4 },
     },
     explode: {
-      offset: { x: 0, y: -20, z: 0 },
+      offset: { x: 10, y: 0, z: 0 },
     },
   },
   {
@@ -48,16 +51,14 @@ export const elements = [
     },
     transform: {
       position: {
-        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.triangleShift, 
-        y: -COURSE_DIMENSIONS.frameHeight -
-            COURSE_DIMENSIONS.topPlateThickness / 2 - 
-            COURSE_DIMENSIONS.fastenerThickness / 2,
-        z: - COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.triangleShift
+        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.crossBeamWidth - COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: - COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.frameWidth - COURSE_DIMENSIONS.triangleShift
       },
       rotation: { x: Math.PI / 2, y: 0, z: (Math.PI / 4) * 3 },
     },
     explode: {
-      offset: { x: 0, y: -20, z: 0 },
+      offset: { x: 10, y: 0, z: 0 },
     },
   },
   {
@@ -75,16 +76,14 @@ export const elements = [
     },
     transform: {
       position: {
-        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.triangleShift, 
-        y: -COURSE_DIMENSIONS.frameHeight -
-            COURSE_DIMENSIONS.topPlateThickness / 2 - 
-            COURSE_DIMENSIONS.fastenerThickness / 2,
-        z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.triangleShift
+        x: -COURSE_DIMENSIONS.length / 2 + spacingFront - COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.frameWidth + COURSE_DIMENSIONS.triangleShift
       },
       rotation: { x: Math.PI / 2, y: 0, z: - (Math.PI / 4) },
     },
     explode: {
-      offset: { x: 0, y: -20, z: 0 },
+      offset: { x: -10, y: 0, z: 0 },
     },
   },
   {
@@ -102,128 +101,216 @@ export const elements = [
     },
     transform: {
       position: {
-        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.triangleShift, 
-        y: -COURSE_DIMENSIONS.frameHeight -
-            COURSE_DIMENSIONS.topPlateThickness / 2 - 
-            COURSE_DIMENSIONS.fastenerThickness / 2,
-        z: - COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.triangleShift
+        x: -COURSE_DIMENSIONS.length / 2 + spacingFront - COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: - COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.frameWidth - COURSE_DIMENSIONS.triangleShift
       },
       rotation: { x: Math.PI / 2, y: 0, z: -(Math.PI / 4) * 3 },
     },
     explode: {
-      offset: { x: 0, y: -20, z: 0 },
+      offset: { x: -10, y: 0, z: 0 },
     },
   },
+
   {
-    id: "trapezoid_fastener_1",
-    name: "Trapéz merevítő",
+    id: "triangle_fastener_5",
+    name: "Háromszög merevítő",
     type: ELEMENT_TYPES.FASTENER,
-    material: "PINE_SOLID",
+    material: "PINE_SOLID", // Lucfenyő tömörfa
     geometry: {
-      type: GEOMETRY_TYPES.TRAPEZOID,
+      type: GEOMETRY_TYPES.TRIANGLE,
       dimensions: {
-        topWidth: COURSE_DIMENSIONS.trapezoidTopWidth,
-        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomWidth, 
-        height: COURSE_DIMENSIONS.trapezoidHeight,
-        thickness: COURSE_DIMENSIONS.fastenerThickness,
-      },
+          width: COURSE_DIMENSIONS.triangleDims.width, 
+          height: COURSE_DIMENSIONS.triangleDims.height, 
+          thickness: COURSE_DIMENSIONS.fastenerThickness,
+        },
     },
     transform: {
       position: {
-        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.spacing,
-        y: -COURSE_DIMENSIONS.frameHeight -
-            COURSE_DIMENSIONS.topPlateThickness / 2 - 
-            COURSE_DIMENSIONS.fastenerThickness / 2,
-        z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.trapezoidHeight / 2,
+        x: -COURSE_DIMENSIONS.length / 2 + spacingFront + COURSE_DIMENSIONS.triangleDims.height - COURSE_DIMENSIONS.crossBeamWidth / 2 +  COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.frameWidth + COURSE_DIMENSIONS.triangleShift,
       },
-      rotation: { x: Math.PI / 2, y: 0, z: -(Math.PI / 2) * 2 }, 
+      rotation: { x: Math.PI / 2, y: 0, z: Math.PI / 4 },
     },
     explode: {
-      offset: { x: 0, y: -20, z: 0 },
+      offset: { x: 10, y: 0, z: 0 },
     },
   },
   {
-    id: "trapezoid_fastener_2",
-    name: "Trapéz merevítő",
+    id: "triangle_fastener_6",
+    name: "Háromszög merevítő",
     type: ELEMENT_TYPES.FASTENER,
-    material: "PINE_SOLID",
+    material: "PINE_SOLID", // Lucfenyő tömörfa
     geometry: {
-      type: GEOMETRY_TYPES.TRAPEZOID,
+      type: GEOMETRY_TYPES.TRIANGLE,
       dimensions: {
-        topWidth: COURSE_DIMENSIONS.trapezoidTopWidth,
-        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomWidth, 
-        height: COURSE_DIMENSIONS.trapezoidHeight,
-        thickness: COURSE_DIMENSIONS.fastenerThickness,
-      },
+          width: COURSE_DIMENSIONS.triangleDims.width, 
+          height: COURSE_DIMENSIONS.triangleDims.height, 
+          thickness: COURSE_DIMENSIONS.fastenerThickness,
+        },
     },
     transform: {
       position: {
-        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.spacing,
-        y: -COURSE_DIMENSIONS.frameHeight -
-            COURSE_DIMENSIONS.topPlateThickness / 2 - 
-            COURSE_DIMENSIONS.fastenerThickness / 2,
-        z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.trapezoidHeight / 2,
+        x: -COURSE_DIMENSIONS.length / 2 + spacingFront + COURSE_DIMENSIONS.triangleDims.height - COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: - COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.frameWidth - COURSE_DIMENSIONS.triangleShift
       },
-      rotation: { x: Math.PI / 2, y: 0, z: (Math.PI / 2) * 4 }, 
+      rotation: { x: Math.PI / 2, y: 0, z: (Math.PI / 4) * 3 },
     },
     explode: {
-      offset: { x: 0, y: -20, z: 0 },
+      offset: { x: 10, y: 0, z: 0 },
     },
   },
   {
-    id: "trapezoid_fastener_3",
-    name: "Trapéz merevítő",
+    id: "triangle_fastener_7",
+    name: "Háromszög merevítő",
     type: ELEMENT_TYPES.FASTENER,
-    material: "PINE_SOLID",
+    material: "PINE_SOLID", // Lucfenyő tömörfa
     geometry: {
-      type: GEOMETRY_TYPES.TRAPEZOID,
+      type: GEOMETRY_TYPES.TRIANGLE,
       dimensions: {
-        topWidth: COURSE_DIMENSIONS.trapezoidTopWidth,
-        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomWidth, 
-        height: COURSE_DIMENSIONS.trapezoidHeight,
-        thickness: COURSE_DIMENSIONS.fastenerThickness,
-      },
+          width: COURSE_DIMENSIONS.triangleDims.width, 
+          height: COURSE_DIMENSIONS.triangleDims.height, 
+          thickness: COURSE_DIMENSIONS.fastenerThickness,
+        },
     },
     transform: {
       position: {
-        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.spacing,
-        y: -COURSE_DIMENSIONS.frameHeight -
-            COURSE_DIMENSIONS.topPlateThickness / 2 - 
-            COURSE_DIMENSIONS.fastenerThickness / 2,
-        z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.trapezoidHeight / 2,
+        x: COURSE_DIMENSIONS.length / 2 - spacingFront - COURSE_DIMENSIONS.triangleDims.height + COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.frameWidth + COURSE_DIMENSIONS.triangleShift
       },
-      rotation: { x: Math.PI / 2, y: 0, z: -(Math.PI / 2) * 2 }, 
+      rotation: { x: Math.PI / 2, y: 0, z: - (Math.PI / 4) },
     },
     explode: {
-      offset: { x: 0, y: -20, z: 0 },
+      offset: { x: -10, y: 0, z: 0 },
     },
   },
   {
-    id: "trapezoid_fastener_4",
-    name: "Trapéz merevítő",
+    id: "triangle_fastener_8",
+    name: "Háromszög merevítő",
     type: ELEMENT_TYPES.FASTENER,
-    material: "PINE_SOLID",
+    material: "PINE_SOLID", // Lucfenyő tömörfa
     geometry: {
-      type: GEOMETRY_TYPES.TRAPEZOID,
+      type: GEOMETRY_TYPES.TRIANGLE,
       dimensions: {
-        topWidth: COURSE_DIMENSIONS.trapezoidTopWidth,
-        bottomWidth: COURSE_DIMENSIONS.trapezoidBottomWidth, 
-        height: COURSE_DIMENSIONS.trapezoidHeight,
-        thickness: COURSE_DIMENSIONS.fastenerThickness,
-      },
+          width: COURSE_DIMENSIONS.triangleDims.width, 
+          height: COURSE_DIMENSIONS.triangleDims.height, 
+          thickness: COURSE_DIMENSIONS.fastenerThickness,
+        },
     },
     transform: {
       position: {
-        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.spacing,
-        y: -COURSE_DIMENSIONS.frameHeight -
-            COURSE_DIMENSIONS.topPlateThickness / 2 - 
-            COURSE_DIMENSIONS.fastenerThickness / 2,
-        z: -COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.trapezoidHeight / 2,
+        x: COURSE_DIMENSIONS.length / 2 - spacingFront - COURSE_DIMENSIONS.triangleDims.height + COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: - COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.frameWidth - COURSE_DIMENSIONS.triangleShift
       },
-      rotation: { x: Math.PI / 2, y: 0, z: (Math.PI / 2) * 4 }, 
+      rotation: { x: Math.PI / 2, y: 0, z: -(Math.PI / 4) * 3 },
     },
     explode: {
-      offset: { x: 0, y: -20, z: 0 },
+      offset: { x: -10, y: 0, z: 0 },
+    },
+  },
+  
+  {
+    id: "triangle_fastener_9",
+    name: "Háromszög merevítő",
+    type: ELEMENT_TYPES.FASTENER,
+    material: "PINE_SOLID", // Lucfenyő tömörfa
+    geometry: {
+      type: GEOMETRY_TYPES.TRIANGLE,
+      dimensions: {
+          width: COURSE_DIMENSIONS.triangleDims.width, 
+          height: COURSE_DIMENSIONS.triangleDims.height, 
+          thickness: COURSE_DIMENSIONS.fastenerThickness,
+        },
+    },
+    transform: {
+      position: {
+        x: COURSE_DIMENSIONS.length / 2 - spacingFront + COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.frameWidth + COURSE_DIMENSIONS.triangleShift,
+      },
+      rotation: { x: Math.PI / 2, y: 0, z: Math.PI / 4 },
+    },
+    explode: {
+      offset: { x: 10, y: 0, z: 0 },
+    },
+  },
+  {
+    id: "triangle_fastener_10",
+    name: "Háromszög merevítő",
+    type: ELEMENT_TYPES.FASTENER,
+    material: "PINE_SOLID", // Lucfenyő tömörfa
+    geometry: {
+      type: GEOMETRY_TYPES.TRIANGLE,
+      dimensions: {
+          width: COURSE_DIMENSIONS.triangleDims.width, 
+          height: COURSE_DIMENSIONS.triangleDims.height, 
+          thickness: COURSE_DIMENSIONS.fastenerThickness,
+        },
+    },
+    transform: {
+      position: {
+        x: COURSE_DIMENSIONS.length / 2 - spacingFront + COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: - COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.frameWidth - COURSE_DIMENSIONS.triangleShift
+      },
+      rotation: { x: Math.PI / 2, y: 0, z: (Math.PI / 4) * 3 },
+    },
+    explode: {
+      offset: { x: 10, y: 0, z: 0 },
+    },
+  },
+  {
+    id: "triangle_fastener_11",
+    name: "Háromszög merevítő",
+    type: ELEMENT_TYPES.FASTENER,
+    material: "PINE_SOLID", // Lucfenyő tömörfa
+    geometry: {
+      type: GEOMETRY_TYPES.TRIANGLE,
+      dimensions: {
+          width: COURSE_DIMENSIONS.triangleDims.width, 
+          height: COURSE_DIMENSIONS.triangleDims.height, 
+          thickness: COURSE_DIMENSIONS.fastenerThickness,
+        },
+    },
+    transform: {
+      position: {
+        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.crossBeamWidth + COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: COURSE_DIMENSIONS.width / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.frameWidth + COURSE_DIMENSIONS.triangleShift
+      },
+      rotation: { x: Math.PI / 2, y: 0, z: - (Math.PI / 4) },
+    },
+    explode: {
+      offset: { x: -10, y: 0, z: 0 },
+    },
+  },
+  {
+    id: "triangle_fastener_12",
+    name: "Háromszög merevítő",
+    type: ELEMENT_TYPES.FASTENER,
+    material: "PINE_SOLID", // Lucfenyő tömörfa
+    geometry: {
+      type: GEOMETRY_TYPES.TRIANGLE,
+      dimensions: {
+          width: COURSE_DIMENSIONS.triangleDims.width, 
+          height: COURSE_DIMENSIONS.triangleDims.height, 
+          thickness: COURSE_DIMENSIONS.fastenerThickness,
+        },
+    },
+    transform: {
+      position: {
+        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.triangleDims.height / 2 - COURSE_DIMENSIONS.crossBeamWidth + COURSE_DIMENSIONS.triangleShift, 
+        y: topPosition,
+        z: - COURSE_DIMENSIONS.width / 2 + COURSE_DIMENSIONS.triangleDims.height / 2 + COURSE_DIMENSIONS.frameWidth - COURSE_DIMENSIONS.triangleShift
+      },
+      rotation: { x: Math.PI / 2, y: 0, z: -(Math.PI / 4) * 3 },
+    },
+    explode: {
+      offset: { x: -10, y: 0, z: 0 },
     },
   },
 ];
