@@ -14,6 +14,11 @@ async function loadModels() {
     const frontSection = await import("./models/front/index.js");
     const frontElements = await frontSection.loadSectionElements();
     models.push(...frontElements);
+
+    // Back szekció
+    const backSection = await import("./models/back/index.js");
+    const backElements = await backSection.loadSectionElements();
+    models.push(...backElements);
     
     // Alaplemez
     // const basePlate = await import("./models/plate.js");
