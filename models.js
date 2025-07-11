@@ -10,32 +10,25 @@ async function loadModels() {
   const models = [];
 
   try {
-    // Alaplemez
-    const basePlate = await import("./models/plate.js");
-    models.push(...basePlate.elements);
+    // Front szekció
+    const frontSection = await import("./models/front/index.js");
+    const frontElements = await frontSection.loadSectionElements();
+    models.push(...frontElements);
 
-    // Műfű
-    const turf = await import("./models/turf.js");
-    models.push(...turf.elements);
+    // Back szekció
+    const backSection = await import("./models/back/index.js");
+    const backElements = await backSection.loadSectionElements();
+    models.push(...backElements);
 
-    // // Váz
-    const frame = await import("./models/frame.js");
-    models.push(...frame.elements);
-
-    // // Falak
-    const walls = await import("./models/walls.js");
-    models.push(...walls.elements);
-
-    // // Lábak
-    const legs = await import("./models/legs.js");
-    models.push(...legs.elements);
-
-    // // Labda
+    // Összekötó szekció
+    const joinerSection = await import("./models/joiner/index.js");
+    const joinerElements = await joinerSection.loadSectionElements();
+    models.push(...joinerElements);
+    
+    // Labda
     const ball = await import("./models/ball.js");
     models.push(...ball.elements);
 
-    const fasteners = await import("./models/fasteners.js");
-    models.push(...fasteners.elements);
 
     console.log(`✅ ${models.length} elem betöltve`);
     return models;

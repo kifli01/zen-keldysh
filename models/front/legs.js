@@ -1,9 +1,6 @@
 export const elements = [
   // Lábak (8 db) - keresztlécek közepén - VÁLTOZATLAN
-  ...Array.from({ length: 8 }, (_, i) => {
-    // Láb pozíciók kiszámítása - keresztlécek pozícióihoz igazítva
-    const spacing =
-      COURSE_DIMENSIONS.length / (COURSE_DIMENSIONS.crossBeamCount + 1);
+  ...Array.from({ length: 4 }, (_, i) => {
 
     const legPositions = [
       // Első keresztlécnél (bal és jobb oldal)
@@ -21,46 +18,16 @@ export const elements = [
           COURSE_DIMENSIONS.frameWidth / 2 -
           COURSE_DIMENSIONS.legInset,
       },
-      // 1. belső keresztlécnél
-      {
-        x: -COURSE_DIMENSIONS.length / 2 + spacing,
-        z:
-          -COURSE_DIMENSIONS.width / 2 +
-          COURSE_DIMENSIONS.frameWidth / 2 +
-          COURSE_DIMENSIONS.legInset,
-      },
-      {
-        x: -COURSE_DIMENSIONS.length / 2 + spacing,
-        z:
-          COURSE_DIMENSIONS.width / 2 -
-          COURSE_DIMENSIONS.frameWidth / 2 -
-          COURSE_DIMENSIONS.legInset,
-      },
-      // 2. belső keresztlécnél
-      {
-        x: -COURSE_DIMENSIONS.length / 2 + 2 * spacing,
-        z:
-          -COURSE_DIMENSIONS.width / 2 +
-          COURSE_DIMENSIONS.frameWidth / 2 +
-          COURSE_DIMENSIONS.legInset,
-      },
-      {
-        x: -COURSE_DIMENSIONS.length / 2 + 2 * spacing,
-        z:
-          COURSE_DIMENSIONS.width / 2 -
-          COURSE_DIMENSIONS.frameWidth / 2 -
-          COURSE_DIMENSIONS.legInset,
-      },
       // Hátsó keresztlécnél
       {
-        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
+        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.frameDistEnd,
         z:
           -COURSE_DIMENSIONS.width / 2 +
           COURSE_DIMENSIONS.frameWidth / 2 +
           COURSE_DIMENSIONS.legInset,
       },
       {
-        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
+        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.frameDistEnd,
         z:
           COURSE_DIMENSIONS.width / 2 -
           COURSE_DIMENSIONS.frameWidth / 2 -

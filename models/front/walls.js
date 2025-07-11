@@ -82,35 +82,6 @@ export const elements = [
     },
   },
 
-  // Végfal - VÁLTOZATLAN
-  {
-    id: "wall_end",
-    name: "Végfal",
-    type: ELEMENT_TYPES.WALL,
-    material: "PINE_SOLID",
-    geometry: {
-      type: GEOMETRY_TYPES.BOX,
-      dimensions: {
-        width: COURSE_DIMENSIONS.width + 2 * COURSE_DIMENSIONS.sideWidth, // 92 cm
-        height: COURSE_DIMENSIONS.sideHeight, // 16 cm
-        length: COURSE_DIMENSIONS.sideWidth, // 5 cm
-      },
-    },
-    transform: {
-      position: {
-        x: COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.sideWidth / 2,
-        y:
-          COURSE_DIMENSIONS.turfThickness +
-          COURSE_DIMENSIONS.sideVerticalShift -
-          COURSE_DIMENSIONS.sideHeight / 2,
-        z: 0,
-      },
-    },
-    explode: {
-      offset: { x: 40, y: 0, z: 0 },
-    },
-  },
-
   // Kezdő záró elem - VÁLTOZATLAN
   {
     id: "wall_start",

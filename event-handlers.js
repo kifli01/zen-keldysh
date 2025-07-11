@@ -15,6 +15,7 @@ function setupEventListeners({
   sceneManager,
   elementManager,
   allMeshes,
+  sectionExploder,
 }) {
   // Szétszedés gomb
   const explodeBtn = document.getElementById("toggle-explode");
@@ -36,6 +37,30 @@ function setupEventListeners({
       }
     });
   }
+
+  // event-handlers.js - EGYSZERŰ verzió visszaállítása
+const sectionExplodeBtn = document.getElementById("toggle-section-explode");
+if (sectionExplodeBtn) {
+  sectionExplodeBtn.addEventListener("click", function () { // ✅ async eltávolítva
+    // ✅ elements paraméter hozzáadása
+    sectionExploder.toggleSections(allMeshes, elementManager.getAllElements());
+    
+    // UI állapot frissítése
+    const state = sectionExploder.getState();
+    sectionExplodeBtn.classList.toggle("active", state.isExploded);
+    
+    if (state.isExploded) {
+      sectionExplodeBtn.className = "icon-cuboid";
+    } else {
+      sectionExplodeBtn.className = "icon-boxes";
+    }
+      
+    console.log(`🚀 Szekció explode: ${state.isExploded ? 'BE' : 'KI'}`);
+    
+    // Render frissítés
+    sceneManager.renderer.render(sceneManager.scene, sceneManager.camera);
+  });
+}
 
   // Explode slider kezelése
   const explodeSlider = document.getElementById("explode-slider");
