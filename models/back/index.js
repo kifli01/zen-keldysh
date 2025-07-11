@@ -4,7 +4,7 @@ export const sectionConfig = {
   name: "Hátsó szekció", 
   position: { x: COURSE_DIMENSIONS.length / 2, y: 0, z: 0 }, // Jobbra eltolás
   sectionExplode: {
-    offset: { x: 100, y: 0, z: 0 }, // Jobbra mozgatás
+    offset: { x: 20, y: 0, z: 0 }, // Jobbra mozgatás
     duration: 1000, // ms
     easing: "easeInOut"
   },

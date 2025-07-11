@@ -4,7 +4,7 @@ export const sectionConfig = {
   name: "Összekötő szekció",
   position: { x: 0, y: 0, z: 0 }, // Eltolás pozíció
   sectionExplode: {
-    offset: { x: 0, y: -50, z: 0 }, // Lefelé mozgatás
+    offset: { x: 0, y: -20, z: 0 }, // Lefelé mozgatás
     duration: 800,
     easing: "easeInOut"
   }

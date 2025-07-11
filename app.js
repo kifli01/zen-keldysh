@@ -336,6 +336,7 @@ async function initialize() {
     exploder = new Exploder();
 
     sectionExploder = new SectionExploder();
+    sectionExploder.setViewModeManager(viewModeManager);
 
     // Szekció konfigurációk regisztrálása
     try {

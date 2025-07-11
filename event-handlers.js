@@ -38,36 +38,29 @@ function setupEventListeners({
     });
   }
 
-  // ✅ ÚJ: Szekció explode gomb
-  const sectionExplodeBtn = document.getElementById("toggle-section-explode");
-  if (sectionExplodeBtn) {
-    sectionExplodeBtn.addEventListener("click", function () {
-      sectionExploder.toggleSections(allMeshes);
+  // event-handlers.js - EGYSZERŰ verzió visszaállítása
+const sectionExplodeBtn = document.getElementById("toggle-section-explode");
+if (sectionExplodeBtn) {
+  sectionExplodeBtn.addEventListener("click", function () { // ✅ async eltávolítva
+    // ✅ elements paraméter hozzáadása
+    sectionExploder.toggleSections(allMeshes, elementManager.getAllElements());
+    
+    // UI állapot frissítése
+    const state = sectionExploder.getState();
+    sectionExplodeBtn.classList.toggle("active", state.isExploded);
+    
+    if (state.isExploded) {
+      sectionExplodeBtn.className = "icon-cuboid";
+    } else {
+      sectionExplodeBtn.className = "icon-boxes";
+    }
       
-      // UI állapot frissítése
-      const state = sectionExploder.getState();
-      sectionExplodeBtn.classList.toggle("active", state.isExploded);
-      
-      // Gomb ikon és tooltip frissítése
-      const icon = sectionExplodeBtn.querySelector('i');
-      if (icon) {
-        icon.setAttribute('data-lucide', state.isExploded ? 'layers-2' : 'layers');
-        // Lucide ikont újra renderelni kell
-        if (window.lucide) {
-          window.lucide.createIcons();
-        }
-      }
-      
-      sectionExplodeBtn.title = state.isExploded 
-        ? "Szekciók visszaállítása" 
-        : "Szekciók robbantása";
-        
-      console.log(`🚀 Szekció explode: ${state.isExploded ? 'BE' : 'KI'}`);
-      
-      // Render frissítés
-      sceneManager.renderer.render(sceneManager.scene, sceneManager.camera);
-    });
-  }
+    console.log(`🚀 Szekció explode: ${state.isExploded ? 'BE' : 'KI'}`);
+    
+    // Render frissítés
+    sceneManager.renderer.render(sceneManager.scene, sceneManager.camera);
+  });
+}
 
   // Explode slider kezelése
   const explodeSlider = document.getElementById("explode-slider");

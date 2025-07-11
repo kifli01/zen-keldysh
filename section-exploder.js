@@ -1,9 +1,16 @@
 class SectionExploder {
   constructor() {
-    this.sectionConfigs = new Map(); // sectionId -> config
+    this.sectionConfigs = new Map();
     this.isExploded = false;
-    this.originalPositions = new Map(); // elementId -> original position
-    this.explodedPositions = new Map(); // elementId -> exploded position
+    this.originalPositions = new Map();
+    this.explodedPositions = new Map();
+    this.animationDuration = 500; // Exploder-rel megegyező
+    this.viewModeManager = null; // ✅ ViewModeManager referencia
+  }
+
+  // ✅ ViewModeManager beállítása (exploder.js mintájára)
+  setViewModeManager(viewModeManager) {
+    this.viewModeManager = viewModeManager;
   }
 
   // Szekció konfiguráció regisztrálása
@@ -18,37 +25,28 @@ class SectionExploder {
       this.originalPositions.set(elementId, {
         x: mesh.position.x,
         y: mesh.position.y,
-        z: mesh.position.z
+        z: mesh.position.z,
       });
     });
-    console.log(`💾 ${this.originalPositions.size} eredeti pozíció mentve`);
+    console.log(`💾 ${this.originalPositions.size} eredeti pozíció mentve (szekció)`);
   }
 
-  // Szekció explode alkalmazása
-  explodeSections(meshes) {
+  // ✅ EGYSZERŰ: Szekció explode (exploder.js mintájára)
+  explodeSections(meshes, elements) {
     if (this.isExploded) return;
 
     let movedCount = 0;
 
-    meshes.forEach((mesh, elementId) => {
-      // Szekció ID kinyerése az element ID-ből
-      const sectionId = this.extractSectionId(elementId);
+    elements.forEach((element) => {
+      const mesh = meshes.get(element.id);
+      if (!mesh) return;
+
+      const sectionId = this.extractSectionId(element.id);
       const sectionConfig = this.sectionConfigs.get(sectionId);
 
       if (sectionConfig && sectionConfig.sectionExplode) {
-        const originalPos = this.originalPositions.get(elementId);
-        const explodeOffset = sectionConfig.sectionExplode.offset;
-
-        // Új pozíció számítása
-        const newPosition = {
-          x: originalPos.x + explodeOffset.x,
-          y: originalPos.y + explodeOffset.y,
-          z: originalPos.z + explodeOffset.z
-        };
-
-        // Pozíció alkalmazása
-        mesh.position.set(newPosition.x, newPosition.y, newPosition.z);
-        this.explodedPositions.set(elementId, newPosition);
+        // ✅ Exploder.js stílusú animáció hívás
+        this.explodeElement(mesh, element, sectionConfig);
         movedCount++;
       }
     });
@@ -57,37 +55,107 @@ class SectionExploder {
     console.log(`🚀 Szekciók robbantva: ${movedCount} elem mozgatva`);
   }
 
-  // Szekciók visszaállítása
-  resetSections(meshes) {
+  // ✅ EGYSZERŰ: Szekciók visszaállítása
+  resetSections(meshes, elements) {
     if (!this.isExploded) return;
 
     let restoredCount = 0;
 
-    this.originalPositions.forEach((originalPos, elementId) => {
-      const mesh = meshes.get(elementId);
-      if (mesh) {
-        mesh.position.set(originalPos.x, originalPos.y, originalPos.z);
+    elements.forEach((element) => {
+      const mesh = meshes.get(element.id);
+      if (!mesh) return;
+
+      const sectionId = this.extractSectionId(element.id);
+      const sectionConfig = this.sectionConfigs.get(sectionId);
+
+      if (sectionConfig) {
+        // ✅ Exploder.js stílusú reset
+        this.resetElement(mesh, element);
         restoredCount++;
       }
     });
 
-    this.explodedPositions.clear();
     this.isExploded = false;
     console.log(`🔄 Szekciók visszaállítva: ${restoredCount} elem`);
   }
 
-  // Toggle funkció
-  toggleSections(meshes) {
+  // ✅ Egyedi elem robbantása (exploder.js mintájára)
+  explodeElement(mesh, element, sectionConfig) {
+    const originalPos = this.originalPositions.get(element.id);
+    if (!originalPos || !sectionConfig.sectionExplode) return;
+
+    const explodeOffset = sectionConfig.sectionExplode.offset;
+
+    const newPosition = {
+      x: originalPos.x + explodeOffset.x,
+      y: originalPos.y + explodeOffset.y,
+      z: originalPos.z + explodeOffset.z,
+    };
+
+    // ✅ Exploder.js animateToPosition használata
+    this.animateToPosition(mesh, newPosition);
+  }
+
+  // ✅ Egyedi elem visszaállítása (exploder.js mintájára)
+  resetElement(mesh, element) {
+    const originalPos = this.originalPositions.get(element.id);
+    if (!originalPos) return;
+
+    // ✅ Exploder.js animateToPosition használata
+    this.animateToPosition(mesh, originalPos);
+  }
+
+  // ✅ PONTOSAN az exploder.js animateToPosition függvénye
+  animateToPosition(mesh, targetPosition, duration = this.animationDuration) {
+    const startPosition = {
+      x: mesh.position.x,
+      y: mesh.position.y,
+      z: mesh.position.z,
+    };
+
+    const startTime = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Easing function (ease-out) - exploder.js-ből
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+
+      // Interpoláció - exploder.js-ből
+      mesh.position.x = startPosition.x + (targetPosition.x - startPosition.x) * easedProgress;
+      mesh.position.y = startPosition.y + (targetPosition.y - startPosition.y) * easedProgress;
+      mesh.position.z = startPosition.z + (targetPosition.z - startPosition.z) * easedProgress;
+
+      // ✅ Wireframe pozíciók frissítése blueprint módban (exploder.js-ből)
+      if (
+        this.viewModeManager &&
+        this.viewModeManager.getCurrentMode() === "blueprint"
+      ) {
+        this.viewModeManager.updateWireframePositions(
+          new Map([[mesh.userData.elementId, mesh]])
+        );
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    animate();
+  }
+
+  // ✅ EGYSZERŰ: Toggle funkció (exploder.js mintájára)
+  toggleSections(meshes, elements) {
     if (this.isExploded) {
-      this.resetSections(meshes);
+      this.resetSections(meshes, elements);
     } else {
-      this.explodeSections(meshes);
+      this.explodeSections(meshes, elements);
     }
   }
 
   // Szekció ID kinyerése element ID-ből
   extractSectionId(elementId) {
-    // "front_top_plate" -> "front"
     const parts = elementId.split('_');
     return parts[0];
   }
@@ -97,7 +165,7 @@ class SectionExploder {
     return {
       isExploded: this.isExploded,
       registeredSections: Array.from(this.sectionConfigs.keys()),
-      movedElements: this.explodedPositions.size
+      hasOriginalPositions: this.originalPositions.size > 0,
     };
   }
 }

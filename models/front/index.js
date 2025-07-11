@@ -4,7 +4,7 @@ export const sectionConfig = {
   name: "Első szekció",
   position: { x: -COURSE_DIMENSIONS.length / 2, y: 0, z: 0 }, // Eltolás pozíció
   sectionExplode: {
-    offset: { x: -100, y: 0, z: 0 }, // Balra mozgatás
+    offset: { x: -20, y: 0, z: 0 }, // Balra mozgatás
     duration: 1000, // ms
     easing: "easeInOut"
   },
