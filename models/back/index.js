@@ -3,11 +3,11 @@ export const sectionConfig = {
   id: "back",
   name: "Hátsó szekció", 
   position: { x: COURSE_DIMENSIONS.length / 2, y: 0, z: 0 }, // Jobbra eltolás
-  bounds: {
-    length: 83.3,
-    startX: 41.7,
-    endX: 125
-  }
+  sectionExplode: {
+    offset: { x: 100, y: 0, z: 0 }, // Jobbra mozgatás
+    duration: 1000, // ms
+    easing: "easeInOut"
+  },
 };
 
 async function loadSectionElements() {

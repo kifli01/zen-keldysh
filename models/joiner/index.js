@@ -3,10 +3,10 @@ export const sectionConfig = {
   id: "joiner",
   name: "Összekötő szekció",
   position: { x: 0, y: 0, z: 0 }, // Eltolás pozíció
-  bounds: {
-    length: 83.3,
-    startX: -125,
-    endX: -41.7
+  sectionExplode: {
+    offset: { x: 0, y: -50, z: 0 }, // Lefelé mozgatás
+    duration: 800,
+    easing: "easeInOut"
   }
 };
 

@@ -34,6 +34,7 @@ let lightingManager;
 let hdrEnvironmentManager;
 let postProcessingManager;
 let allMeshes;
+let sectionExploder;
 
 // ÚJ v1.13.1: localStorage Láthatóság Mentés
 const VISIBILITY_STORAGE_KEY = 'minigolf_element_visibility';
@@ -333,6 +334,22 @@ async function initialize() {
     geometryBuilder.setTextureManager(textureManager);
     
     exploder = new Exploder();
+
+    sectionExploder = new SectionExploder();
+
+    // Szekció konfigurációk regisztrálása
+    try {
+      const frontSection = await import("./models/front/index.js");
+      sectionExploder.registerSectionConfig(frontSection.sectionConfig);
+      
+      const backSection = await import("./models/back/index.js");
+      sectionExploder.registerSectionConfig(backSection.sectionConfig);
+
+      const joinerSection = await import("./models/joiner/index.js");
+      sectionExploder.registerSectionConfig(joinerSection.sectionConfig);
+    } catch (error) {
+      console.warn("Szekció konfigurációk regisztrálási hiba:", error);
+    }
     
     // FRISSÍTETT: ViewModeManager v5.0.0 - Pure PBR
     viewModeManager = new ViewModeManager(sceneManager, geometryBuilder, textureManager);
@@ -412,6 +429,8 @@ async function initialize() {
     exploder.saveOriginalPositions(allMeshes);
     console.log("Eredeti pozíciók mentve");
 
+    sectionExploder.saveOriginalPositions(allMeshes);
+
     // HDR Environment inicializálása
     console.log("🌿 Meadow HDR Environment inicializálása...");
     try {
@@ -446,6 +465,7 @@ async function initialize() {
         sceneManager,
         elementManager,
         allMeshes,
+        sectionExploder,
       });
       console.log("Event listener-ek beállítva");
     }
@@ -762,6 +782,7 @@ window.sceneManager = () => sceneManager;
 window.csgManager = () => csgManager;
 window.viewModeManager = () => viewModeManager;
 window.exploder = () => exploder;
+window.sectionExploder = () => sectionExploder;
 window.textureManager = () => textureManager;
 
 // Pure PBR manager elérhetőség

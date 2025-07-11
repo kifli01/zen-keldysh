@@ -3,11 +3,11 @@ export const sectionConfig = {
   id: "front",
   name: "Első szekció",
   position: { x: -COURSE_DIMENSIONS.length / 2, y: 0, z: 0 }, // Eltolás pozíció
-  bounds: {
-    length: 83.3,
-    startX: -125,
-    endX: -41.7
-  }
+  sectionExplode: {
+    offset: { x: -100, y: 0, z: 0 }, // Balra mozgatás
+    duration: 1000, // ms
+    easing: "easeInOut"
+  },
 };
 
 async function loadSectionElements() {

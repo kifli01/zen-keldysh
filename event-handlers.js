@@ -15,6 +15,7 @@ function setupEventListeners({
   sceneManager,
   elementManager,
   allMeshes,
+  sectionExploder,
 }) {
   // Szétszedés gomb
   const explodeBtn = document.getElementById("toggle-explode");
@@ -34,6 +35,37 @@ function setupEventListeners({
       } else {
         explodeBtn.className = "icon-layers";
       }
+    });
+  }
+
+  // ✅ ÚJ: Szekció explode gomb
+  const sectionExplodeBtn = document.getElementById("toggle-section-explode");
+  if (sectionExplodeBtn) {
+    sectionExplodeBtn.addEventListener("click", function () {
+      sectionExploder.toggleSections(allMeshes);
+      
+      // UI állapot frissítése
+      const state = sectionExploder.getState();
+      sectionExplodeBtn.classList.toggle("active", state.isExploded);
+      
+      // Gomb ikon és tooltip frissítése
+      const icon = sectionExplodeBtn.querySelector('i');
+      if (icon) {
+        icon.setAttribute('data-lucide', state.isExploded ? 'layers-2' : 'layers');
+        // Lucide ikont újra renderelni kell
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      }
+      
+      sectionExplodeBtn.title = state.isExploded 
+        ? "Szekciók visszaállítása" 
+        : "Szekciók robbantása";
+        
+      console.log(`🚀 Szekció explode: ${state.isExploded ? 'BE' : 'KI'}`);
+      
+      // Render frissítés
+      sceneManager.renderer.render(sceneManager.scene, sceneManager.camera);
     });
   }
 
