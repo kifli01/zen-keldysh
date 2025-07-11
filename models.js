@@ -19,6 +19,11 @@ async function loadModels() {
     const backSection = await import("./models/back/index.js");
     const backElements = await backSection.loadSectionElements();
     models.push(...backElements);
+
+    // Összekötó szekció
+    const joinerSection = await import("./models/joiner/index.js");
+    const joinerElements = await joinerSection.loadSectionElements();
+    models.push(...joinerElements);
     
     // Alaplemez
     // const basePlate = await import("./models/plate.js");
