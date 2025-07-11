@@ -1,18 +1,8 @@
-// Section Front - Összefogó modul
+// section-front/index.js - PREFIX ALAPÚ MEGOLDÁS
 export const sectionConfig = {
-  id: "section_front",
+  id: "front",
   name: "Első szekció",
-  type: "section",
-  
-  transform: {
-    position: { x: -COURSE_DIMENSIONS.length, y: 0, z: 0 },
-    rotation: { x: 0, y: 0, z: 0 },
-  },
-  
-  explode: {
-    offset: { x: 0, y: 0, z: 0 },
-  },
-  
+  position: { x: -COURSE_DIMENSIONS.length / 2, y: 0, z: 0 }, // Eltolás pozíció
   bounds: {
     length: 83.3,
     startX: -125,
@@ -24,7 +14,7 @@ async function loadSectionElements() {
   const elements = [];
   
   try {
-    // Helyi elemek betöltése - EREDETI pozíciókkal
+    // Eredeti elemek betöltése
     const plate = await import("./plate.js");
     const turf = await import("./turf.js");
     const frame = await import("./frame.js");
@@ -32,37 +22,18 @@ async function loadSectionElements() {
     const legs = await import("./legs.js");
     const fasteners = await import("./fasteners.js");
     
-    // Elemek összegyűjtése - prefix és pozíció módosítás NÉLKÜL
+    // ✅ PREFIX HOZZÁADÁSA + POZÍCIÓ ELTOLÁS
     elements.push(
       ...addSectionPrefix(plate.elements, "front"),
       ...addSectionPrefix(turf.elements, "front"),
       ...addSectionPrefix(frame.elements, "front"),
       ...addSectionPrefix(walls.elements, "front"),
       ...addSectionPrefix(legs.elements, "front"),
-      // ...addSectionPrefix(fasteners.elements, "front")
+      ...addSectionPrefix(fasteners.elements, "front")
     );
     
-    // Szekció wrapper elem - GROUP geometriával
-    const sectionWrapper = {
-      id: sectionConfig.id,
-      name: sectionConfig.name,
-      type: "section",
-      geometry: {
-        type: "group", // GEOMETRY_TYPES.GROUP
-        elements: elements, // Gyerek elemek eredeti pozíciókkal
-      },
-      transform: sectionConfig.transform, // A GROUP pozíciója
-      explode: sectionConfig.explode,
-      display: {
-        visible: true,
-        opacity: 1,
-        wireframe: false,
-        castShadow: true,
-        receiveShadow: true,
-      }
-    };
-    
-    return [sectionWrapper]; // Egyetlen wrapper GROUP elem
+    console.log(`✅ Front szekció betöltve: ${elements.length} elem`);
+    return elements;
     
   } catch (error) {
     console.error("❌ Section front betöltési hiba:", error);
@@ -70,13 +41,42 @@ async function loadSectionElements() {
   }
 }
 
-function addSectionPrefix(elements, section) {
-  return elements.map(element => ({
-    ...element,
-    id: `${section}_${element.id}`,
-    sectionId: section,
-    originalId: element.id
-  }));
+// ✅ KULCS FÜGGVÉNY: Prefix + pozíció eltolás
+function addSectionPrefix(elements, sectionId) {
+  return elements.map(element => {
+    const originalPos = element.transform?.position || { x: 0, y: 0, z: 0 };
+    const sectionOffset = sectionConfig.position;
+    
+    return {
+      ...element,
+      // ✅ Új ID prefix-szel
+      id: `${sectionId}_${element.id}`,
+      
+      // ✅ Metadata megőrzése
+      sectionId: sectionId,
+      originalId: element.id,
+      
+      // ✅ POZÍCIÓ ELTOLÁS
+      transform: {
+        ...element.transform,
+        position: {
+          x: originalPos.x + sectionOffset.x,
+          y: originalPos.y + sectionOffset.y,
+          z: originalPos.z + sectionOffset.z,
+        }
+      },
+      
+      // ✅ Explode pozíció módosítása is
+      explode: element.explode ? {
+        ...element.explode,
+        offset: {
+          x: element.explode.offset.x + sectionOffset.x,
+          y: element.explode.offset.y,
+          z: element.explode.offset.z + sectionOffset.z,
+        }
+      } : undefined
+    };
+  });
 }
 
 export { loadSectionElements };
