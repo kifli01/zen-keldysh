@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Grass Roll Calculator v2</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .controls { text-align: center; margin-bottom: 30px; }
+        .control-group { display: inline-block; margin: 0 10px; vertical-align: top; }
+        .control-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 12px; }
+        input[type="number"] { width: 70px; padding: 5px; }
+        input[type="checkbox"] { margin-right: 5px; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        .main-content { display: flex; gap: 50px; }
+        .editor-section { flex: 0 0 auto; }
+        .summary-section { flex: 0 0 280px; background: #f5f5f5; padding: 15px; }
+        .grass-roll { width: 390px; height: 1300px; background: #2d5016; position: relative; }
+        .hole-grid { position: absolute; width: 500px; height: 1400px; background-image: radial-gradient(circle, #ccc 2px, transparent 2px); background-size: 19px 19px; opacity: 0.8; top: -50px; left: -50px; cursor: move; }
+        .course-layout { position: absolute; top: 25px; left: 25px; cursor: move; }
+        .course-frame { width: 160px; height: 600px; border: 1px dashed white; position: absolute; }
+        .course-half { width: 160px; height: 300px; border: 1px dashed yellow; position: absolute; }
+        .course-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 3px 6px; font-size: 10px; text-align: center; }
+        .half-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(100,100,0,0.8); color: white; padding: 2px 4px; font-size: 9px; text-align: center; }
+        .split-controls { background: #e8e8e8; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <div class="control-group">
+            <label>Roll Height (cm):</label>
+            <input type="number" id="rollHeight" value="650" min="100" max="1000">
+        </div>
+        <div class="control-group">
+            <label>Horizontal Spacing (cm):</label>
+            <input type="number" id="hSpacing" value="0" min="0" max="20" step="0.5">
+        </div>
+        <div class="control-group">
+            <label>Vertical Spacing (cm):</label>
+            <input type="number" id="vSpacing" value="0" min="0" max="50" step="0.5">
+        </div>
+        <button onclick="resetPos()">Reset Position</button>
+    </div>
+
+    <div class="split-controls">
+        <div class="control-group">
+            <label><input type="checkbox" id="splitCourses"> Split courses into halves (150×80cm)</label>
+        </div>
+        <div class="control-group">
+            <label>Half Spacing (cm):</label>
+            <input type="number" id="halfSpacing" value="0" min="0" max="20" step="0.5">
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="editor-section">
+            <div class="grass-roll" id="roll">
+                <div class="hole-grid" id="holes"></div>
+                <div class="course-layout" id="courses">
+                    <div class="course-frame" id="c1"><div class="course-label">Course 1<br>80×300cm</div></div>
+                    <div class="course-frame" id="c2"><div class="course-label">Course 2<br>80×300cm</div></div>
+                    <div class="course-frame" id="c3"><div class="course-label">Course 3<br>80×300cm</div></div>
+                    <div class="course-frame" id="c4"><div class="course-label">Course 4<br>80×300cm</div></div>
+                    
+                    <!-- Half sections (initially hidden) -->
+                    <div class="course-half" id="c1a" style="display: none;"><div class="half-label">1A<br>80×150cm</div></div>
+                    <div class="course-half" id="c1b" style="display: none;"><div class="half-label">1B<br>80×150cm</div></div>
+                    <div class="course-half" id="c2a" style="display: none;"><div class="half-label">2A<br>80×150cm</div></div>
+                    <div class="course-half" id="c2b" style="display: none;"><div class="half-label">2B<br>80×150cm</div></div>
+                    <div class="course-half" id="c3a" style="display: none;"><div class="half-label">3A<br>80×150cm</div></div>
+                    <div class="course-half" id="c3b" style="display: none;"><div class="half-label">3B<br>80×150cm</div></div>
+                    <div class="course-half" id="c4a" style="display: none;"><div class="half-label">4A<br>80×150cm</div></div>
+                    <div class="course-half" id="c4b" style="display: none;"><div class="half-label">4B<br>80×150cm</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-section">
+            <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">
+                Final Roll Size: 195cm × <span id="finalHeight">650</span>cm
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label>Price per m² (EUR):</label>
+                <input type="number" id="priceEur" value="33" min="0" step="0.01" style="width: 100%; margin-top: 3px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label>EUR to HUF rate:</label>
+                <input type="number" id="eurHuf" value="400" min="1" step="0.1" style="width: 100%; margin-top: 3px;">
+            </div>
+
+            <h3>Course Layout</h3>
+            <div id="layoutInfo">4 courses (80×300cm)</div>
+
+            <h3>Cost Calculation</h3>
+            <div>Total area: <span id="totalArea">12.68</span> m²</div>
+            <div>Price per m²: €<span id="priceDisplay">33.00</span> / <span id="priceHuf">13200</span> HUF</div>
+            <div>Net total: €<span id="netEur">418.44</span> / <span id="netHuf">167376</span> HUF</div>
+            <div>Gross total: €<span id="grossEur">531.42</span> / <span id="grossHuf">212568</span> HUF</div>
+        </div>
+    </div>
+
+    <script>
+        let holeX = -50, holeY = -50;
+        let courseX = 25, courseY = 25;
+        let dragging = false, dragType = '';
+        let startX, startY;
+
+        const holes = document.getElementById('holes');
+        const courses = document.getElementById('courses');
+        const roll = document.getElementById('roll');
+
+        // Drag handlers
+        holes.onmousedown = function(e) {
+            dragging = true;
+            dragType = 'holes';
+            startX = e.clientX - holeX;
+            startY = e.clientY - holeY;
+            e.preventDefault();
+        };
+
+        courses.onmousedown = function(e) {
+            dragging = true;
+            dragType = 'courses';
+            startX = e.clientX - courseX;
+            startY = e.clientY - courseY;
+            e.preventDefault();
+        };
+
+        document.onmousemove = function(e) {
+            if (!dragging) return;
+            if (dragType === 'holes') {
+                holeX = e.clientX - startX;
+                holeY = e.clientY - startY;
+                holes.style.left = holeX + 'px';
+                holes.style.top = holeY + 'px';
+            } else if (dragType === 'courses') {
+                courseX = e.clientX - startX;
+                courseY = e.clientY - startY;
+                courses.style.left = courseX + 'px';
+                courses.style.top = courseY + 'px';
+            }
+        };
+
+        document.onmouseup = function() {
+            dragging = false;
+            dragType = '';
+        };
+
+        // Update functions
+        function updateDimensions() {
+            const height = parseInt(document.getElementById('rollHeight').value);
+            const hSpacing = parseFloat(document.getElementById('hSpacing').value);
+            const vSpacing = parseFloat(document.getElementById('vSpacing').value);
+            const halfSpacing = parseFloat(document.getElementById('halfSpacing').value);
+            const splitMode = document.getElementById('splitCourses').checked;
+            
+            roll.style.height = (height * 2) + 'px';
+            
+            const hPx = hSpacing * 2;
+            const vPx = vSpacing * 2;
+            const halfPx = halfSpacing * 2;
+            
+            if (splitMode) {
+                // Hide full courses, show halves
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById('c' + i).style.display = 'none';
+                    document.getElementById('c' + i + 'a').style.display = 'block';
+                    document.getElementById('c' + i + 'b').style.display = 'block';
+                }
+                
+                // Position half courses
+                // Course 1 halves
+                document.getElementById('c1a').style.left = '0px';
+                document.getElementById('c1a').style.top = '0px';
+                document.getElementById('c1b').style.left = '0px';
+                document.getElementById('c1b').style.top = (300 + halfPx) + 'px';
+                
+                // Course 2 halves
+                document.getElementById('c2a').style.left = (160 + hPx) + 'px';
+                document.getElementById('c2a').style.top = '0px';
+                document.getElementById('c2b').style.left = (160 + hPx) + 'px';
+                document.getElementById('c2b').style.top = (300 + halfPx) + 'px';
+                
+                // Course 3 halves
+                document.getElementById('c3a').style.left = '0px';
+                document.getElementById('c3a').style.top = (600 + vPx) + 'px';
+                document.getElementById('c3b').style.left = '0px';
+                document.getElementById('c3b').style.top = (600 + vPx + 300 + halfPx) + 'px';
+                
+                // Course 4 halves
+                document.getElementById('c4a').style.left = (160 + hPx) + 'px';
+                document.getElementById('c4a').style.top = (600 + vPx) + 'px';
+                document.getElementById('c4b').style.left = (160 + hPx) + 'px';
+                document.getElementById('c4b').style.top = (600 + vPx + 300 + halfPx) + 'px';
+                
+                document.getElementById('layoutInfo').textContent = '8 half-courses (80×150cm)';
+            } else {
+                // Show full courses, hide halves
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById('c' + i).style.display = 'block';
+                    document.getElementById('c' + i + 'a').style.display = 'none';
+                    document.getElementById('c' + i + 'b').style.display = 'none';
+                }
+                
+                // Position full courses
+                document.getElementById('c1').style.left = '0px';
+                document.getElementById('c1').style.top = '0px';
+                
+                document.getElementById('c2').style.left = (160 + hPx) + 'px';
+                document.getElementById('c2').style.top = '0px';
+                
+                document.getElementById('c3').style.left = '0px';
+                document.getElementById('c3').style.top = (600 + vPx) + 'px';
+                
+                document.getElementById('c4').style.left = (160 + hPx) + 'px';
+                document.getElementById('c4').style.top = (600 + vPx) + 'px';
+                
+                document.getElementById('layoutInfo').textContent = '4 courses (80×300cm)';
+            }
+            
+            document.getElementById('finalHeight').textContent = height;
+            updateCalc();
+        }
+
+        function updateCalc() {
+            const height = parseInt(document.getElementById('rollHeight').value);
+            const priceEur = parseFloat(document.getElementById('priceEur').value);
+            const eurHuf = parseFloat(document.getElementById('eurHuf').value);
+            
+            const area = (195 * height) / 10000;
+            const priceHuf = priceEur * eurHuf;
+            const netEur = area * priceEur;
+            const netHuf = area * priceHuf;
+            const grossEur = netEur * 1.27;
+            const grossHuf = netHuf * 1.27;
+            
+            document.getElementById('totalArea').textContent = area.toFixed(2);
+            document.getElementById('priceDisplay').textContent = priceEur.toFixed(2);
+            document.getElementById('priceHuf').textContent = Math.round(priceHuf);
+            document.getElementById('netEur').textContent = netEur.toFixed(2);
+            document.getElementById('netHuf').textContent = Math.round(netHuf);
+            document.getElementById('grossEur').textContent = grossEur.toFixed(2);
+            document.getElementById('grossHuf').textContent = Math.round(grossHuf);
+        }
+
+        function resetPos() {
+            holeX = -50;
+            holeY = -50;
+            courseX = 25;
+            courseY = 25;
+            holes.style.left = holeX + 'px';
+            holes.style.top = holeY + 'px';
+            courses.style.left = courseX + 'px';
+            courses.style.top = courseY + 'px';
+        }
+
+        // Event listeners
+        document.getElementById('rollHeight').onchange = updateDimensions;
+        document.getElementById('hSpacing').onchange = updateDimensions;
+        document.getElementById('vSpacing').onchange = updateDimensions;
+        document.getElementById('halfSpacing').onchange = updateDimensions;
+        document.getElementById('splitCourses').onchange = updateDimensions;
+        document.getElementById('priceEur').onchange = updateCalc;
+        document.getElementById('eurHuf').onchange = updateCalc;
+
+        // Initialize
+        updateDimensions();
+    </script>
+</body>
+</html>
