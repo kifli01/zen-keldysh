@@ -31,8 +31,8 @@ const ELEMENT_TYPES = {
 // JAVÍTOTT v1.8.1: Anyag definíciók - konzisztens objektum struktúra
 const MATERIALS = {
   PINE_PLYWOOD: {
-    name: "Lucfenyő rétegelt lemez",
-    density: 0.5, // g/cm³
+    name: "Nyír rétegelt lemez",
+    density: 0.70, // g/cm³
     color: 0xd3e3ff,
     baseColor: 0xd3e3ff,
     shininess: 10,
@@ -66,8 +66,8 @@ const MATERIALS = {
   },
   
   PINE_SOLID: {
-    name: "Lucfenyő tömörfa",
-    density: 0.45, // g/cm³
+    name: "Borovi fenyő tömörfa",
+    density: 0.53, // g/cm³
     color: 0xd3e3ff,
     baseColor: 0xd3e3ff,
     shininess: 0,
@@ -102,7 +102,7 @@ const MATERIALS = {
   
   ARTIFICIAL_GRASS: {
     name: "Namgrass Silva",
-    density: 0.2, // g/cm³
+    density: 0.204, // g/cm³
     color: 0x95c5ff,
     baseColor: 0x95c5ff,
     shininess: 2,
