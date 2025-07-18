@@ -11,14 +11,14 @@ export const elements = [
       dimensions: {
         width: COURSE_DIMENSIONS.width, // 80 cm
         height: COURSE_DIMENSIONS.turfThickness, // 0.6 cm
-        length: COURSE_DIMENSIONS.length, // 250 cm
+        length: COURSE_DIMENSIONS.length * 2, // 250 cm
       },
       // ÚJ: CSG művelet - felső lyuk mérete a műfűhöz
       csgOperations: [
         createCircleHole({
           radius: 5.4,
           position: {
-            x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.holePositionX,
+            x: COURSE_DIMENSIONS.length - COURSE_DIMENSIONS.holePositionX,
             y: 0,
             z: 0,
           },

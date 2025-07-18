@@ -348,6 +348,9 @@ async function initialize() {
 
       const joinerSection = await import("./models/joiner/index.js");
       sectionExploder.registerSectionConfig(joinerSection.sectionConfig);
+
+      const topSection = await import("./models/top/index.js");
+      sectionExploder.registerSectionConfig(topSection.sectionConfig);
     } catch (error) {
       console.warn("Szekció konfigurációk regisztrálási hiba:", error);
     }

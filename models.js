@@ -20,14 +20,15 @@ async function loadModels() {
     const backElements = await backSection.loadSectionElements();
     models.push(...backElements);
 
+    // Top szekció
+    const topSection = await import("./models/top/index.js");
+    const topElements = await topSection.loadSectionElements();
+    models.push(...topElements);
+
     // Összekötó szekció
     const joinerSection = await import("./models/joiner/index.js");
     const joinerElements = await joinerSection.loadSectionElements();
     models.push(...joinerElements);
-    
-    // Labda
-    const ball = await import("./models/ball.js");
-    models.push(...ball.elements);
 
 
     console.log(`✅ ${models.length} elem betöltve`);
