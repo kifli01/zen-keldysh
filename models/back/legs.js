@@ -5,14 +5,14 @@ export const elements = [
     const legPositions = [
       // Első keresztlécnél (bal és jobb oldal)
       {
-        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.frameDistEnd,
+        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.frameWidth + COURSE_DIMENSIONS.frameDistEnd,
         z:
           -COURSE_DIMENSIONS.width / 2 +
           COURSE_DIMENSIONS.frameWidth / 2 +
           COURSE_DIMENSIONS.legInset,
       },
       {
-        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 + COURSE_DIMENSIONS.frameDistEnd,
+        x: -COURSE_DIMENSIONS.length / 2 + COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.frameWidth + COURSE_DIMENSIONS.frameDistEnd,
         z:
           COURSE_DIMENSIONS.width / 2 -
           COURSE_DIMENSIONS.frameWidth / 2 -
@@ -20,14 +20,14 @@ export const elements = [
       },
       // Hátsó keresztlécnél
       {
-        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
+        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.frameWidth,
         z:
           -COURSE_DIMENSIONS.width / 2 +
           COURSE_DIMENSIONS.frameWidth / 2 +
           COURSE_DIMENSIONS.legInset,
       },
       {
-        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2,
+        x: COURSE_DIMENSIONS.length / 2 - COURSE_DIMENSIONS.crossBeamWidth / 2 - COURSE_DIMENSIONS.frameWidth,
         z:
           COURSE_DIMENSIONS.width / 2 -
           COURSE_DIMENSIONS.frameWidth / 2 -

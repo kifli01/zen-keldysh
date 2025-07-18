@@ -269,7 +269,7 @@ const COURSE_DIMENSIONS = {
   sideVerticalShift: 6.9, // 7 cm-re a borítástól felfelé
   legDiameter: 4, // 6 cm átmérőjű lábak
   legHeight: 6, // 12 cm magas lábak
-  legInset: 8, // 3cm-rel bentebb
+  legInset: 0, // 3cm-rel bentebb
   crossBeamCount: 2, // belső keresztlécek száma
   crossBeamWidth: 5, // keresztlécek szélessége
   fastenerThickness: 3,
