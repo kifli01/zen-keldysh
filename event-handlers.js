@@ -908,7 +908,19 @@ async function exportGLTF(
     link.style.display = "none";
     document.body.appendChild(link);
 
-    const blob = new Blob([result], {
+    // Debug információ hozzáadása
+    console.log("Export result type:", typeof result);
+    console.log("Is binary export:", binary);
+
+    // JAVÍTOTT blob létrehozás
+    let output;
+    if (binary) {
+      output = result; // Binary esetén (ArrayBuffer/Uint8Array) közvetlenül használható
+    } else {
+      output = JSON.stringify(result, null, 2); // JSON esetén stringifálni kell
+    }
+
+    const blob = new Blob([output], {
       type: binary ? "application/octet-stream" : "application/json",
     });
 
