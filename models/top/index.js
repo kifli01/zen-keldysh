@@ -17,11 +17,13 @@ async function loadSectionElements() {
   try {
     const turf = await import("./turf.js");
     const ball = await import("./ball.js");
+    const sheets = await import("./sheets.js");
 
     // ✅ PREFIX HOZZÁADÁSA + POZÍCIÓ ELTOLÁS
     elements.push(
       ...addSectionPrefix(turf.elements, "top", sectionConfig),
       ...addSectionPrefix(ball.elements, "top", sectionConfig),
+      ...addSectionPrefix(sheets.elements, "top", sectionConfig),
     );
     
     console.log(`✅ Top szekció betöltve: ${elements.length} elem`);

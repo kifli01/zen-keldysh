@@ -176,7 +176,7 @@ const MATERIALS = {
     name: "Galvanizált acél",
     density: 7.8, // g/cm³
     color: 0xffffff,
-    baseColor: 0xc2c0c0,
+    baseColor: 0xffffff,
     shininess: 60,
     
     // LEGACY textúra (fallback)

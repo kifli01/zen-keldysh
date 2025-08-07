@@ -245,6 +245,42 @@ function smallCorner(params) {
   };
 }
 
+function sideSheet(params) {
+  const {
+    id,
+    position,
+    explodeOffset,
+    rotation = { x: 0, y: 0, z: 0 },
+  } = params;
+
+  const length = 14; 
+  const width = 2; 
+  const thickness = 0.3;
+
+  return {
+    id: id,
+    name: "Oldalsó rögzítőlap",
+    type: ELEMENT_TYPES.PART,
+    material: "GALVANIZED_STEEL",
+    geometry: {
+      type: GEOMETRY_TYPES.BOX,
+      dimensions: {
+        length: length, 
+        width: width, 
+        height: thickness,
+      },
+    },
+    transform: {
+      position: position,
+      rotation: rotation,
+    },
+    explode: {
+      offset: explodeOffset,
+    },
+  };
+}
+
+
 function screw(params) {
   const {
     id,
@@ -504,4 +540,5 @@ window.part = {
   screwHexBig,
   screwCskSmall,
   tessauerSmall,
+  sideSheet
 };
