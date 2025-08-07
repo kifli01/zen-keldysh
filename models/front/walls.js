@@ -78,7 +78,7 @@ export const elements = [
       },
     },
     explode: {
-      offset: { x: -40, y: 0, z: 0 },
+      offset: { x: -20, y: 0, z: 0 },
     },
   },
 ];
