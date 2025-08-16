@@ -272,7 +272,7 @@ const COURSE_DIMENSIONS = {
   legInset: 0.5, // 3cm-rel bentebb
   legShift: 2.5,
   crossBeamCount: 2, // belső keresztlécek száma
-  crossBeamWidth: 5, // keresztlécek szélessége
+  crossBeamWidth: 4.5, // keresztlécek szélessége
   fastenerThickness: 3,
   triangleLegLength: 9,
   triangleShift: 0.4,
