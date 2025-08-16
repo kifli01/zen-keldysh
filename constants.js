@@ -261,19 +261,20 @@ const COURSE_DIMENSIONS = {
   holeRadius: 5.4, // átmérő: 10.8 cm
   holePositionX: 50, // A lyuk pozíciója a pálya végétől (cm)
   frontWidth: 1.5, // 2cm első takaró léc
-  frameWidth: 5, // 12 cm széles lécek
+  frameWidth: 4.5, // 12 cm széles lécek
   frameHeight: 3, // 3 cm magas lécek
   frameDistEnd: 50,
   sideWidth: 3.5, // 5 cm széles oldallécek
   sideHeight: 14, // 16 cm magas oldallécek
   sideVerticalShift: 6.9, // 7 cm-re a borítástól felfelé
-  legDiameter: 4, // 6 cm átmérőjű lábak
+  legDiameter: 4.5, // 6 cm átmérőjű lábak
   legHeight: 6, // 12 cm magas lábak
-  legInset: 0, // 3cm-rel bentebb
+  legInset: 0.5, // 3cm-rel bentebb
+  legShift: 2.5,
   crossBeamCount: 2, // belső keresztlécek száma
   crossBeamWidth: 5, // keresztlécek szélessége
   fastenerThickness: 3,
-  triangleLegLength: 8,
+  triangleLegLength: 9,
   triangleShift: 0.4,
   trapezoidHeight: 10,
   trapezoidTopWidth: 20,
