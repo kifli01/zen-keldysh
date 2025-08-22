@@ -1,9 +1,10 @@
 const sideSheetFromSideTop = 2.5;
-const sheetInset = 0.12;
+const sheetInset = 0;
 
 export const elements = [
   window.part.sideSheet({
     id: "right_side_sheet",
+    name: "Jobb oldali rögzítőlap",
     position: { 
         x: 0, 
         y: COURSE_DIMENSIONS.sideVerticalShift - sideSheetFromSideTop, 
@@ -14,6 +15,7 @@ export const elements = [
   }),
   window.part.sideSheet({
     id: "left_side_sheet",
+    name: "Bal oldali rögzítőlap", 
     position: { 
         x: 0, 
         y: COURSE_DIMENSIONS.sideVerticalShift - sideSheetFromSideTop, 
@@ -24,6 +26,7 @@ export const elements = [
   }),
   window.part.sideSheet({
     id: "front_sheet",
+    name: "Első oldali cégér",
     position: { 
         x: - COURSE_DIMENSIONS.length - COURSE_DIMENSIONS.frontWidth + sheetInset, 
         y: - 1.5, 
@@ -34,6 +37,7 @@ export const elements = [
   }),
   window.part.productSheet({
     id: "product_sheet",
+    name: "Hátsó oldali cégér",
     position: { 
         x: COURSE_DIMENSIONS.length + COURSE_DIMENSIONS.sideWidth - sheetInset, 
         y: 4, 

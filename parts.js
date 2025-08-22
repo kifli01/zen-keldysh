@@ -248,18 +248,19 @@ function smallCorner(params) {
 function sideSheet(params) {
   const {
     id,
+    name,
     position,
     explodeOffset,
     rotation = { x: 0, y: 0, z: 0 },
   } = params;
 
-  const length = 14; 
+  const length = 10; 
   const width = 2; 
   const thickness = 0.3;
 
   return {
     id: id,
-    name: "Oldalsó rögzítőlap",
+    name: name,
     type: ELEMENT_TYPES.PART,
     material: "GALVANIZED_STEEL",
     geometry: {
@@ -283,18 +284,19 @@ function sideSheet(params) {
 function productSheet(params) {
   const {
     id,
+    name,
     position,
     explodeOffset,
     rotation = { x: 0, y: 0, z: 0 },
   } = params;
 
-  const length = 20; 
-  const width = 4; 
+  const length = 16; 
+  const width = 5; 
   const thickness = 0.3;
 
   return {
     id: id,
-    name: "Oldalsó rögzítőlap",
+    name,
     type: ELEMENT_TYPES.PART,
     material: "GALVANIZED_STEEL",
     geometry: {

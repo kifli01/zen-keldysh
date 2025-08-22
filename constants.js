@@ -177,7 +177,7 @@ const MATERIALS = {
     density: 7.8, // g/cm³
     color: 0xededed,
     baseColor: 0xededed,
-    shininess: 60,
+    shininess: 20,
     
     // LEGACY textúra (fallback)
     imagePath: 'textures/steel.jpg',
