@@ -254,7 +254,7 @@ function sideSheet(params) {
     rotation = { x: 0, y: 0, z: 0 },
   } = params;
 
-  const length = 12; 
+  const length = 14; 
   const width = 2; 
   const thickness = 0.3;
 
@@ -290,7 +290,7 @@ function productSheet(params) {
     rotation = { x: 0, y: 0, z: 0 },
   } = params;
 
-  const length = 18; 
+  const length = 20; 
   const width = 2; 
   const thickness = 0.3;
 
